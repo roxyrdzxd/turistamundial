@@ -2,6 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+
+interface ChatMessageRow {
+  id: string
+  session_id: string
+  user_id: string
+  message: string
+  created_at: string
+}
 
 interface Message {
   id: string
@@ -45,7 +54,7 @@ export default function Chat({ sessionId, currentUserId }: ChatProps) {
           table: 'chat_messages',
           filter: `session_id=eq.${sessionId}`,
         },
-        async (payload) => {
+        async (payload: RealtimePostgresChangesPayload<ChatMessageRow>) => {
           try {
             // Obtener el perfil del usuario
             const { data: profile } = await supabase
