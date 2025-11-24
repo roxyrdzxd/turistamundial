@@ -179,18 +179,6 @@ export async function POST(request: Request) {
         },
       })
 
-    // Obtener información de propiedad en venta si aplica
-    let propertyForSale = null
-    if (ownerCountry && ownerCountry.is_for_sale && ownerCountry.sale_price) {
-      const owner = players?.find(p => p.id === ownerCountry.player_id)
-      if (owner && owner.id !== currentPlayer.id) {
-        propertyForSale = {
-          playerCountryId: ownerCountry.id,
-          salePrice: ownerCountry.sale_price,
-        }
-      }
-    }
-
     return NextResponse.json({
       success: true,
       diceResult: total,
