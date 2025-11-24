@@ -203,7 +203,7 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
           // Buscar si el país está comprado
           const ownedCountry = playerCountries.find(pc => pc.country_id === country.id)
           const owner = ownedCountry ? players.find(p => p.id === ownedCountry.player_id) : null
-          const ownerColor = owner ? PLAYER_COLORS[owner.color] : null
+          const ownerColor = owner ? PLAYER_COLORS[owner.color] || undefined : undefined
           
           return (
             <div
@@ -230,12 +230,12 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
                 {/* Fondo con gradiente */}
                 <div 
                   className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity"
-                  style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged ? ownerColor : continentColor }}
+                  style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor ? ownerColor : continentColor }}
                 />
                 {/* Indicador de color del continente */}
                 <div 
                   className="absolute top-0 left-0 right-0 h-1"
-                  style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged ? ownerColor : continentColor }}
+                  style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor ? ownerColor : continentColor }}
                 />
                 {/* Indicador de propiedad comprada */}
                 {ownedCountry && !ownedCountry.is_mortgaged && owner && (
