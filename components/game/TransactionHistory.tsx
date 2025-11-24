@@ -9,6 +9,7 @@ interface Transaction {
   move_data: {
     country_name?: string
     amount?: number
+    price?: number
     action_taken?: string
     die1?: number
     die2?: number
