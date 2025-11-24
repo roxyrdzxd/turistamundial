@@ -109,9 +109,21 @@ export default function CountryCarousel({
   // Encontrar el índice de la casilla actual
   useEffect(() => {
     if (currentPlayer) {
-      const index = sortedCountries.findIndex(c => c.position === currentPosition)
-      if (index !== -1) {
+      // Si es una casilla especial, encontrar la casilla más cercana
+      if (SPECIAL_SQUARES[currentPosition]) {
+        // Para casillas especiales, mostrar la siguiente casilla disponible
+        let index = sortedCountries.findIndex(c => c.position > currentPosition)
+        if (index === -1) {
+          // Si no hay casilla después, mostrar la primera
+          index = 0
+        }
         setCurrentIndex(index)
+      } else {
+        // Para casillas normales, buscar la exacta
+        const index = sortedCountries.findIndex(c => c.position === currentPosition)
+        if (index !== -1) {
+          setCurrentIndex(index)
+        }
       }
     }
   }, [currentPlayer?.position, sortedCountries, currentPosition])
@@ -126,10 +138,19 @@ export default function CountryCarousel({
   }
 
   const goToCurrent = () => {
-    console.log('goToCurrent called, currentPosition:', currentPosition)
-    console.log('sortedCountries length:', sortedCountries.length)
+    // Si es una casilla especial, no hay país en esa posición
+    // Mostrar la siguiente casilla disponible
+    if (SPECIAL_SQUARES[currentPosition]) {
+      let index = sortedCountries.findIndex(c => c.position > currentPosition)
+      if (index === -1) {
+        // Si no hay casilla después, mostrar la primera
+        index = 0
+      }
+      setCurrentIndex(index)
+      return
+    }
     
-    // Buscar la casilla exacta
+    // Para casillas normales, buscar la exacta
     let index = sortedCountries.findIndex(c => c.position === currentPosition)
     
     // Si no se encuentra exacta, buscar la más cercana después
@@ -153,7 +174,6 @@ export default function CountryCarousel({
       index = 0
     }
     
-    console.log('Setting currentIndex to:', index)
     setCurrentIndex(index)
   }
 
@@ -182,8 +202,15 @@ export default function CountryCarousel({
   }
 
   const displayedCountry = sortedCountries[currentIndex]
-  const isCurrentPosition = displayedCountry?.position === currentPosition
   const isSpecialSquare = SPECIAL_SQUARES[displayedCountry?.position || -1]
+  const isOnSpecialSquare = SPECIAL_SQUARES[currentPosition]
+  
+  // Verificar si estamos mostrando la posición correcta
+  // Para casillas especiales, consideramos que estamos en la posición correcta si mostramos la siguiente casilla
+  const isCurrentPosition = isOnSpecialSquare 
+    ? (displayedCountry && displayedCountry.position > currentPosition && 
+       (currentIndex === 0 || sortedCountries[currentIndex - 1]?.position < currentPosition))
+    : displayedCountry?.position === currentPosition
 
   // Información de propiedad
   const ownedCountry = displayedCountry
@@ -520,8 +547,8 @@ export default function CountryCarousel({
         </div>
       </div>
 
-      {/* Botón para ir a tu posición */}
-      {!isCurrentPosition && currentPlayer && (
+      {/* Botón para ir a tu posición - Solo mostrar si no estamos en la posición correcta */}
+      {!isCurrentPosition && currentPlayer && !isOnSpecialSquare && (
         <button
           onClick={(e) => {
             e.preventDefault()
@@ -532,6 +559,18 @@ export default function CountryCarousel({
         >
           📍 Ir a mi posición (Casilla {currentPosition})
         </button>
+      )}
+      
+      {/* Mensaje para casillas especiales */}
+      {isOnSpecialSquare && !isCurrentPosition && currentPlayer && (
+        <div className="mt-4 w-full bg-yellow-50 border-2 border-yellow-400 rounded-lg p-3 text-center">
+          <p className="text-yellow-800 font-semibold text-sm">
+            {SPECIAL_SQUARES[currentPosition].emoji} Estás en: {SPECIAL_SQUARES[currentPosition].name}
+          </p>
+          <p className="text-yellow-700 text-xs mt-1">
+            {SPECIAL_SQUARES[currentPosition].description}
+          </p>
+        </div>
       )}
     </div>
   )
