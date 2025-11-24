@@ -23,7 +23,7 @@ Ejecuta el archivo `012_create_sounds_bucket.sql` en el SQL Editor de Supabase p
 
 Sube los siguientes archivos al bucket `sounds`:
 
-- `dice-roll.mp3` - Sonido al tirar los dados
+- `dice-roll.wav` - Sonido al tirar los dados ✅ (Ya subido)
 - `buy-property.mp3` - Sonido al comprar una propiedad
 - `pay-toll.mp3` - Sonido al pagar peaje
 - `money-received.mp3` - Sonido al recibir dinero (bonus de inicio, etc.)
@@ -33,11 +33,18 @@ Sube los siguientes archivos al bucket `sounds`:
 - `victory.mp3` - Sonido de victoria/logro
 - `error.mp3` - Sonido de error
 
+**Nota**: El sistema soporta múltiples formatos de audio (.mp3, .wav, .ogg, etc.). Puedes usar el formato que prefieras para cada sonido.
+
 ### 4. Verificar las URLs
 
 Las URLs de los sonidos seguirán este formato:
 ```
-https://[tu-proyecto].supabase.co/storage/v1/object/public/sounds/[nombre-archivo].mp3
+https://[tu-proyecto].supabase.co/storage/v1/object/public/sounds/[nombre-archivo].[extensión]
+```
+
+Ejemplo real (ya configurado):
+```
+https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/sounds/dice-roll.wav
 ```
 
 El sistema automáticamente construirá estas URLs usando la variable de entorno `NEXT_PUBLIC_SUPABASE_URL`.
@@ -81,10 +88,12 @@ El sistema automáticamente construirá estas URLs usando la variable de entorno
 
 ## Formato
 
-- **Formato**: MP3
-- **Calidad**: 128-192 kbps es suficiente para sonidos cortos
+- **Formatos soportados**: MP3, WAV, OGG (cualquier formato soportado por el navegador)
+- **Calidad**: 
+  - MP3: 128-192 kbps es suficiente para sonidos cortos
+  - WAV: Sin compresión, mejor calidad pero archivos más grandes
 - **Volumen**: Normalizar todos los sonidos a un volumen similar
-- **Tamaño**: Mantener archivos pequeños (< 200KB cada uno) para carga rápida
+- **Tamaño**: Mantener archivos pequeños (< 500KB cada uno) para carga rápida
 
 ## Notas
 
