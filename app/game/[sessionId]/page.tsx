@@ -603,7 +603,7 @@ export default function GamePage() {
                     </p>
                     <div className="flex gap-2">
                       <button
-                        onClick={handleBuyCountry}
+                        onClick={() => handleBuyCountry()}
                         className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition font-semibold"
                       >
                         ✅ Comprar
