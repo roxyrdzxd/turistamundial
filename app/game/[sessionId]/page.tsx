@@ -10,6 +10,7 @@ import DiceAnimation from '@/components/game/DiceAnimation'
 import TransactionHistory from '@/components/game/TransactionHistory'
 import Chat from '@/components/game/Chat'
 import PropertySaleModal from '@/components/game/PropertySaleModal'
+import BankModal from '@/components/game/BankModal'
 import SoundSettings from '@/components/game/SoundSettings'
 import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly } from '@/lib/game/gameEngine'
@@ -556,6 +557,92 @@ export default function GamePage() {
     }
   }
 
+  const handleMortgage = async (playerCountryId: string) => {
+    try {
+      const response = await fetch('/api/game/mortgage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          playerCountryId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al hipotecar propiedad')
+      }
+
+      toast.showSuccess(data.message)
+      soundManager?.play('money_received')
+      fetchSession()
+    } catch (err: any) {
+      toast.showError(err.message)
+      soundManager?.play('error')
+    }
+  }
+
+  const handleUnmortgage = async (playerCountryId: string) => {
+    try {
+      const response = await fetch('/api/game/unmortgage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          playerCountryId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al deshipotecar propiedad')
+      }
+
+      toast.showSuccess(data.message)
+      soundManager?.play('pay_toll')
+      fetchSession()
+    } catch (err: any) {
+      toast.showError(err.message)
+      soundManager?.play('error')
+    }
+  }
+
+  const handleSellBuild = async (playerCountryId: string, houses: number, hotels: number) => {
+    try {
+      const response = await fetch('/api/game/sell-build', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          playerCountryId,
+          houses,
+          hotels,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al vender construcciones')
+      }
+
+      toast.showSuccess(data.message)
+      soundManager?.play('money_received')
+      fetchSession()
+    } catch (err: any) {
+      toast.showError(err.message)
+      soundManager?.play('error')
+    }
+  }
+
   const handleBuyCountry = async (countryId?: string) => {
     const countryToBuy = countryId ? countries.find(c => c.id === countryId) : currentCountry
     if (!countryToBuy) return
@@ -1090,12 +1177,25 @@ export default function GamePage() {
                                 </p>
                               </div>
                             </div>
-                            {!prop.is_mortgaged && (
-                              <div className="mt-2 pt-2 border-t border-white/10">
-                                {prop.is_for_sale ? (
+                            <div className="mt-2 pt-2 border-t border-white/10 flex gap-2">
+                              <BankModal
+                                property={{
+                                  id: prop.id,
+                                  country: prop.country,
+                                  houses: prop.houses || 0,
+                                  hotels: prop.hotels || 0,
+                                  is_mortgaged: prop.is_mortgaged || false,
+                                }}
+                                playerMoney={myPlayer.money}
+                                onMortgage={() => handleMortgage(prop.id)}
+                                onUnmortgage={() => handleUnmortgage(prop.id)}
+                                onSellBuild={(houses, hotels) => handleSellBuild(prop.id, houses, hotels)}
+                              />
+                              {!prop.is_mortgaged && (
+                                prop.is_for_sale ? (
                                   <button
                                     onClick={() => handleSellProperty(prop.id, 0, false)}
-                                    className="w-full bg-red-500/80 hover:bg-red-500 text-white text-xs py-1 px-2 rounded transition"
+                                    className="flex-1 bg-red-500/80 hover:bg-red-500 text-white text-xs py-1 px-2 rounded transition"
                                   >
                                     ❌ Retirar de venta
                                   </button>
@@ -1104,9 +1204,9 @@ export default function GamePage() {
                                     property={prop}
                                     onSell={(price) => handleSellProperty(prop.id, price, true)}
                                   />
-                                )}
-                              </div>
-                            )}
+                                )
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>

@@ -216,6 +216,34 @@ export function canAfford(player: Player, amount: number): boolean {
 }
 
 /**
+ * Calcula el valor de hipoteca de una propiedad (50% del precio original)
+ */
+export function getMortgageValue(country: Country): number {
+  return Math.floor(country.price * 0.5)
+}
+
+/**
+ * Calcula el costo para deshipotecar (hipoteca + 10% de interés)
+ */
+export function getUnmortgageCost(country: Country): number {
+  const mortgageValue = getMortgageValue(country)
+  return Math.floor(mortgageValue * 1.1) // 110% del valor de hipoteca
+}
+
+/**
+ * Calcula el valor de venta de casas/hoteles (50% del precio de construcción)
+ */
+export function getSellBuildValue(
+  country: Country,
+  houses: number,
+  hotels: number
+): number {
+  const houseValue = Math.floor(country.house_price * 0.5) * houses
+  const hotelValue = Math.floor(country.hotel_price * 0.5) * hotels
+  return houseValue + hotelValue
+}
+
+/**
  * Calcula el valor total de las propiedades de un jugador
  */
 export function getPlayerNetWorth(
