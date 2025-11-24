@@ -115,7 +115,6 @@ export async function POST(request: Request) {
     }
 
     // 3. Agregar dinero al vendedor
-    const seller = playerCountry.seller
     if (seller) {
       const { error: sellerMoneyError } = await supabase
         .from('session_players')
