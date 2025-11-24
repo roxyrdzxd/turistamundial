@@ -25,6 +25,7 @@ interface Player {
   id: string
   user_id: string
   position: number
+  money: number
   color: string
   profile: {
     username: string
