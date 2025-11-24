@@ -15,6 +15,7 @@ interface Player {
   user_id: string
   position: number
   color: string
+  turn_order: number
   profile: {
     username: string
   }
