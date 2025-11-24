@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function DebugPage() {
+  const [mounted, setMounted] = useState(false)
   const [envCheck, setEnvCheck] = useState({
     hasUrl: false,
     hasKey: false,
@@ -14,6 +15,12 @@ export default function DebugPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     // Verificar variables de entorno
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -42,7 +49,15 @@ export default function DebugPage() {
     }
 
     checkAuth()
-  }, [])
+  }, [mounted])
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">

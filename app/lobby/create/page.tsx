@@ -1,47 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function CreateLobbyPage() {
+function CreateLobbyContent() {
   const [maxPlayers, setMaxPlayers] = useState(8)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const addNPCs = searchParams.get('npcs') === 'true'
-
-  useEffect(() => {
-    if (addNPCs) {
-      // Si viene con el parámetro npcs, crear y agregar NPCs automáticamente
-      handleCreateWithNPCs()
-    }
-  }, [addNPCs])
-
-  const handleCreate = async () => {
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch('/api/game/create-session', {
-        method: 'POST',
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al crear la sesión')
-      }
-
-      // Redirigir a la página de la sesión
-      router.push(`/lobby/${data.session.id}`)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleCreateWithNPCs = async () => {
     setLoading(true)
@@ -78,6 +47,38 @@ export default function CreateLobbyPage() {
       router.push(`/lobby/${sessionId}`)
     } catch (err: any) {
       setError(err.message)
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (addNPCs) {
+      // Si viene con el parámetro npcs, crear y agregar NPCs automáticamente
+      handleCreateWithNPCs()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addNPCs])
+
+  const handleCreate = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/game/create-session', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear la sesión')
+      }
+
+      // Redirigir a la página de la sesión
+      router.push(`/lobby/${data.session.id}`)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
       setLoading(false)
     }
   }
@@ -158,5 +159,17 @@ export default function CreateLobbyPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CreateLobbyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <CreateLobbyContent />
+    </Suspense>
   )
 }
