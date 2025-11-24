@@ -159,15 +159,16 @@ export default function BoardOverview({
               <div
                 key={index}
                 className={`
-                  relative aspect-square rounded-lg border-2 p-1 sm:p-2
+                  relative aspect-square rounded-lg border-2 p-1.5 sm:p-2
                   ${country ? continentColor.border : 'border-gray-400'}
-                  ${country ? continentColor.bg : 'bg-gray-50'}
-                  transition-all hover:scale-105 hover:shadow-lg
-                  ${isCurrentPlayer ? 'ring-4 ring-blue-400 ring-offset-2' : ''}
+                  ${country ? continentColor.bg : 'bg-white'}
+                  transition-all hover:scale-110 hover:shadow-xl hover:z-10
+                  ${isCurrentPlayer ? 'ring-4 ring-blue-500 ring-offset-2 shadow-xl' : ''}
+                  ${isOwned && owner ? 'shadow-md' : 'shadow-sm'}
                 `}
               >
                 {/* Número de posición */}
-                <div className="absolute top-0 left-0 text-[8px] sm:text-xs font-bold text-gray-600 bg-white/80 rounded-br px-1">
+                <div className="absolute top-0 left-0 text-[9px] sm:text-xs font-bold text-gray-700 bg-white/90 rounded-br-md px-1.5 py-0.5 shadow-sm border border-gray-200">
                   {index}
                 </div>
 
@@ -175,22 +176,22 @@ export default function BoardOverview({
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   {specialSquare ? (
                     <>
-                      <div className="text-lg sm:text-2xl mb-1">{specialSquare.emoji}</div>
-                      <div className="text-[8px] sm:text-xs font-semibold text-gray-800 leading-tight">
+                      <div className="text-xl sm:text-3xl mb-1 drop-shadow-sm">{specialSquare.emoji}</div>
+                      <div className="text-[9px] sm:text-xs font-bold text-gray-800 leading-tight px-1">
                         {specialSquare.name}
                       </div>
                     </>
                   ) : country ? (
                     <>
-                      <div className={`text-[8px] sm:text-xs font-bold ${continentColor.text} leading-tight mb-1`}>
+                      <div className={`text-[9px] sm:text-xs font-bold ${continentColor.text} leading-tight mb-1 px-1 line-clamp-2`}>
                         {country.name}
                       </div>
-                      <div className="text-[7px] sm:text-[10px] text-gray-600">
+                      <div className="text-[8px] sm:text-[10px] font-semibold text-gray-700 bg-white/60 rounded px-1.5 py-0.5">
                         ${country.price.toLocaleString()}
                       </div>
                       {isOwned && owner && (
                         <div 
-                          className="absolute bottom-0 left-0 right-0 h-1 rounded-b"
+                          className="absolute bottom-0 left-0 right-0 h-1.5 rounded-b shadow-sm"
                           style={{ backgroundColor: getPlayerColor(owner.color) }}
                           title={`Propiedad de ${owner.profile.username}`}
                         />
@@ -202,7 +203,7 @@ export default function BoardOverview({
 
                   {/* Jugadores en esta posición */}
                   {playersAtPos.length > 0 && (
-                    <div className="absolute -top-1 -right-1 flex gap-0.5 flex-wrap max-w-[60%] justify-end">
+                    <div className="absolute -top-1.5 -right-1.5 flex gap-1 flex-wrap max-w-[70%] justify-end">
                       {playersAtPos.map((player, idx) => {
                         const isMyPlayer = currentUserId === player.user_id
                         const isCurrentTurn = player.turn_order === currentTurn
@@ -210,16 +211,17 @@ export default function BoardOverview({
                           <div
                             key={player.id}
                             className={`
-                              w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2
-                              ${isMyPlayer ? 'border-blue-600' : 'border-white'}
+                              w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 shadow-md
+                              ${isMyPlayer ? 'border-blue-600 ring-2 ring-blue-300' : 'border-white'}
                               ${isCurrentTurn ? 'animate-pulse ring-2 ring-yellow-400' : ''}
                               ${!player.is_online ? 'opacity-50 grayscale' : ''}
+                              transition-transform hover:scale-125
                             `}
                             style={{ backgroundColor: getPlayerColor(player.color) }}
                             title={`${player.profile.username}${isMyPlayer ? ' (Tú)' : ''}${!player.is_online ? ' (Desconectado)' : ''}`}
                           >
                             {isMyPlayer && (
-                              <div className="w-full h-full flex items-center justify-center text-[6px] sm:text-[8px] font-bold text-white">
+                              <div className="w-full h-full flex items-center justify-center text-[7px] sm:text-[9px] font-bold text-white drop-shadow-sm">
                                 T
                               </div>
                             )}
@@ -236,19 +238,22 @@ export default function BoardOverview({
       </div>
 
       {/* Leyenda de continentes */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-semibold mb-3 text-gray-700">Continentes</h4>
+      <div className="mt-6 pt-5 border-t-2 border-gray-200">
+        <h4 className="text-sm sm:text-base font-bold mb-4 text-gray-800 flex items-center gap-2">
+          <span>🌍</span>
+          Continentes
+        </h4>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {Object.entries(countriesByContinent).map(([continent, continentCountries]) => {
             const color = getContinentColor(continent)
             return (
               <div
                 key={continent}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border-2 ${color.border} ${color.bg}`}
+                className={`flex items-center gap-2.5 px-4 py-2 rounded-lg border-2 ${color.border} ${color.bg} shadow-sm hover:shadow-md transition-shadow`}
               >
-                <div className={`w-4 h-4 rounded border-2 ${color.border}`} style={{ backgroundColor: color.bg.replace('100', '300') }} />
-                <span className={`text-xs sm:text-sm font-semibold ${color.text} capitalize`}>
-                  {continent} ({continentCountries.length})
+                <div className={`w-5 h-5 rounded border-2 ${color.border} shadow-sm`} style={{ backgroundColor: color.bg.replace('100', '300') }} />
+                <span className={`text-xs sm:text-sm font-bold ${color.text} capitalize`}>
+                  {continent} <span className="text-gray-600">({continentCountries.length})</span>
                 </span>
               </div>
             )
@@ -257,34 +262,36 @@ export default function BoardOverview({
       </div>
 
       {/* Leyenda de jugadores */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-semibold mb-3 text-gray-700">Jugadores</h4>
+      <div className="mt-5 pt-5 border-t-2 border-gray-200">
+        <h4 className="text-sm sm:text-base font-bold mb-4 text-gray-800 flex items-center gap-2">
+          <span>👥</span>
+          Jugadores
+        </h4>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {players.map(player => {
             const isMyPlayer = currentUserId === player.user_id
             const isCurrentTurn = player.turn_order === currentTurn
-            const playerPos = getPlayersAtPosition(player.position)
             return (
               <div
                 key={player.id}
                 className={`
-                  flex items-center gap-2 px-3 py-1.5 rounded-lg border-2
-                  ${isMyPlayer ? 'border-blue-600 bg-blue-50' : 'border-gray-300 bg-gray-50'}
-                  ${isCurrentTurn ? 'ring-2 ring-yellow-400' : ''}
+                  flex items-center gap-2.5 px-4 py-2 rounded-lg border-2 shadow-sm hover:shadow-md transition-all
+                  ${isMyPlayer ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-gray-300 bg-gray-50'}
+                  ${isCurrentTurn ? 'ring-2 ring-yellow-400 bg-yellow-50' : ''}
                   ${!player.is_online ? 'opacity-50 grayscale' : ''}
                 `}
               >
                 <div
-                  className="w-4 h-4 rounded-full border-2 border-white"
+                  className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
                   style={{ backgroundColor: getPlayerColor(player.color) }}
                 />
                 <span className="text-xs sm:text-sm font-semibold text-gray-800">
                   {player.profile.username}
-                  {isMyPlayer && ' (Tú)'}
-                  {isCurrentTurn && ' ⭐'}
-                  {!player.is_online && ' (Offline)'}
+                  {isMyPlayer && <span className="ml-1 text-blue-700 font-bold">(Tú)</span>}
+                  {isCurrentTurn && <span className="ml-1 text-yellow-600">⭐</span>}
+                  {!player.is_online && <span className="ml-1 text-gray-500 text-xs">(Offline)</span>}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-600 font-medium bg-white/60 px-2 py-0.5 rounded">
                   Pos: {player.position}
                 </span>
               </div>

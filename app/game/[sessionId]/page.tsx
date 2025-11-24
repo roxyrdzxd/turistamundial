@@ -831,7 +831,7 @@ export default function GamePage() {
 
             {/* Acciones del Turno */}
             {isMyTurn && (
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4 order-2 lg:order-2">
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Turno</h3>
                 
                 {/* Animación de dados - pequeña, arriba del botón */}
@@ -1220,77 +1220,16 @@ export default function GamePage() {
               ) : null
             })()}
 
-            {/* Vista del Tablero */}
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 order-2 mb-4 sm:mb-6">
-              <BoardOverview
-                countries={countries}
-                players={session.players}
-                currentUserId={currentUserId}
-                currentTurn={session.current_turn}
-                playerCountries={playerCountries}
-              />
-            </div>
-
-            {/* Lista de Jugadores */}
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 order-3">
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Jugadores</h3>
-              <div className="space-y-3">
-                {session.players
-                  .sort((a, b) => a.turn_order - b.turn_order)
-                  .map((player) => {
-                    const isCurrentTurn = player.turn_order === session.current_turn
-                    const isMe = player.user_id === currentUserId
-                    const isNPC = player.user_id.startsWith('npc-') || player.profile.username.startsWith('Bot')
-
-                    return (
-                      <div
-                        key={player.id}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          isCurrentTurn
-                            ? 'border-yellow-400 bg-yellow-50'
-                            : 'border-gray-200'
-                        }`}
-                        style={{
-                          borderLeftColor: getColorHex(player.color),
-                          borderLeftWidth: '4px',
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                              style={{ backgroundColor: getColorHex(player.color) }}
-                            >
-                              {isNPC ? '🤖' : player.profile.username.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-semibold flex items-center gap-2">
-                                {player.profile.username}
-                                {isMe && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Tú</span>}
-                                {isNPC && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">NPC</span>}
-                              </p>
-                              <div className="flex items-center gap-3 mt-1">
-                                <p className="text-sm text-gray-600">
-                                  💰 ${player.money.toLocaleString()}
-                                </p>
-                                <p className="text-sm text-gray-600 flex items-center gap-1">
-                                  📍 Casilla {player.position}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          {isCurrentTurn && (
-                            <span className="text-2xl">🎯</span>
-                          )}
-                        </div>
-                        {isCurrentTurn && (
-                          <p className="text-xs text-yellow-700 mt-2 font-semibold">
-                            Turno actual
-                          </p>
-                        )}
-                      </div>
-                    )
-                  })}
+            {/* Vista del Tablero - Mover después de acciones en desktop */}
+            <div className="lg:col-span-2 order-2 lg:order-3">
+              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                <BoardOverview
+                  countries={countries}
+                  players={session.players}
+                  currentUserId={currentUserId}
+                  currentTurn={session.current_turn}
+                  playerCountries={playerCountries}
+                />
               </div>
             </div>
           </div>
