@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useToast } from '@/contexts/ToastContext'
 
 interface Friend {
   id: string
