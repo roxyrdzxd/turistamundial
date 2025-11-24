@@ -33,7 +33,7 @@ interface PlayerCountry {
 interface BoardOverviewProps {
   countries: Country[]
   players: Player[]
-  currentUserId?: string
+  currentUserId?: string | null
   currentTurn: number
   playerCountries?: PlayerCountry[]
 }
