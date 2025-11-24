@@ -48,7 +48,7 @@ export default function PropertySaleModal({ property, onSell }: PropertySaleModa
                   min="1"
                   value={salePrice}
                   onChange={(e) => setSalePrice(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                   placeholder="Precio de venta"
                   required
                 />
