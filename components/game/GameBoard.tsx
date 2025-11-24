@@ -238,7 +238,7 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
                   style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor ? ownerColor : continentColor }}
                 />
                 {/* Indicador de propiedad comprada */}
-                {ownedCountry && !ownedCountry.is_mortgaged && owner && (
+                {ownedCountry && !ownedCountry.is_mortgaged && owner && ownerColor && (
                   <div 
                     className="absolute bottom-0 left-0 right-0 h-1.5"
                     style={{ backgroundColor: ownerColor }}
