@@ -211,16 +211,16 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
               className="absolute border-2 border-gray-700 rounded-lg transition-all hover:scale-110 hover:z-20 hover:shadow-2xl"
               style={{
                 ...posStyle,
-                backgroundColor: ownedCountry && !ownedCountry.is_mortgaged 
+                backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor
                   ? `${ownerColor}30` 
                   : `${continentColor}20`,
-                borderColor: ownedCountry && !ownedCountry.is_mortgaged 
-                  ? ownerColor || continentColor
+                borderColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor
+                  ? ownerColor
                   : continentColor,
                 borderWidth: ownedCountry && !ownedCountry.is_mortgaged ? '3px' : '2px',
                 boxShadow: isCorner 
                   ? `0 0 20px ${continentColor}40` 
-                  : ownedCountry && !ownedCountry.is_mortgaged
+                  : ownedCountry && !ownedCountry.is_mortgaged && ownerColor
                   ? `0 0 10px ${ownerColor}60`
                   : 'none',
               }}
@@ -254,7 +254,7 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
                 <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
                   <div 
                     className="w-3 h-3 rounded-full mb-0.5 shadow-md"
-                    style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged ? ownerColor : continentColor }}
+                    style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor ? ownerColor : continentColor }}
                   />
                   <span className="text-[8px] sm:text-[9px] leading-tight text-center text-gray-900 font-bold px-0.5">
                     {country.name.length > 8 ? country.name.substring(0, 8) + '...' : country.name}
