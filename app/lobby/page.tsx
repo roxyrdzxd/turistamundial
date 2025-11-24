@@ -128,6 +128,32 @@ export default function LobbyPage() {
     }
   }
 
+  const handleCopyInviteLink = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    const inviteLink = `${window.location.origin}/join/${sessionId}`
+    
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      toast.showToast('¡Link de invitación copiado al portapapeles!', 'success')
+    } catch (err) {
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement('textarea')
+      textArea.value = inviteLink
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        toast.showToast('¡Link de invitación copiado al portapapeles!', 'success')
+      } catch (e) {
+        toast.showToast('No se pudo copiar el link. Comparte este link manualmente: ' + inviteLink, 'error')
+      }
+      document.body.removeChild(textArea)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
@@ -228,13 +254,24 @@ export default function LobbyPage() {
                         </p>
                       </div>
                       {isHost && !isFinished && (
-                        <button
-                          onClick={(e) => handleClose(session.id, e)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="Cerrar partida"
-                        >
-                          🚪
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => handleCopyInviteLink(session.id, e)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Copiar link de invitación"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => handleClose(session.id, e)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            title="Cerrar partida"
+                          >
+                            🚪
+                          </button>
+                        </div>
                       )}
                     </div>
 

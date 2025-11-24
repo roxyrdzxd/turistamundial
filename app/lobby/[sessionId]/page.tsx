@@ -194,6 +194,32 @@ export default function SessionPage() {
     }
   }
 
+  const handleCopyInviteLink = async () => {
+    if (!sessionId) return
+
+    const inviteLink = `${window.location.origin}/join/${sessionId}`
+    
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      toast.showSuccess('¡Link de invitación copiado al portapapeles!')
+    } catch (err) {
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement('textarea')
+      textArea.value = inviteLink
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        toast.showSuccess('¡Link de invitación copiado al portapapeles!')
+      } catch (e) {
+        toast.showError('No se pudo copiar el link. Comparte este link manualmente: ' + inviteLink)
+      }
+      document.body.removeChild(textArea)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
@@ -410,12 +436,23 @@ export default function SessionPage() {
         {session.status === 'waiting' && isHost && (
           <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Opciones del Host</h3>
-            <button
-              onClick={handleClose}
-              className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition text-center font-semibold shadow-lg"
-            >
-              🚪 Cerrar Partida
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={handleCopyInviteLink}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transition text-center font-semibold shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                📋 Copiar Link de Invitación
+              </button>
+              <button
+                onClick={handleClose}
+                className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition text-center font-semibold shadow-lg"
+              >
+                🚪 Cerrar Partida
+              </button>
+            </div>
           </div>
         )}
       </div>
