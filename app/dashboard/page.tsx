@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/auth/LogoutButton'
+import DashboardSocial from '@/components/dashboard/DashboardSocial'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -160,6 +161,9 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Social Section */}
+        <DashboardSocial />
 
         {/* Active Games */}
         <div className="bg-white rounded-xl shadow-lg p-6">
