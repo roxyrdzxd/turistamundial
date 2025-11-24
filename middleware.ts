@@ -46,10 +46,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect dashboard and game routes
+  // Protect dashboard, game, and profile routes
   if (request.nextUrl.pathname.startsWith('/dashboard') || 
       request.nextUrl.pathname.startsWith('/lobby') ||
-      request.nextUrl.pathname.startsWith('/game')) {
+      request.nextUrl.pathname.startsWith('/game') ||
+      request.nextUrl.pathname.startsWith('/profile')) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'

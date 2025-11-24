@@ -37,7 +37,16 @@ export default async function DashboardPage() {
                 <p className="text-sm text-gray-500">Juego Virtual</p>
               </div>
             </div>
-            <LogoutButton />
+            <div className="flex items-center gap-4">
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition font-semibold"
+              >
+                <span>👤</span>
+                <span>Mi Perfil</span>
+              </Link>
+              <LogoutButton />
+            </div>
           </div>
         </div>
       </header>
