@@ -14,11 +14,14 @@ interface Country {
 }
 
 interface PlayerCountry {
+  id: string
   country_id: string
   player_id: string
   houses: number
   hotels: number
   is_mortgaged: boolean
+  is_for_sale?: boolean
+  sale_price?: number | null
 }
 
 interface Player {
