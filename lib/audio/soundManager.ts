@@ -51,17 +51,17 @@ class SoundManager {
   private loadSounds() {
     // Mapeo de sonidos a archivos en Supabase Storage
     // Nota: Los archivos deben estar en el bucket "sounds" de Supabase Storage
-    // Soporta formatos .mp3, .wav, .ogg, etc.
+    // Todos los archivos usan formato .wav
     const soundFiles: Record<SoundType, string> = {
-      dice_roll: 'dice-roll.wav', // Ya subido como .wav
-      buy_property: 'buy-property.mp3',
-      pay_toll: 'pay-toll.mp3',
-      money_received: 'money-received.mp3',
-      card_draw: 'card-draw.mp3',
-      build: 'build.mp3',
-      notification: 'notification.mp3',
-      victory: 'victory.mp3',
-      error: 'error.mp3',
+      dice_roll: 'dice-roll.wav',
+      buy_property: 'buy-property.wav',
+      pay_toll: 'pay-toll.wav',
+      money_received: 'money-received.wav',
+      card_draw: 'card-draw.wav',
+      build: 'build.wav',
+      notification: 'notification.wav',
+      victory: 'victory.wav',
+      error: 'error.wav',
     }
 
     Object.entries(soundFiles).forEach(([type, filename]) => {

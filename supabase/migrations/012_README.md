@@ -21,25 +21,25 @@ Ejecuta el archivo `012_create_sounds_bucket.sql` en el SQL Editor de Supabase p
 
 ### 3. Subir los Archivos de Sonido
 
-Sube los siguientes archivos al bucket `sounds`:
+Sube los siguientes archivos al bucket `sounds` (todos en formato .wav):
 
 - `dice-roll.wav` - Sonido al tirar los dados ✅ (Ya subido)
-- `buy-property.mp3` - Sonido al comprar una propiedad
-- `pay-toll.mp3` - Sonido al pagar peaje
-- `money-received.mp3` - Sonido al recibir dinero (bonus de inicio, etc.)
-- `card-draw.mp3` - Sonido al sacar una tarjeta de suerte/destino
-- `build.mp3` - Sonido al construir casa/hotel
-- `notification.mp3` - Sonido para notificaciones generales
-- `victory.mp3` - Sonido de victoria/logro
-- `error.mp3` - Sonido de error
+- `buy-property.wav` - Sonido al comprar una propiedad
+- `pay-toll.wav` - Sonido al pagar peaje
+- `money-received.wav` - Sonido al recibir dinero (bonus de inicio, etc.)
+- `card-draw.wav` - Sonido al sacar una tarjeta de suerte/destino
+- `build.wav` - Sonido al construir casa/hotel
+- `notification.wav` - Sonido para notificaciones generales
+- `victory.wav` - Sonido de victoria/logro
+- `error.wav` - Sonido de error
 
-**Nota**: El sistema soporta múltiples formatos de audio (.mp3, .wav, .ogg, etc.). Puedes usar el formato que prefieras para cada sonido.
+**Nota**: Todos los archivos deben estar en formato .wav.
 
 ### 4. Verificar las URLs
 
 Las URLs de los sonidos seguirán este formato:
 ```
-https://[tu-proyecto].supabase.co/storage/v1/object/public/sounds/[nombre-archivo].[extensión]
+https://[tu-proyecto].supabase.co/storage/v1/object/public/sounds/[nombre-archivo].wav
 ```
 
 Ejemplo real (ya configurado):
@@ -88,12 +88,11 @@ El sistema automáticamente construirá estas URLs usando la variable de entorno
 
 ## Formato
 
-- **Formatos soportados**: MP3, WAV, OGG (cualquier formato soportado por el navegador)
-- **Calidad**: 
-  - MP3: 128-192 kbps es suficiente para sonidos cortos
-  - WAV: Sin compresión, mejor calidad pero archivos más grandes
+- **Formato requerido**: WAV (.wav)
+- **Calidad**: WAV sin compresión ofrece la mejor calidad de audio
 - **Volumen**: Normalizar todos los sonidos a un volumen similar
 - **Tamaño**: Mantener archivos pequeños (< 500KB cada uno) para carga rápida
+- **Sample Rate**: 44.1 kHz es estándar y suficiente para sonidos de juego
 
 ## Notas
 
