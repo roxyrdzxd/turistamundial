@@ -703,20 +703,41 @@ export default function GamePage() {
                     <p className="text-sm text-green-700 mb-3">
                       Precio: ${currentCountry.price.toLocaleString()}
                     </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleBuyCountry()}
-                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition font-semibold"
-                      >
-                        ✅ Comprar
-                      </button>
-                      <button
-                        onClick={handleEndTurn}
-                        className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition font-semibold"
-                      >
-                        ❌ Pasar
-                      </button>
-                    </div>
+                    {myPlayer && myPlayer.money >= currentCountry.price ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleBuyCountry()}
+                          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition font-semibold"
+                        >
+                          ✅ Comprar
+                        </button>
+                        <button
+                          onClick={handleEndTurn}
+                          className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition font-semibold"
+                        >
+                          ❌ Pasar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
+                          <p className="text-sm text-red-800 font-semibold text-center">
+                            ⚠️ No tienes suficiente dinero para comprar
+                            {myPlayer && (
+                              <span className="block mt-1 text-xs">
+                                (Tienes: ${myPlayer.money.toLocaleString()}, Necesitas: ${currentCountry.price.toLocaleString()})
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleEndTurn}
+                          className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition font-semibold"
+                        >
+                          ✅ Pasar Turno
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

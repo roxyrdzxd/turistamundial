@@ -382,10 +382,18 @@ export default function CountryCarousel({
 
                   {/* Si es tu propiedad */}
                   {owner && currentPlayer && owner.id === currentPlayer.id && (
-                    <div className="mt-3 pt-3 border-t border-white/30">
+                    <div className="mt-3 pt-3 border-t border-white/30 space-y-3">
                       <p className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm text-center`}>
                         💡 Puedes construir casas/hoteles si tienes el monopolio del continente
                       </p>
+                      {isMyTurn && onEndTurn && (
+                        <button
+                          onClick={onEndTurn}
+                          className="w-full bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base"
+                        >
+                          ✅ Pasar Turno
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -436,10 +444,20 @@ export default function CountryCarousel({
                     
                     {/* Mensaje si no tienes suficiente dinero */}
                     {isMyTurn && !ownedCountry && currentPlayer && currentPlayer.money < displayedCountry.price && (
-                      <div className="mt-4 bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
-                        <p className={`${cardColors.textColor} text-sm text-center font-semibold`}>
-                          ⚠️ No tienes suficiente dinero (Tienes: ${currentPlayer.money.toLocaleString()}, Necesitas: ${displayedCountry.price.toLocaleString()})
-                        </p>
+                      <div className="mt-4 space-y-3">
+                        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
+                          <p className={`${cardColors.textColor} text-sm text-center font-semibold`}>
+                            ⚠️ No tienes suficiente dinero (Tienes: ${currentPlayer.money.toLocaleString()}, Necesitas: ${displayedCountry.price.toLocaleString()})
+                          </p>
+                        </div>
+                        {onEndTurn && (
+                          <button
+                            onClick={onEndTurn}
+                            className="w-full bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base"
+                          >
+                            ✅ Pasar Turno
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
