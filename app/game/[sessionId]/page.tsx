@@ -9,6 +9,7 @@ import DiceAnimation from '@/components/game/DiceAnimation'
 import TransactionHistory from '@/components/game/TransactionHistory'
 import Chat from '@/components/game/Chat'
 import { useToast } from '@/contexts/ToastContext'
+import { hasMonopoly } from '@/lib/game/gameEngine'
 
 interface Player {
   id: string
@@ -979,6 +980,95 @@ export default function GamePage() {
                   </div>
                 </div>
               )
+            })()}
+
+            {/* Monopolios de Continentes */}
+            {(() => {
+              // Calcular monopolios de todos los jugadores
+              const monopolies: Array<{ playerId: string; playerName: string; playerColor: string; continents: string[] }> = []
+              
+              if (session && countries.length > 0 && playerCountries.length > 0) {
+                // Obtener todos los continentes únicos
+                const allContinents = [...new Set(countries.map(c => c.continent))]
+                
+                // Para cada jugador, verificar qué continentes tiene en monopolio
+                session.players.forEach(player => {
+                  const playerMonopolies: string[] = []
+                  
+                  allContinents.forEach(continent => {
+                    if (hasMonopoly(continent, player.id, countries, playerCountries)) {
+                      playerMonopolies.push(continent)
+                    }
+                  })
+                  
+                  if (playerMonopolies.length > 0) {
+                    monopolies.push({
+                      playerId: player.id,
+                      playerName: player.profile.username,
+                      playerColor: player.color,
+                      continents: playerMonopolies
+                    })
+                  }
+                })
+              }
+              
+              const continentIcons: Record<string, string> = {
+                'América del Norte': '🌎',
+                'América del Sur': '🌎',
+                'Europa': '🌍',
+                'Asia': '🌏',
+                'África': '🌍',
+                'Oceanía': '🌏',
+              }
+              
+              const continentColors: Record<string, string> = {
+                'América del Norte': 'from-blue-500 to-blue-600',
+                'América del Sur': 'from-green-500 to-green-600',
+                'Europa': 'from-purple-500 to-purple-600',
+                'Asia': 'from-yellow-500 to-yellow-600',
+                'África': 'from-orange-500 to-orange-600',
+                'Oceanía': 'from-cyan-500 to-cyan-600',
+              }
+              
+              return monopolies.length > 0 ? (
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 order-2">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+                    <span className="text-2xl">👑</span>
+                    Monopolios de Continentes
+                  </h3>
+                  <div className="space-y-3">
+                    {monopolies.map((monopoly) => (
+                      <div
+                        key={monopoly.playerId}
+                        className="border-2 rounded-lg p-3"
+                        style={{
+                          borderColor: getColorHex(monopoly.playerColor),
+                          backgroundColor: `${getColorHex(monopoly.playerColor)}10`,
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: getColorHex(monopoly.playerColor) }}
+                          />
+                          <p className="font-semibold text-gray-900">{monopoly.playerName}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {monopoly.continents.map((continent) => (
+                            <div
+                              key={continent}
+                              className={`bg-gradient-to-r ${continentColors[continent] || 'from-gray-500 to-gray-600'} text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-md`}
+                            >
+                              <span>{continentIcons[continent] || '🌍'}</span>
+                              <span>{continent}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null
             })()}
 
             {/* Lista de Jugadores */}
