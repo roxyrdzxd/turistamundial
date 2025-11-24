@@ -43,6 +43,7 @@ LANGUAGE plpgsql
 AS $function$
 DECLARE
   closed_count INTEGER := 0;
+  active_closed INTEGER := 0;
 BEGIN
   -- Cerrar partidas 'waiting' sin actividad por más de 1 hora
   UPDATE game_sessions
@@ -64,7 +65,8 @@ BEGIN
     AND last_activity < NOW() - INTERVAL '2 hours'
     AND finished_at IS NULL;
   
-  GET DIAGNOSTICS closed_count = closed_count + ROW_COUNT;
+  GET DIAGNOSTICS active_closed = ROW_COUNT;
+  closed_count := closed_count + active_closed;
   
   RETURN closed_count;
 END;
