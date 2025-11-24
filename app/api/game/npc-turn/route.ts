@@ -191,9 +191,9 @@ export async function POST(request: Request) {
         },
       })
 
-    // Avanzar al siguiente turno
-    const activePlayers = players?.filter(p => !p.is_bankrupt) || []
-    const nextTurn = (session.current_turn + 1) % activePlayers.length
+    // Avanzar al siguiente turno usando la función del motor del juego
+    const { getNextPlayer } = await import('@/lib/game/gameEngine')
+    const nextTurn = getNextPlayer(session.current_turn, players || [])
 
     await supabase
       .from('game_sessions')

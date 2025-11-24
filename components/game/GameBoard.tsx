@@ -16,6 +16,7 @@ interface Player {
   position: number
   color: string
   turn_order: number
+  is_online?: boolean
   profile: {
     username: string
   }
@@ -310,6 +311,7 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
           if (!playerPos) return null
           
           const isCurrentTurn = player.turn_order === currentTurn
+          const isDisconnected = player.is_online === false
           const playerColor = PLAYER_COLORS[player.color] || '#gray'
           
           return (
@@ -317,26 +319,31 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
               key={player.id}
               className={`absolute z-30 transition-all duration-500 ease-out ${
                 isCurrentTurn ? 'animate-pulse' : ''
-              }`}
+              } ${isDisconnected ? 'opacity-50' : ''}`}
               style={{
                 ...playerPos,
                 transform: isCurrentTurn ? 'scale(1.2)' : 'scale(1)',
               }}
             >
               <div
-                className="w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-bold text-xs"
+                className={`w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white font-bold text-xs ${
+                  isDisconnected ? 'grayscale' : ''
+                }`}
                 style={{ 
                   backgroundColor: playerColor,
                   boxShadow: isCurrentTurn 
                     ? `0 0 20px ${playerColor}, 0 0 40px ${playerColor}80`
                     : `0 2px 8px rgba(0,0,0,0.3)`,
                 }}
-                title={player.profile.username}
+                title={`${player.profile.username}${isDisconnected ? ' (Desconectado)' : ''}`}
               >
                 {player.profile.username.charAt(0).toUpperCase()}
               </div>
               {isCurrentTurn && (
                 <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-ping" />
+              )}
+              {isDisconnected && (
+                <div className="absolute -top-1 -left-1 w-3 h-3 bg-red-500 rounded-full border border-white" title="Desconectado" />
               )}
             </div>
           )

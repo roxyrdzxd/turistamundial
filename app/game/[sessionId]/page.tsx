@@ -17,6 +17,8 @@ interface Player {
   color: string
   turn_order: number
   is_bankrupt: boolean
+  is_online?: boolean
+  last_seen?: string
   profile: {
     id: string
     username: string
@@ -117,7 +119,39 @@ export default function GamePage() {
     }
   }, [sessionId, fetchSession])
 
-  // Detectar turnos de NPCs y hacerlos jugar automáticamente
+  // Sistema de heartbeat para mantener al jugador como online
+  useEffect(() => {
+    if (!session || !currentUserId || session.status !== 'active') {
+      return
+    }
+
+    // Enviar heartbeat inmediatamente
+    const sendHeartbeat = async () => {
+      try {
+        await fetch('/api/game/heartbeat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        })
+      } catch (err) {
+        console.error('Error enviando heartbeat:', err)
+      }
+    }
+
+    sendHeartbeat()
+
+    // Enviar heartbeat cada 30 segundos
+    const heartbeatInterval = setInterval(sendHeartbeat, 30000)
+
+    // Cleanup al desmontar
+    return () => {
+      clearInterval(heartbeatInterval)
+    }
+  }, [sessionId, currentUserId, session?.status])
+
+  // Detectar turnos de NPCs y jugadores desconectados, hacerlos jugar automáticamente
   const npcProcessingRef = useRef(false)
   
   useEffect(() => {
@@ -139,46 +173,71 @@ export default function GamePage() {
     const isNPC = currentPlayer.user_id.startsWith('npc-') || 
                   currentPlayer.profile.username.startsWith('Bot')
 
-    // Si es un NPC y no es el usuario actual, hacer que juegue
-    if (isNPC && currentPlayer.user_id !== currentUserId && !npcProcessingRef.current) {
+    // Verificar si el jugador está desconectado
+    const isDisconnected = currentPlayer.is_online === false
+
+    // Si es un NPC o está desconectado, y no es el usuario actual, hacer que se salte el turno
+    if ((isNPC || isDisconnected) && currentPlayer.user_id !== currentUserId && !npcProcessingRef.current) {
       npcProcessingRef.current = true // Marcar que estamos procesando
       
-      // Esperar un momento antes de que el NPC juegue (para que se vea el cambio de turno)
-      const npcTimer = setTimeout(async () => {
+      // Esperar un momento antes de procesar
+      const processTimer = setTimeout(async () => {
         try {
-          const response = await fetch('/api/game/npc-turn', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ sessionId }),
-          })
+          if (isNPC) {
+            // Si es NPC, hacer que juegue
+            const response = await fetch('/api/game/npc-turn', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ sessionId }),
+            })
 
-          const data = await response.json()
+            const data = await response.json()
 
-          if (response.ok) {
-            toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
-            // Refrescar la sesión después de un momento
-            setTimeout(() => {
+            if (response.ok) {
+              toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
+              setTimeout(() => {
+                npcProcessingRef.current = false
+                fetchSession()
+              }, 1500)
+            } else {
               npcProcessingRef.current = false
-              fetchSession()
-            }, 1500)
-          } else {
-            npcProcessingRef.current = false
-            toast.showError(`Error en turno de NPC: ${data.error}`)
+              toast.showError(`Error en turno de NPC: ${data.error}`)
+            }
+          } else if (isDisconnected) {
+            // Si está desconectado, saltar su turno automáticamente
+            const response = await fetch('/api/game/end-turn', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ sessionId }),
+            })
+
+            const data = await response.json()
+
+            if (response.ok) {
+              toast.showInfo(`Turno de ${currentPlayer.profile.username} saltado (desconectado)`)
+              setTimeout(() => {
+                npcProcessingRef.current = false
+                fetchSession()
+              }, 1000)
+            } else {
+              npcProcessingRef.current = false
+            }
           }
         } catch (err: any) {
-          console.error('Error en turno de NPC:', err)
+          console.error('Error procesando turno:', err)
           npcProcessingRef.current = false
-          toast.showError('Error al procesar turno de NPC')
         }
-      }, 2000) // Esperar 2 segundos antes de que el NPC juegue
+      }, isDisconnected ? 1000 : 2000) // Menos tiempo si está desconectado
 
       return () => {
-        clearTimeout(npcTimer)
+        clearTimeout(processTimer)
         npcProcessingRef.current = false
       }
-    } else if (!isNPC || currentPlayer.user_id === currentUserId) {
+    } else if (!isNPC && !isDisconnected && currentPlayer.user_id === currentUserId) {
       npcProcessingRef.current = false
     }
   }, [session?.current_turn, session?.status, currentUserId, sessionId, fetchSession, toast])

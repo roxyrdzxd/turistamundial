@@ -41,7 +41,34 @@ export async function POST(request: Request) {
 
     const currentPlayer = players?.find(p => p.turn_order === session.current_turn)
 
-    if (!currentPlayer || currentPlayer.user_id !== user.id) {
+    if (!currentPlayer) {
+      return NextResponse.json({ error: 'Jugador actual no encontrado' }, { status: 404 })
+    }
+
+    // Si el jugador actual está desconectado, saltarlo automáticamente
+    if (currentPlayer.is_online === false && currentPlayer.user_id !== user.id) {
+      // El jugador está desconectado, avanzar automáticamente
+      const nextTurn = getNextPlayer(session.current_turn, players || [])
+      
+      const { error: turnError } = await supabase
+        .from('game_sessions')
+        .update({ current_turn: nextTurn })
+        .eq('id', sessionId)
+
+      if (turnError) {
+        return NextResponse.json({ error: turnError.message }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Turno saltado (jugador desconectado)',
+        nextTurn,
+        skipped: true,
+      })
+    }
+
+    // Verificar que es el turno del usuario
+    if (currentPlayer.user_id !== user.id) {
       return NextResponse.json({ error: 'No es tu turno' }, { status: 403 })
     }
 

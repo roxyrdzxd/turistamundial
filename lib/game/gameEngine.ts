@@ -28,6 +28,8 @@ export interface Player {
   color: string
   turn_order: number
   is_bankrupt: boolean
+  is_online?: boolean
+  last_seen?: string
 }
 
 export interface GameState {
@@ -247,24 +249,32 @@ export function getPlayerNetWorth(
 
 /**
  * Obtiene el siguiente jugador en el turno
+ * Salta jugadores en bancarrota y desconectados
  */
 export function getNextPlayer(
   currentTurn: number,
   players: Player[]
 ): number {
-  const activePlayers = players.filter(p => !p.is_bankrupt)
+  // Filtrar jugadores activos (no en bancarrota y online)
+  const activePlayers = players.filter(p => 
+    !p.is_bankrupt && 
+    (p.is_online !== false) // Considerar online si no está definido (compatibilidad)
+  )
+  
   if (activePlayers.length === 0) return currentTurn
 
   const currentPlayer = players.find(p => p.turn_order === currentTurn)
   if (!currentPlayer) return currentTurn
 
-  // Encontrar el siguiente jugador activo
+  // Encontrar el siguiente jugador activo (no en bancarrota y online)
   let nextTurn = (currentTurn + 1) % players.length
   let attempts = 0
 
   while (attempts < players.length) {
     const nextPlayer = players.find(p => p.turn_order === nextTurn)
-    if (nextPlayer && !nextPlayer.is_bankrupt) {
+    if (nextPlayer && 
+        !nextPlayer.is_bankrupt && 
+        (nextPlayer.is_online !== false)) { // Salta desconectados
       return nextTurn
     }
     nextTurn = (nextTurn + 1) % players.length

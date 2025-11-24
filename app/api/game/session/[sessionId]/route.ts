@@ -23,6 +23,8 @@ export async function GET(
         color,
         turn_order,
         is_bankrupt,
+        is_online,
+        last_seen,
         profile:profiles!session_players_user_id_fkey(id, username, avatar_url)
       )
     `)
