@@ -40,6 +40,7 @@ interface CountryCarouselProps {
   onCountrySelect?: (country: Country) => void
   isMyTurn?: boolean
   onBuyCountry?: (countryId: string) => void
+  onBuyPropertyFromPlayer?: (playerCountryId: string) => void
   onEndTurn?: () => void
 }
 
@@ -87,6 +88,7 @@ export default function CountryCarousel({
   onCountrySelect,
   isMyTurn = false,
   onBuyCountry,
+  onBuyPropertyFromPlayer,
   onEndTurn,
 }: CountryCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -400,9 +402,30 @@ export default function CountryCarousel({
                   {/* Si no es tu propiedad */}
                   {owner && currentPlayer && owner.id !== currentPlayer.id && (
                     <div className="mt-3 pt-3 border-t border-white/30 bg-white/10 rounded-lg p-2">
-                      <p className={`${cardColors.textColor} font-semibold text-center text-sm sm:text-base`}>
-                        💰 Debes pagar ${currentRent.toLocaleString()} de peaje
-                      </p>
+                      {ownedCountry.is_for_sale && ownedCountry.sale_price ? (
+                        <div className="space-y-2">
+                          <p className={`${cardColors.textColor} font-semibold text-center text-sm sm:text-base`}>
+                            🏪 Esta propiedad está en venta
+                          </p>
+                          <p className={`${cardColors.textColor} text-center text-lg sm:text-xl font-bold`}>
+                            ${ownedCountry.sale_price.toLocaleString()}
+                          </p>
+                          {isMyTurn && onBuyPropertyFromPlayer && (
+                            <button
+                              onClick={() => {
+                                onBuyPropertyFromPlayer(ownedCountry.id)
+                              }}
+                              className="w-full bg-white text-purple-600 py-2 px-4 rounded-lg hover:bg-purple-50 active:bg-purple-100 transition font-semibold shadow-lg border-2 border-white text-sm sm:text-base mt-2"
+                            >
+                              💰 Comprar por ${ownedCountry.sale_price.toLocaleString()}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <p className={`${cardColors.textColor} font-semibold text-center text-sm sm:text-base`}>
+                          💰 Debes pagar ${currentRent.toLocaleString()} de peaje
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

@@ -8,6 +8,7 @@ import CountryCarousel from '@/components/game/CountryCarousel'
 import DiceAnimation from '@/components/game/DiceAnimation'
 import TransactionHistory from '@/components/game/TransactionHistory'
 import Chat from '@/components/game/Chat'
+import PropertySaleModal from '@/components/game/PropertySaleModal'
 import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly } from '@/lib/game/gameEngine'
 
@@ -61,6 +62,7 @@ export default function GamePage() {
   const [canBuyCountry, setCanBuyCountry] = useState(false)
   const [needsToPayToll, setNeedsToPayToll] = useState(false)
   const [tollAmount, setTollAmount] = useState(0)
+  const [propertyForSale, setPropertyForSale] = useState<any>(null)
   const [showDiceAnimation, setShowDiceAnimation] = useState(false)
   const [diceDetails, setDiceDetails] = useState<{ die1?: number; die2?: number }>({})
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
@@ -330,6 +332,7 @@ export default function GamePage() {
         canBuy: data.canBuy || false,
         needsToPayToll: data.needsToPayToll || false,
         tollAmount: data.tollAmount || 0,
+        propertyForSale: data.propertyForSale || null,
       }
 
       // Establecer datos inmediatamente (sin esperar la animación)
@@ -338,6 +341,7 @@ export default function GamePage() {
       setCanBuyCountry(actionData.canBuy)
       setNeedsToPayToll(actionData.needsToPayToll)
       setTollAmount(actionData.tollAmount)
+      setPropertyForSale(actionData.propertyForSale)
 
       // Refrescar la sesión inmediatamente para obtener datos actualizados
       fetchSession()
@@ -481,6 +485,64 @@ export default function GamePage() {
       }
     }
   }, [session, diceResult, showDiceAnimation, countries, currentUserId])
+
+  const handleBuyPropertyFromPlayer = async (playerCountryId: string) => {
+    try {
+      const response = await fetch('/api/game/buy-property-from-player', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          playerCountryId,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al comprar propiedad')
+      }
+
+      toast.showSuccess(data.message || 'Propiedad comprada exitosamente')
+      setActionRequired(null)
+      setPropertyForSale(null)
+      setCurrentCountry(null)
+      setCanBuyCountry(false)
+      fetchSession()
+    } catch (err: any) {
+      toast.showError(err.message)
+    }
+  }
+
+  const handleSellProperty = async (playerCountryId: string, salePrice: number, isForSale: boolean) => {
+    try {
+      const response = await fetch('/api/game/sell-property', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          playerCountryId,
+          salePrice,
+          isForSale,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al actualizar estado de venta')
+      }
+
+      toast.showSuccess(data.message || 'Estado de venta actualizado')
+      fetchSession()
+    } catch (err: any) {
+      toast.showError(err.message)
+    }
+  }
 
   const handleBuyCountry = async (countryId?: string) => {
     const countryToBuy = countryId ? countries.find(c => c.id === countryId) : currentCountry
@@ -735,6 +797,7 @@ export default function GamePage() {
                     playerCountries={playerCountries}
                     isMyTurn={isMyTurn}
                     onBuyCountry={handleBuyCountry}
+                    onBuyPropertyFromPlayer={handleBuyPropertyFromPlayer}
                     onEndTurn={handleEndTurn}
                   />
                 ) : (
@@ -791,8 +854,39 @@ export default function GamePage() {
                   </div>
                 )}
 
+                {/* Propiedad en venta */}
+                {actionRequired === 'can_buy_from_player' && propertyForSale && currentCountry && (
+                  <div className="bg-purple-50 border-2 border-purple-500 rounded-lg p-4">
+                    <p className="font-semibold text-purple-800 mb-2">
+                      🏪 {currentCountry.name} está en venta
+                    </p>
+                    <p className="text-sm text-purple-700 mb-3">
+                      Precio de venta: ${propertyForSale.salePrice.toLocaleString()}
+                    </p>
+                    {myPlayer && myPlayer.money >= propertyForSale.salePrice ? (
+                      <button
+                        onClick={() => handleBuyPropertyFromPlayer(propertyForSale.playerCountryId)}
+                        className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition font-semibold"
+                      >
+                        💰 Comprar por ${propertyForSale.salePrice.toLocaleString()}
+                      </button>
+                    ) : (
+                      <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
+                        <p className="text-sm text-red-800 font-semibold text-center">
+                          ⚠️ No tienes suficiente dinero
+                          {myPlayer && (
+                            <span className="block mt-1 text-xs">
+                              (Tienes: ${myPlayer.money.toLocaleString()}, Necesitas: ${propertyForSale.salePrice.toLocaleString()})
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Acciones después de tirar dados */}
-                {(actionRequired === 'can_buy' || canBuyCountry) && currentCountry && (
+                {(actionRequired === 'can_buy' || canBuyCountry) && currentCountry && !propertyForSale && (
                   <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
                     <p className="font-semibold text-green-800 mb-2">
                       🏛️ {currentCountry.name} está disponible
@@ -858,7 +952,7 @@ export default function GamePage() {
                 {actionRequired === 'start_bonus' && (
                   <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-4">
                     <p className="font-semibold text-yellow-800">
-                      🎉 ¡Has pasado por el inicio! +$200
+                      🎉 ¡Has pasado por el inicio! +$100
                     </p>
                   </div>
                 )}
@@ -871,7 +965,7 @@ export default function GamePage() {
                   </div>
                 )}
 
-                {actionRequired && !canBuyCountry && !needsToPayToll && actionRequired !== 'start_bonus' && actionRequired !== 'bank_tax' && (
+                {actionRequired && !canBuyCountry && !needsToPayToll && !propertyForSale && actionRequired !== 'start_bonus' && actionRequired !== 'bank_tax' && actionRequired !== 'can_buy_from_player' && (
                   <button
                     onClick={handleEndTurn}
                     className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition font-semibold"
@@ -947,11 +1041,16 @@ export default function GamePage() {
                                 <p className="font-semibold text-sm sm:text-base truncate">
                                   {prop.country.name}
                                 </p>
-                                <div className="flex items-center gap-2 mt-1 text-xs opacity-90">
+                                <div className="flex items-center gap-2 mt-1 text-xs opacity-90 flex-wrap">
                                   <span>📍 Casilla {prop.country.position}</span>
                                   {prop.is_mortgaged && (
                                     <span className="bg-yellow-500/30 text-yellow-200 px-2 py-0.5 rounded text-xs">
                                       ⚠️ Hipotecada
+                                    </span>
+                                  )}
+                                  {prop.is_for_sale && (
+                                    <span className="bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded text-xs">
+                                      🏪 En venta: ${prop.sale_price?.toLocaleString()}
                                     </span>
                                   )}
                                 </div>
@@ -973,6 +1072,23 @@ export default function GamePage() {
                                 </p>
                               </div>
                             </div>
+                            {!prop.is_mortgaged && (
+                              <div className="mt-2 pt-2 border-t border-white/10">
+                                {prop.is_for_sale ? (
+                                  <button
+                                    onClick={() => handleSellProperty(prop.id, 0, false)}
+                                    className="w-full bg-red-500/80 hover:bg-red-500 text-white text-xs py-1 px-2 rounded transition"
+                                  >
+                                    ❌ Retirar de venta
+                                  </button>
+                                ) : (
+                                  <PropertySaleModal
+                                    property={prop}
+                                    onSell={(price) => handleSellProperty(prop.id, price, true)}
+                                  />
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

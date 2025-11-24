@@ -91,14 +91,26 @@ export async function POST(request: Request) {
       )
 
       if (ownerCountry) {
-        // Hay que pagar peaje
-        const owner = players?.find(p => p.id === ownerCountry.player_id)
-        if (owner && owner.id !== currentPlayer.id) {
-          needsToPayToll = true
-          // Calcular peaje básico (simplificado)
-          tollAmount = countryAtPosition.base_rent
-          ownerId = owner.id
-          actionRequired = 'pay_toll'
+        // Verificar si la propiedad está en venta
+        if (ownerCountry.is_for_sale && ownerCountry.sale_price) {
+          const owner = players?.find(p => p.id === ownerCountry.player_id)
+          if (owner && owner.id !== currentPlayer.id) {
+            // Propiedad en venta - puede comprarla
+            if (currentPlayer.money >= ownerCountry.sale_price) {
+              canBuy = true
+              actionRequired = 'can_buy_from_player'
+            }
+          }
+        } else {
+          // Hay que pagar peaje
+          const owner = players?.find(p => p.id === ownerCountry.player_id)
+          if (owner && owner.id !== currentPlayer.id) {
+            needsToPayToll = true
+            // Calcular peaje básico (simplificado)
+            tollAmount = countryAtPosition.base_rent
+            ownerId = owner.id
+            actionRequired = 'pay_toll'
+          }
         }
       } else {
         // El país está disponible para comprar
@@ -112,7 +124,7 @@ export async function POST(request: Request) {
       if ([0, 10, 20, 30].includes(newPosition)) {
         if (newPosition === 0) {
           // Inicio - recibir dinero
-          const startBonus = 200
+          const startBonus = 100
           await supabase
             .from('session_players')
             .update({ money: currentPlayer.money + startBonus })
@@ -162,6 +174,18 @@ export async function POST(request: Request) {
         },
       })
 
+    // Obtener información de propiedad en venta si aplica
+    let propertyForSale = null
+    if (ownerCountry && ownerCountry.is_for_sale && ownerCountry.sale_price) {
+      const owner = players?.find(p => p.id === ownerCountry.player_id)
+      if (owner && owner.id !== currentPlayer.id) {
+        propertyForSale = {
+          playerCountryId: ownerCountry.id,
+          salePrice: ownerCountry.sale_price,
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       diceResult: total,
@@ -174,6 +198,7 @@ export async function POST(request: Request) {
       needsToPayToll,
       tollAmount,
       ownerId,
+      propertyForSale,
       message: `Avanzaste ${total} casillas`,
     })
   } catch (error: any) {

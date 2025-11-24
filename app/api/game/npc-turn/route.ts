@@ -175,7 +175,7 @@ export async function POST(request: Request) {
         // Inicio - recibir dinero
         await supabase
           .from('session_players')
-          .update({ money: currentPlayer.money + 200 })
+          .update({ money: currentPlayer.money + 100 })
           .eq('id', currentPlayer.id)
         actionTaken = 'start_bonus'
       } else if (newPosition === 30) {
