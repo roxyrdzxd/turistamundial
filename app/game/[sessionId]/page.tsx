@@ -444,27 +444,9 @@ export default function GamePage() {
           setTimeLeft(null)
           timeLeftRef.current = null
           
-          // Solo pasar turno si aún es el turno del jugador y no ha tirado dados
-          fetchSession().then(() => {
-            // Verificar nuevamente después de refrescar
-            setTimeout(() => {
-              const checkResponse = fetch(`/api/game/session/${sessionId}`)
-                .then(res => res.json())
-                .then(data => {
-                  if (data.session) {
-                    const checkCurrentPlayer = data.session.players.find(
-                      (p: any) => p.turn_order === data.session.current_turn
-                    )
-                    const stillMyTurn = checkCurrentPlayer?.user_id === currentUserId
-                    
-                    if (stillMyTurn && !diceResult) {
-                      toast.showWarning('Tiempo agotado. Pasando al siguiente jugador...')
-                      handleEndTurn()
-                    }
-                  }
-                })
-            }, 500)
-          })
+          // Pasar turno automáticamente
+          toast.showWarning('Tiempo agotado. Pasando al siguiente jugador...')
+          handleEndTurn()
         }
       }, 1000)
     }
