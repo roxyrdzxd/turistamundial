@@ -56,18 +56,25 @@ export default function Chat({ sessionId, currentUserId }: ChatProps) {
         },
         async (payload: RealtimePostgresChangesPayload<ChatMessageRow>) => {
           try {
+            // Verificar que payload.new existe y tiene los campos necesarios
+            if (!payload.new || !payload.new.user_id || !payload.new.id) {
+              return
+            }
+
+            const newRow = payload.new as ChatMessageRow
+
             // Obtener el perfil del usuario
             const { data: profile } = await supabase
               .from('profiles')
               .select('id, username, avatar_url')
-              .eq('id', payload.new.user_id)
+              .eq('id', newRow.user_id)
               .single()
 
             const newMessage: Message = {
-              id: payload.new.id,
-              message: payload.new.message,
-              created_at: payload.new.created_at,
-              profile: profile || { id: payload.new.user_id as string, username: 'Usuario', avatar_url: null },
+              id: newRow.id,
+              message: newRow.message,
+              created_at: newRow.created_at,
+              profile: profile || { id: newRow.user_id, username: 'Usuario', avatar_url: null },
             }
             
             setMessages((prev) => {
