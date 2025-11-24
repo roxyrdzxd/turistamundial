@@ -83,6 +83,7 @@ export async function POST(request: Request) {
     let needsToPayToll = false
     let tollAmount = 0
     let ownerId = null
+    let propertyForSale = null
 
     if (countryAtPosition) {
       // Verificar si el país está comprado
@@ -99,6 +100,10 @@ export async function POST(request: Request) {
             if (currentPlayer.money >= ownerCountry.sale_price) {
               canBuy = true
               actionRequired = 'can_buy_from_player'
+              propertyForSale = {
+                playerCountryId: ownerCountry.id,
+                salePrice: ownerCountry.sale_price,
+              }
             }
           }
         } else {
