@@ -28,15 +28,29 @@ export default function LobbyPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const router = useRouter()
   const toast = useToast()
 
   useEffect(() => {
+    fetchUser()
     fetchSessions()
     // Refrescar cada 5 segundos
     const interval = setInterval(fetchSessions, 5000)
     return () => clearInterval(interval)
   }, [])
+
+  const fetchUser = async () => {
+    try {
+      const response = await fetch('/api/auth/user')
+      const data = await response.json()
+      if (data.data?.user?.id) {
+        setCurrentUserId(data.data.user.id)
+      }
+    } catch (err) {
+      console.error('Error obteniendo usuario:', err)
+    }
+  }
 
   const fetchSessions = async () => {
     try {
@@ -52,6 +66,36 @@ export default function LobbyPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleClose = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevenir que se active el botón de unirse
+    
+    if (!confirm('¿Estás seguro de que quieres cerrar esta partida? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/game/close-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cerrar la partida')
+      }
+
+      toast.showToast('Partida cerrada correctamente', 'success')
+      // Refrescar la lista
+      fetchSessions()
+    } catch (err: any) {
+      toast.showToast(err.message || 'Error al cerrar la partida', 'error')
     }
   }
 
@@ -143,18 +187,31 @@ export default function LobbyPage() {
             {sessions.map((session) => {
               const isFull = session.current_players >= session.max_players
               const progress = (session.current_players / session.max_players) * 100
+              const isHost = currentUserId === session.host_id
+              const isFinished = session.status === 'finished'
               
               return (
                 <div
                   key={session.id}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-blue-500"
+                  className={`bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 ${
+                    isFinished 
+                      ? 'border-gray-300 opacity-75' 
+                      : 'border-transparent hover:border-blue-500'
+                  }`}
                 >
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">
-                          Partida de {session.host.username}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-gray-900">
+                            Partida de {session.host.username}
+                          </h3>
+                          {isFinished && (
+                            <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-semibold rounded">
+                              Finalizada
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-500">
                           Creada {new Date(session.created_at).toLocaleString('es-ES', { 
                             day: 'numeric', 
@@ -164,6 +221,15 @@ export default function LobbyPage() {
                           })}
                         </p>
                       </div>
+                      {isHost && !isFinished && (
+                        <button
+                          onClick={(e) => handleClose(session.id, e)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Cerrar partida"
+                        >
+                          🚪
+                        </button>
+                      )}
                     </div>
 
                     {/* Progress Bar */}
@@ -210,17 +276,27 @@ export default function LobbyPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleJoin(session.id)}
-                      disabled={isFull}
-                      className={`w-full py-3 px-4 rounded-lg font-semibold transition ${
-                        isFull
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
-                      }`}
-                    >
-                      {isFull ? '❌ Llena' : '✅ Unirse'}
-                    </button>
+                    <div className="flex gap-2">
+                      {isHost && !isFinished && (
+                        <button
+                          onClick={(e) => handleClose(session.id, e)}
+                          className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition font-semibold shadow-lg"
+                        >
+                          🚪 Cerrar
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleJoin(session.id)}
+                        disabled={isFull || isFinished}
+                        className={`flex-1 py-3 px-4 rounded-lg font-semibold transition ${
+                          isFull || isFinished
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
+                        }`}
+                      >
+                        {isFinished ? '✅ Finalizada' : isFull ? '❌ Llena' : '✅ Unirse'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )

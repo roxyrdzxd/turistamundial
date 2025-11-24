@@ -4,8 +4,12 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   const supabase = await createClient()
   
-  // Obtener todas las sesiones en espera
-  const { data: sessions, error } = await supabase
+  // Obtener usuario actual
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  // Obtener todas las sesiones waiting y active
+  // Si el usuario está autenticado, también mostrar sus sesiones activas como host
+  let query = supabase
     .from('game_sessions')
     .select(`
       *,
@@ -18,8 +22,10 @@ export async function GET() {
         profile:profiles!session_players_user_id_fkey(username)
       )
     `)
-    .eq('status', 'waiting')
+    .in('status', ['waiting', 'active'])
     .order('created_at', { ascending: false })
+
+  const { data: sessions, error } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
