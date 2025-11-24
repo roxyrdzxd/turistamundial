@@ -31,9 +31,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Sesión no encontrada o no eres el host' }, { status: 404 })
   }
 
-  // Verificar que hay al menos 4 jugadores
-  if (session.current_players < 4) {
-    return NextResponse.json({ error: 'Se necesitan al menos 4 jugadores para iniciar' }, { status: 400 })
+  // Verificar que hay al menos 2 jugadores
+  if (session.current_players < 2) {
+    return NextResponse.json({ error: 'Se necesitan al menos 2 jugadores para iniciar' }, { status: 400 })
   }
 
   // Actualizar estado de la sesión

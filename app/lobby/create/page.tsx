@@ -114,21 +114,21 @@ function CreateLobbyContent() {
               <input
                 id="maxPlayers"
                 type="range"
-                min="4"
+                min="2"
                 max="8"
                 value={maxPlayers}
                 onChange={(e) => setMaxPlayers(Number(e.target.value))}
                 className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span>4 (Mínimo)</span>
+                <span>2 (Mínimo)</span>
                 <span>8 (Máximo)</span>
               </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                <strong>💡 Tip:</strong> La partida comenzará cuando tengas al menos 4 jugadores.
+                <strong>💡 Tip:</strong> La partida comenzará cuando tengas al menos 2 jugadores.
                 Puedes agregar NPCs automáticamente desde la sala de espera para empezar rápido.
               </p>
             </div>

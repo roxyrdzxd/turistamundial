@@ -354,11 +354,11 @@ export default function SessionPage() {
         {session.status === 'waiting' && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="mb-6">
-              {session.current_players < 4 ? (
+              {session.current_players < 2 ? (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                   <p className="text-yellow-800 font-semibold mb-1">⚠️ Se necesitan más jugadores</p>
                   <p className="text-yellow-700 text-sm">
-                    Se requieren al menos 4 jugadores para iniciar. Faltan {4 - session.current_players} jugador{4 - session.current_players > 1 ? 'es' : ''}.
+                    Se requieren al menos 2 jugadores para iniciar. Faltan {2 - session.current_players} jugador{2 - session.current_players > 1 ? 'es' : ''}.
                   </p>
                 </div>
               ) : (

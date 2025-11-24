@@ -206,11 +206,20 @@ export default function CountryCarousel({
   const isOnSpecialSquare = SPECIAL_SQUARES[currentPosition]
   
   // Verificar si estamos mostrando la posición correcta
-  // Para casillas especiales, consideramos que estamos en la posición correcta si mostramos la siguiente casilla
-  const isCurrentPosition = isOnSpecialSquare 
-    ? (displayedCountry && displayedCountry.position > currentPosition && 
-       (currentIndex === 0 || sortedCountries[currentIndex - 1]?.position < currentPosition))
-    : displayedCountry?.position === currentPosition
+  // Para casillas especiales, consideramos que estamos en la posición correcta si mostramos la siguiente casilla disponible
+  // Para casillas normales, debe coincidir exactamente
+  let isCurrentPosition = false
+  if (isOnSpecialSquare) {
+    // Si estamos en una casilla especial, estamos en la posición correcta si:
+    // 1. La casilla mostrada es la primera después de la posición actual, O
+    // 2. Es la primera casilla del array y la posición actual es 0
+    const nextCountryIndex = sortedCountries.findIndex(c => c.position > currentPosition)
+    isCurrentPosition = (nextCountryIndex !== -1 && currentIndex === nextCountryIndex) ||
+                       (currentPosition === 0 && currentIndex === 0)
+  } else {
+    // Para casillas normales, debe coincidir exactamente
+    isCurrentPosition = displayedCountry?.position === currentPosition
+  }
 
   // Información de propiedad
   const ownedCountry = displayedCountry
@@ -548,7 +557,7 @@ export default function CountryCarousel({
       </div>
 
       {/* Botón para ir a tu posición - Solo mostrar si no estamos en la posición correcta */}
-      {!isCurrentPosition && currentPlayer && !isOnSpecialSquare && (
+      {!isCurrentPosition && currentPlayer && (
         <button
           onClick={(e) => {
             e.preventDefault()
@@ -558,11 +567,12 @@ export default function CountryCarousel({
           className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition font-semibold text-sm shadow-lg"
         >
           📍 Ir a mi posición (Casilla {currentPosition})
+          {isOnSpecialSquare && ` - ${SPECIAL_SQUARES[currentPosition].name}`}
         </button>
       )}
       
-      {/* Mensaje para casillas especiales */}
-      {isOnSpecialSquare && !isCurrentPosition && currentPlayer && (
+      {/* Mensaje informativo cuando estás en una casilla especial y se muestra correctamente */}
+      {isOnSpecialSquare && isCurrentPosition && currentPlayer && (
         <div className="mt-4 w-full bg-yellow-50 border-2 border-yellow-400 rounded-lg p-3 text-center">
           <p className="text-yellow-800 font-semibold text-sm">
             {SPECIAL_SQUARES[currentPosition].emoji} Estás en: {SPECIAL_SQUARES[currentPosition].name}
