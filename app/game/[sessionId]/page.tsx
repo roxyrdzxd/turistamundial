@@ -4,13 +4,16 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import GameBoard from '@/components/game/GameBoard'
+import BoardOverview from '@/components/game/BoardOverview'
 import CountryCarousel from '@/components/game/CountryCarousel'
 import DiceAnimation from '@/components/game/DiceAnimation'
 import TransactionHistory from '@/components/game/TransactionHistory'
 import Chat from '@/components/game/Chat'
 import PropertySaleModal from '@/components/game/PropertySaleModal'
+import SoundSettings from '@/components/game/SoundSettings'
 import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly } from '@/lib/game/gameEngine'
+import { soundManager } from '@/lib/audio/soundManager'
 
 interface Player {
   id: string
@@ -287,6 +290,7 @@ export default function GamePage() {
       }
 
       toast.showSuccess(`Has tirado ${data.diceResult}!`)
+      soundManager?.play('dice_roll')
 
       // Guardar detalles de los dados para la animación
       setDiceDetails({
@@ -342,6 +346,11 @@ export default function GamePage() {
       setNeedsToPayToll(actionData.needsToPayToll)
       setTollAmount(actionData.tollAmount)
       setPropertyForSale(actionData.propertyForSale)
+      
+      // Reproducir sonido de bonus si pasó por inicio
+      if (data.actionRequired === 'start_bonus') {
+        soundManager?.play('money_received')
+      }
 
       // Refrescar la sesión inmediatamente para obtener datos actualizados
       fetchSession()
@@ -506,6 +515,7 @@ export default function GamePage() {
       }
 
       toast.showSuccess(data.message || 'Propiedad comprada exitosamente')
+      soundManager?.play('buy_property')
       setActionRequired(null)
       setPropertyForSale(null)
       setCurrentCountry(null)
@@ -513,6 +523,7 @@ export default function GamePage() {
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
+      soundManager?.play('error')
     }
   }
 
@@ -541,6 +552,7 @@ export default function GamePage() {
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
+      soundManager?.play('error')
     }
   }
 
@@ -564,12 +576,14 @@ export default function GamePage() {
       }
 
       toast.showSuccess(data.message)
+      soundManager?.play('buy_property')
       setCanBuyCountry(false)
       setActionRequired(null)
       setCurrentCountry(null)
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
+      soundManager?.play('error')
     }
   }
 
@@ -591,8 +605,10 @@ export default function GamePage() {
 
       if (data.bankrupt) {
         toast.showError('Has quedado en bancarrota')
+        soundManager?.play('error')
       } else {
         toast.showSuccess(data.message)
+        soundManager?.play('pay_toll')
       }
 
       setNeedsToPayToll(false)
@@ -600,6 +616,7 @@ export default function GamePage() {
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
+      soundManager?.play('error')
     }
   }
 
@@ -637,6 +654,7 @@ export default function GamePage() {
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
+      soundManager?.play('error')
     }
   }
 
@@ -1202,6 +1220,17 @@ export default function GamePage() {
               ) : null
             })()}
 
+            {/* Vista del Tablero */}
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 order-2 mb-4 sm:mb-6">
+              <BoardOverview
+                countries={countries}
+                players={session.players}
+                currentUserId={currentUserId}
+                currentTurn={session.current_turn}
+                playerCountries={playerCountries}
+              />
+            </div>
+
             {/* Lista de Jugadores */}
             <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 order-3">
               <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Jugadores</h3>
@@ -1272,6 +1301,9 @@ export default function GamePage() {
       {currentUserId && (
         <Chat sessionId={sessionId} currentUserId={currentUserId} />
       )}
+      
+      {/* Configuración de sonido */}
+      <SoundSettings />
     </div>
   )
 }
