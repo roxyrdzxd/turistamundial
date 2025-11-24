@@ -1,0 +1,150 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+import { canBuyCountry, hasMonopoly } from '@/lib/game/gameEngine'
+
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient()
+    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+
+    const { sessionId, countryId } = await request.json()
+
+    if (!sessionId || !countryId) {
+      return NextResponse.json({ error: 'sessionId y countryId requeridos' }, { status: 400 })
+    }
+
+    // Obtener sesión
+    const { data: session, error: sessionError } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('status', 'active')
+      .single()
+
+    if (sessionError || !session) {
+      return NextResponse.json({ error: 'Sesión no encontrada' }, { status: 404 })
+    }
+
+    // Obtener jugador actual
+    const { data: players } = await supabase
+      .from('session_players')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('turn_order')
+
+    const currentPlayer = players?.find(p => p.turn_order === session.current_turn)
+
+    if (!currentPlayer || currentPlayer.user_id !== user.id) {
+      return NextResponse.json({ error: 'No es tu turno' }, { status: 403 })
+    }
+
+    // Obtener país
+    const { data: country, error: countryError } = await supabase
+      .from('countries')
+      .select('*')
+      .eq('id', countryId)
+      .single()
+
+    if (countryError || !country) {
+      return NextResponse.json({ error: 'País no encontrado' }, { status: 404 })
+    }
+
+    // Verificar que el jugador está en esa posición
+    if (currentPlayer.position !== country.position) {
+      return NextResponse.json({ error: 'No estás en ese país' }, { status: 400 })
+    }
+
+    // Obtener países comprados
+    const { data: playerCountries } = await supabase
+      .from('player_countries')
+      .select('*')
+      .eq('session_id', sessionId)
+
+    // Verificar si puede comprar
+    const gameState = {
+      sessionId,
+      players: players || [],
+      playerCountries: playerCountries || [],
+      countries: [country],
+      currentTurn: session.current_turn,
+    }
+
+    const canBuy = canBuyCountry(country, currentPlayer, gameState)
+
+    if (!canBuy.canBuy) {
+      return NextResponse.json({ error: canBuy.reason || 'No puedes comprar este país' }, { status: 400 })
+    }
+
+    // Realizar la compra
+    const { error: purchaseError } = await supabase
+      .from('player_countries')
+      .insert({
+        session_id: sessionId,
+        player_id: currentPlayer.id,
+        country_id: countryId,
+        houses: 0,
+        hotels: 0,
+        is_mortgaged: false,
+      })
+
+    if (purchaseError) {
+      return NextResponse.json({ error: purchaseError.message }, { status: 500 })
+    }
+
+    // Descontar dinero
+    const { error: moneyError } = await supabase
+      .from('session_players')
+      .update({ money: currentPlayer.money - country.price })
+      .eq('id', currentPlayer.id)
+
+    if (moneyError) {
+      return NextResponse.json({ error: moneyError.message }, { status: 500 })
+    }
+
+    // Registrar movimiento
+    await supabase
+      .from('game_moves')
+      .insert({
+        session_id: sessionId,
+        player_id: currentPlayer.id,
+        move_type: 'buy_country',
+        move_data: {
+          country_id: countryId,
+          country_name: country.name,
+          price: country.price,
+        },
+      })
+
+    // Avanzar al siguiente turno después de comprar
+    const { data: allPlayers } = await supabase
+      .from('session_players')
+      .select('*')
+      .eq('session_id', sessionId)
+      .order('turn_order')
+
+    const activePlayers = allPlayers?.filter(p => !p.is_bankrupt) || []
+    const nextTurn = (session.current_turn + 1) % activePlayers.length
+    await supabase
+      .from('game_sessions')
+      .update({ current_turn: nextTurn })
+      .eq('id', sessionId)
+
+    return NextResponse.json({
+      success: true,
+      message: `Has comprado ${country.name} por $${country.price}`,
+    })
+  } catch (error: any) {
+    console.error('[Buy Country] Error:', error)
+    return NextResponse.json({
+      error: error.message || 'Error al comprar país',
+    }, { status: 500 })
+  }
+}
+
