@@ -39,11 +39,12 @@ DECLARE
   marked_count INTEGER := 0;
 BEGIN
   -- Marcar como desconectados jugadores que no han hecho ping en 2 minutos
+  -- Excluir NPCs verificando si el user_id convertido a texto empieza con 'npc-'
   UPDATE session_players
   SET is_online = false
   WHERE is_online = true
     AND last_seen < NOW() - INTERVAL '2 minutes'
-    AND user_id NOT LIKE 'npc-%'; -- No marcar NPCs como desconectados
+    AND user_id::text NOT LIKE 'npc-%'; -- Convertir UUID a texto para comparar
   
   GET DIAGNOSTICS marked_count = ROW_COUNT;
   
