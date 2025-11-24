@@ -62,6 +62,9 @@ export default function GamePage() {
   const [tollAmount, setTollAmount] = useState(0)
   const [showDiceAnimation, setShowDiceAnimation] = useState(false)
   const [diceDetails, setDiceDetails] = useState<{ die1?: number; die2?: number }>({})
+  const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const timeLeftRef = useRef<number | null>(null)
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const toast = useToast()
 
   // Declarar funciones antes de usarlas en useEffect
@@ -295,6 +298,14 @@ export default function GamePage() {
       if (session) {
         lastTurnDiceRolledRef.current = session.current_turn
       }
+
+      // Detener el cronómetro ya que el jugador tiró los dados
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+      }
+      setTimeLeft(null)
+      timeLeftRef.current = null
       
       // Actualizar la posición del jugador en el estado local inmediatamente
       if (session && data.newPosition !== undefined) {
@@ -388,6 +399,85 @@ export default function GamePage() {
     }
   }, [session?.current_turn, currentUserId, session])
 
+  // Cronómetro de turno - 40 segundos máximo
+  useEffect(() => {
+    if (!session || !currentUserId) return
+
+    // Calcular si es el turno del jugador
+    const currentPlayer = session.players.find(
+      p => p.turn_order === session.current_turn
+    )
+    const isMyTurnNow = currentPlayer?.user_id === currentUserId
+
+    // Limpiar el cronómetro anterior
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current)
+      timerIntervalRef.current = null
+    }
+    setTimeLeft(null)
+    timeLeftRef.current = null
+
+    // Solo iniciar el cronómetro si:
+    // 1. La sesión está activa
+    // 2. Es el turno del jugador actual
+    // 3. El jugador no ha tirado los dados aún en este turno
+    if (
+      session.status === 'active' &&
+      isMyTurnNow &&
+      lastTurnDiceRolledRef.current !== session.current_turn &&
+      !diceResult
+    ) {
+      // Iniciar cronómetro con 40 segundos
+      timeLeftRef.current = 40
+      setTimeLeft(40)
+
+      timerIntervalRef.current = setInterval(() => {
+        if (timeLeftRef.current !== null && timeLeftRef.current > 0) {
+          timeLeftRef.current = timeLeftRef.current - 1
+          setTimeLeft(timeLeftRef.current)
+        } else {
+          // Tiempo agotado - pasar turno automáticamente
+          if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current)
+            timerIntervalRef.current = null
+          }
+          setTimeLeft(null)
+          timeLeftRef.current = null
+          
+          // Solo pasar turno si aún es el turno del jugador y no ha tirado dados
+          fetchSession().then(() => {
+            // Verificar nuevamente después de refrescar
+            setTimeout(() => {
+              const checkResponse = fetch(`/api/game/session/${sessionId}`)
+                .then(res => res.json())
+                .then(data => {
+                  if (data.session) {
+                    const checkCurrentPlayer = data.session.players.find(
+                      (p: any) => p.turn_order === data.session.current_turn
+                    )
+                    const stillMyTurn = checkCurrentPlayer?.user_id === currentUserId
+                    
+                    if (stillMyTurn && !diceResult) {
+                      toast.showWarning('Tiempo agotado. Pasando al siguiente jugador...')
+                      handleEndTurn()
+                    }
+                  }
+                })
+            }, 500)
+          })
+        }
+      }, 1000)
+    }
+
+    // Cleanup al desmontar o cambiar de turno
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+      }
+    }
+  }, [session?.current_turn, session?.status, currentUserId, diceResult, sessionId, fetchSession, toast])
+
   // Actualizar acciones cuando cambie la sesión y tengamos datos del resultado
   useEffect(() => {
     if (session && diceResult && !showDiceAnimation) {
@@ -469,6 +559,14 @@ export default function GamePage() {
   }
 
   const handleEndTurn = async () => {
+    // Limpiar el cronómetro
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current)
+      timerIntervalRef.current = null
+    }
+    setTimeLeft(null)
+    timeLeftRef.current = null
+
     try {
       const response = await fetch('/api/game/end-turn', {
         method: 'POST',
@@ -599,9 +697,25 @@ export default function GamePage() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">🌍 Turista Mundial</h1>
-                <p className="text-gray-600">
-                  Turno: {currentPlayer?.profile.username || 'Cargando...'}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-gray-600">
+                    Turno: {currentPlayer?.profile.username || 'Cargando...'}
+                  </p>
+                  {isMyTurn && timeLeft !== null && timeLeft > 0 && (
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full font-semibold ${
+                      timeLeft <= 10 
+                        ? 'bg-red-100 text-red-700 animate-pulse' 
+                        : timeLeft <= 20 
+                        ? 'bg-yellow-100 text-yellow-700' 
+                        : 'bg-green-100 text-green-700'
+                    }`}>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>{timeLeft}s</span>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
