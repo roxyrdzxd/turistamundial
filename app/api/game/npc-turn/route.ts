@@ -150,6 +150,23 @@ export async function POST(request: Request) {
             .eq('id', currentPlayer.id)
 
           actionTaken = 'bought_country'
+          // Guardar información de la compra para el historial
+          const boughtCountryName = countryAtPosition.name
+          const boughtCountryPrice = countryAtPosition.price
+          
+          // Registrar movimiento de compra
+          await supabase
+            .from('game_moves')
+            .insert({
+              session_id: sessionId,
+              player_id: currentPlayer.id,
+              move_type: 'buy_country',
+              move_data: {
+                country_id: countryAtPosition.id,
+                country_name: boughtCountryName,
+                price: boughtCountryPrice,
+              },
+            })
         }
       }
 

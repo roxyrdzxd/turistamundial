@@ -89,13 +89,20 @@ export default function TransactionHistory({ sessionId }: TransactionHistoryProp
       case 'roll_dice':
         return `${player.profile.username} tiró ${move_data.die1} + ${move_data.die2} = ${move_data.total}`
       case 'buy_country':
-        return `${player.profile.username} compró ${move_data.country_name} por $${move_data.amount?.toLocaleString()}`
+        const purchasePrice = move_data.price || move_data.amount || 0
+        return `${player.profile.username} compró ${move_data.country_name} por $${purchasePrice.toLocaleString()}`
       case 'pay_toll':
         return `${player.profile.username} pagó $${move_data.amount?.toLocaleString()} de peaje`
       case 'build':
         return `${player.profile.username} construyó en ${move_data.country_name}`
       case 'npc_turn':
-        return `${player.profile.username}: ${move_data.action_taken === 'bought_country' ? 'compró' : move_data.action_taken === 'paid_toll' ? 'pagó peaje' : 'avanzó'}`
+        if (move_data.action_taken === 'bought_country') {
+          return `${player.profile.username} compró un país`
+        } else if (move_data.action_taken === 'paid_toll') {
+          return `${player.profile.username} pagó peaje`
+        } else {
+          return `${player.profile.username} avanzó`
+        }
       default:
         return `${player.profile.username}: ${move_type}`
     }
