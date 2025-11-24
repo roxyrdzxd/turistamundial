@@ -984,20 +984,33 @@ export default function GamePage() {
 
             {/* Monopolios de Continentes */}
             {(() => {
+              // Mapeo de colores a nombres de continentes
+              const continentNames: Record<string, string> = {
+                'blue': 'América del Norte',
+                'pink': 'Europa',
+                'orange': 'Asia',
+                'red': 'América del Sur',
+                'yellow': 'África',
+                'green': 'Oceanía',
+                'purple': 'Especial',
+              }
+              
               // Calcular monopolios de todos los jugadores
               const monopolies: Array<{ playerId: string; playerName: string; playerColor: string; continents: string[] }> = []
               
               if (session && countries.length > 0 && playerCountries.length > 0) {
-                // Obtener todos los continentes únicos
+                // Obtener todos los continentes únicos (colores)
                 const allContinents = [...new Set(countries.map(c => c.continent))]
                 
                 // Para cada jugador, verificar qué continentes tiene en monopolio
                 session.players.forEach(player => {
                   const playerMonopolies: string[] = []
                   
-                  allContinents.forEach(continent => {
-                    if (hasMonopoly(continent, player.id, countries, playerCountries)) {
-                      playerMonopolies.push(continent)
+                  allContinents.forEach(continentColor => {
+                    if (hasMonopoly(continentColor, player.id, countries, playerCountries)) {
+                      // Convertir el color a nombre de continente
+                      const continentName = continentNames[continentColor] || continentColor
+                      playerMonopolies.push(continentName)
                     }
                   })
                   
@@ -1019,15 +1032,17 @@ export default function GamePage() {
                 'Asia': '🌏',
                 'África': '🌍',
                 'Oceanía': '🌏',
+                'Especial': '⭐',
               }
               
               const continentColors: Record<string, string> = {
                 'América del Norte': 'from-blue-500 to-blue-600',
-                'América del Sur': 'from-green-500 to-green-600',
-                'Europa': 'from-purple-500 to-purple-600',
-                'Asia': 'from-yellow-500 to-yellow-600',
-                'África': 'from-orange-500 to-orange-600',
-                'Oceanía': 'from-cyan-500 to-cyan-600',
+                'América del Sur': 'from-red-500 to-red-600',
+                'Europa': 'from-pink-500 to-pink-600',
+                'Asia': 'from-orange-500 to-orange-600',
+                'África': 'from-yellow-500 to-yellow-600',
+                'Oceanía': 'from-green-500 to-green-600',
+                'Especial': 'from-purple-500 to-purple-600',
               }
               
               return monopolies.length > 0 ? (
