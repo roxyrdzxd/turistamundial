@@ -27,6 +27,8 @@ interface ChatProps {
   sessionId: string
   currentUserId: string
   onUnreadCountChange?: (count: number) => void
+  forceOpen?: boolean
+  onOpenChange?: (isOpen: boolean) => void
 }
 
 export default function Chat({ sessionId, currentUserId, onUnreadCountChange, forceOpen, onOpenChange }: ChatProps) {
