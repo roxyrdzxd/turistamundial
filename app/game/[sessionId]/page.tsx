@@ -12,6 +12,9 @@ import Chat from '@/components/game/Chat'
 import PropertySaleModal from '@/components/game/PropertySaleModal'
 import BankModal from '@/components/game/BankModal'
 import SoundSettings from '@/components/game/SoundSettings'
+import FloatingDiceButton from '@/components/game/FloatingDiceButton'
+import MobileBottomNav from '@/components/game/MobileBottomNav'
+import FloatingActions from '@/components/game/FloatingActions'
 import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly } from '@/lib/game/gameEngine'
 import { soundManager } from '@/lib/audio/soundManager'
@@ -73,6 +76,13 @@ export default function GamePage() {
   const timeLeftRef = useRef<number | null>(null)
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const toast = useToast()
+  
+  // Estados para navegación móvil
+  const [showBoardOverview, setShowBoardOverview] = useState(false)
+  const [showProperties, setShowProperties] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [showChat, setShowChat] = useState(false)
+  const [chatUnreadCount, setChatUnreadCount] = useState(0)
 
   // Declarar funciones antes de usarlas en useEffect
   const fetchCountries = async () => {
@@ -832,7 +842,7 @@ export default function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-6">
@@ -918,7 +928,7 @@ export default function GamePage() {
 
             {/* Acciones del Turno */}
             {isMyTurn && (
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4 order-2 lg:order-2">
+              <div className="hidden md:block bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4 order-2 lg:order-2">
                 <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Turno</h3>
                 
                 {/* Animación de dados - pequeña, arriba del botón */}
@@ -1338,11 +1348,217 @@ export default function GamePage() {
 
       {/* Chat Component */}
       {currentUserId && (
-        <Chat sessionId={sessionId} currentUserId={currentUserId} />
+        <Chat 
+          sessionId={sessionId} 
+          currentUserId={currentUserId}
+          onUnreadCountChange={setChatUnreadCount}
+          forceOpen={showChat}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setShowChat(false)
+            }
+          }}
+        />
       )}
       
       {/* Configuración de sonido */}
       <SoundSettings />
+
+      {/* Componentes móviles flotantes */}
+      {isMyTurn && (
+        <>
+          <FloatingDiceButton
+            isMyTurn={isMyTurn}
+            diceResult={diceResult}
+            rolling={rolling}
+            showDiceAnimation={showDiceAnimation}
+            onRollDice={handleRollDice}
+            die1={diceDetails.die1}
+            die2={diceDetails.die2}
+          />
+          <FloatingActions
+            isMyTurn={isMyTurn}
+            onEndTurn={handleEndTurn}
+            onOpenProperties={() => {
+              setShowProperties(true)
+              setShowBoardOverview(false)
+              setShowHistory(false)
+              setShowChat(false)
+            }}
+            canEndTurn={!showDiceAnimation && (actionRequired === null || actionRequired === 'start_bonus' || actionRequired === 'bank_tax' || (!canBuyCountry && !needsToPayToll && !propertyForSale))}
+          />
+        </>
+      )}
+
+      {/* Navegación inferior móvil */}
+      <MobileBottomNav
+        onShowBoard={() => {
+          setShowBoardOverview(!showBoardOverview)
+          setShowProperties(false)
+          setShowHistory(false)
+          setShowChat(false)
+        }}
+        onShowProperties={() => {
+          setShowProperties(!showProperties)
+          setShowBoardOverview(false)
+          setShowHistory(false)
+          setShowChat(false)
+        }}
+        onShowHistory={() => {
+          setShowHistory(!showHistory)
+          setShowBoardOverview(false)
+          setShowProperties(false)
+          setShowChat(false)
+        }}
+        onShowChat={() => {
+          // El chat se maneja internamente, solo necesitamos abrir/cerrar
+          // No podemos controlar directamente el estado del chat desde aquí
+          // pero podemos hacer scroll hacia el botón del chat
+          setShowChat(!showChat)
+          setShowBoardOverview(false)
+          setShowProperties(false)
+          setShowHistory(false)
+        }}
+        unreadChatCount={chatUnreadCount}
+      />
+
+      {/* Modales móviles para propiedades e historial */}
+      {showProperties && myPlayer && (
+        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Mis Propiedades</h2>
+              <button
+                onClick={() => setShowProperties(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {(() => {
+              const myProperties = playerCountries
+                .filter(pc => pc.player_id === myPlayer.id)
+                .map(pc => {
+                  const country = countries.find(c => c.id === pc.country_id)
+                  return country ? { ...pc, country } : null
+                })
+                .filter((item): item is any => item !== null)
+
+              if (myProperties.length === 0) {
+                return (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No tienes propiedades aún</p>
+                  </div>
+                )
+              }
+
+              return (
+                <div className="space-y-4">
+                  {myProperties.map((prop: any) => (
+                    <div key={prop.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
+                      <h3 className="font-bold text-lg mb-2">{prop.country.name}</h3>
+                      <div className="space-y-2 text-sm">
+                        <p>📍 Casilla {prop.country.position}</p>
+                        <p>💰 Renta base: ${prop.country.base_rent.toLocaleString()}</p>
+                        {prop.houses > 0 && <p>🏠 Casas: {prop.houses}</p>}
+                        {prop.hotels > 0 && <p>🏨 Hoteles: {prop.hotels}</p>}
+                        {prop.is_mortgaged && <p className="text-yellow-600">⚠️ Hipotecada</p>}
+                        {prop.is_for_sale && (
+                          <p className="text-purple-600">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
+                        )}
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-gray-200 flex gap-2">
+                        <BankModal
+                          property={{
+                            id: prop.id,
+                            country: prop.country,
+                            houses: prop.houses || 0,
+                            hotels: prop.hotels || 0,
+                            is_mortgaged: prop.is_mortgaged || false,
+                          }}
+                          playerMoney={myPlayer.money}
+                          onMortgage={() => {
+                            handleMortgage(prop.id)
+                            setShowProperties(false)
+                          }}
+                          onUnmortgage={() => {
+                            handleUnmortgage(prop.id)
+                            setShowProperties(false)
+                          }}
+                          onSellBuild={(houses, hotels) => {
+                            handleSellBuild(prop.id, houses, hotels)
+                            setShowProperties(false)
+                          }}
+                        />
+                        {!prop.is_mortgaged && (
+                          prop.is_for_sale ? (
+                            <button className="flex-1 bg-red-500 text-white text-sm py-2 px-3 rounded">
+                              Retirar de venta
+                            </button>
+                          ) : (
+                            <PropertySaleModal
+                              property={prop}
+                              onSell={() => setShowProperties(false)}
+                            />
+                          )
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
+          </div>
+        </div>
+      )}
+
+      {showHistory && (
+        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Historial</h2>
+              <button
+                onClick={() => setShowHistory(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <TransactionHistory sessionId={sessionId} />
+          </div>
+        </div>
+      )}
+
+      {showBoardOverview && (
+        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Vista del Tablero</h2>
+              <button
+                onClick={() => setShowBoardOverview(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {session && (
+              <BoardOverview
+                countries={countries}
+                players={session.players}
+                currentUserId={currentUserId}
+                currentTurn={session.current_turn}
+                playerCountries={playerCountries}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

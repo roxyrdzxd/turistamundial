@@ -26,13 +26,21 @@ interface Message {
 interface ChatProps {
   sessionId: string
   currentUserId: string
+  onUnreadCountChange?: (count: number) => void
 }
 
-export default function Chat({ sessionId, currentUserId }: ChatProps) {
+export default function Chat({ sessionId, currentUserId, onUnreadCountChange, forceOpen, onOpenChange }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  
+  // Sincronizar con forceOpen prop
+  useEffect(() => {
+    if (forceOpen !== undefined) {
+      setIsOpen(forceOpen)
+    }
+  }, [forceOpen])
   const [unreadCount, setUnreadCount] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -88,7 +96,11 @@ export default function Chat({ sessionId, currentUserId }: ChatProps) {
             
             // Incrementar contador de no leídos si el chat está cerrado
             if (!isOpen) {
-              setUnreadCount((prev) => prev + 1)
+              setUnreadCount((prev) => {
+                const newCount = prev + 1
+                onUnreadCountChange?.(newCount)
+                return newCount
+              })
             }
           } catch (error) {
             console.error('Error procesando nuevo mensaje:', error)
@@ -157,33 +169,43 @@ export default function Chat({ sessionId, currentUserId }: ChatProps) {
   }
 
   const handleToggle = () => {
-    setIsOpen(!isOpen)
+    const newState = !isOpen
+    setIsOpen(newState)
+    onOpenChange?.(newState)
     if (!isOpen) {
       setUnreadCount(0)
+      onUnreadCountChange?.(0)
     }
   }
+  
+  // Notificar cambios en el contador
+  useEffect(() => {
+    onUnreadCountChange?.(unreadCount)
+  }, [unreadCount, onUnreadCountChange])
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {/* Botón flotante del chat */}
-      <button
-        onClick={handleToggle}
-        className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center"
-        title="Chat"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-        </svg>
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+    <>
+      {/* Botón flotante del chat - Solo en desktop */}
+      <div className="fixed bottom-4 right-4 z-50 hidden md:block">
+        <button
+          onClick={handleToggle}
+          className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center"
+          title="Chat"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+      </div>
 
-      {/* Panel del chat */}
+      {/* Panel del chat - Desktop */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+        <div className="hidden md:flex fixed bottom-20 right-4 w-80 h-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex-col overflow-hidden z-50">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -294,7 +316,121 @@ export default function Chat({ sessionId, currentUserId }: ChatProps) {
           </form>
         </div>
       )}
-    </div>
+
+      {/* Panel del chat - Mobile (pantalla completa) */}
+      {isOpen && (
+        <div className="md:hidden fixed inset-0 bg-white z-50 flex flex-col">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <h3 className="font-semibold text-lg">Chat</h3>
+            </div>
+            <button
+              onClick={handleToggle}
+              className="text-white/80 hover:text-white transition p-2"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mensajes */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 pb-20">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-500 text-sm py-8">
+                <p>No hay mensajes aún</p>
+                <p className="text-xs mt-1">Sé el primero en escribir</p>
+              </div>
+            ) : (
+              messages.map((msg) => {
+                const isOwn = msg.profile.id === currentUserId
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
+                  >
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      {msg.profile.avatar_url ? (
+                        <img
+                          src={msg.profile.avatar_url}
+                          alt={msg.profile.username}
+                          className="w-10 h-10 rounded-full"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-sm font-bold">
+                          {msg.profile.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mensaje */}
+                    <div className={`flex flex-col max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
+                      <div className="text-xs text-gray-500 mb-1 px-1">
+                        {msg.profile.username}
+                      </div>
+                      <div
+                        className={`rounded-lg px-4 py-2 text-base ${
+                          isOwn
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+                            : 'bg-white border border-gray-200'
+                        }`}
+                      >
+                        <span className={isOwn ? 'text-white font-medium' : 'text-gray-900'}>
+                          {msg.message}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1 px-1">
+                        {new Date(msg.created_at).toLocaleTimeString('es-ES', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input - Fixed en la parte inferior */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden">
+            <form onSubmit={handleSend} className="flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Escribe un mensaje..."
+                maxLength={500}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                disabled={loading}
+              />
+              <button
+                type="submit"
+                disabled={loading || !newMessage.trim()}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                )}
+              </button>
+            </form>
+            <p className="text-xs text-gray-400 mt-2 text-right">
+              {newMessage.length}/500
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
