@@ -23,6 +23,13 @@ class SoundManager {
     if (typeof window !== 'undefined') {
       // Obtener URL de Supabase desde variables de entorno
       this.supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || null
+      
+      if (!this.supabaseUrl) {
+        console.error('[SoundManager] NEXT_PUBLIC_SUPABASE_URL no está configurada')
+      } else {
+        console.log('[SoundManager] Inicializando con URL:', this.supabaseUrl)
+      }
+      
       this.loadSounds()
       // Cargar preferencia de usuario desde localStorage
       const savedEnabled = localStorage.getItem('soundEnabled')
@@ -33,6 +40,12 @@ class SoundManager {
       if (savedVolume !== null) {
         this.volume = parseFloat(savedVolume)
       }
+      
+      console.log('[SoundManager] Estado inicial:', {
+        enabled: this.enabled,
+        volume: this.volume,
+        soundsLoaded: this.sounds.size
+      })
     }
   }
 
@@ -67,33 +80,77 @@ class SoundManager {
     Object.entries(soundFiles).forEach(([type, filename]) => {
       const url = this.getSoundUrl(filename)
       if (!url) {
-        console.warn(`No se puede cargar el sonido ${type}: URL de Supabase no configurada`)
+        console.warn(`[SoundManager] No se puede cargar el sonido ${type}: URL de Supabase no configurada`)
         return
       }
+      
+      console.log(`[SoundManager] Cargando sonido ${type} desde: ${url}`)
       
       const audio = new Audio(url)
       audio.volume = this.volume
       audio.preload = 'auto'
-      // Manejar errores silenciosamente si el archivo no existe
-      audio.addEventListener('error', () => {
-        console.warn(`No se pudo cargar el sonido: ${url}`)
+      
+      // Manejar eventos de carga
+      audio.addEventListener('loadeddata', () => {
+        console.log(`[SoundManager] ✅ Sonido ${type} cargado correctamente`)
       })
+      
+      // Manejar errores si el archivo no existe
+      audio.addEventListener('error', (e) => {
+        console.error(`[SoundManager] ❌ Error cargando sonido ${type}:`, {
+          url,
+          error: e,
+          code: audio.error?.code,
+          message: audio.error?.message
+        })
+      })
+      
+      // Manejar cuando el audio está listo
+      audio.addEventListener('canplaythrough', () => {
+        console.log(`[SoundManager] ✅ Sonido ${type} listo para reproducir`)
+      })
+      
       this.sounds.set(type as SoundType, audio)
     })
   }
 
   play(soundType: SoundType) {
-    if (!this.enabled || typeof window === 'undefined') return
+    if (!this.enabled || typeof window === 'undefined') {
+      console.log(`[SoundManager] Sonido ${soundType} no reproducido:`, {
+        enabled: this.enabled,
+        isClient: typeof window !== 'undefined'
+      })
+      return
+    }
 
     const sound = this.sounds.get(soundType)
-    if (sound) {
+    if (!sound) {
+      console.warn(`[SoundManager] Sonido ${soundType} no encontrado en el mapa`)
+      return
+    }
+    
+    console.log(`[SoundManager] Reproduciendo sonido: ${soundType}`)
+    
+    try {
       // Clonar el audio para permitir múltiples reproducciones simultáneas
       const audioClone = sound.cloneNode() as HTMLAudioElement
       audioClone.volume = this.volume
-      audioClone.play().catch(err => {
-        // Ignorar errores de reproducción (usuario no ha interactuado, etc.)
-        console.warn('Error reproduciendo sonido:', err)
-      })
+      
+      const playPromise = audioClone.play()
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`[SoundManager] ✅ Sonido ${soundType} reproducido correctamente`)
+          })
+          .catch(err => {
+            // Error común: el navegador bloquea la reproducción automática
+            console.error(`[SoundManager] ❌ Error reproduciendo sonido ${soundType}:`, err)
+            console.log('[SoundManager] 💡 Nota: Los navegadores bloquean audio hasta que el usuario interactúe con la página')
+          })
+      }
+    } catch (err) {
+      console.error(`[SoundManager] ❌ Excepción al reproducir sonido ${soundType}:`, err)
     }
   }
 
