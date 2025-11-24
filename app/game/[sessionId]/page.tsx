@@ -491,6 +491,37 @@ export default function GamePage() {
   )
   const isMyTurn = currentPlayer?.user_id === currentUserId
   const myPlayer = session.players.find(p => p.user_id === currentUserId)
+  const isHost = session.host_id === currentUserId
+
+  const handleClose = async () => {
+    if (!isHost) return
+
+    if (!confirm('¿Estás seguro de que quieres cerrar esta partida? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/game/close-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cerrar la partida')
+      }
+
+      toast.showToast('Partida cerrada correctamente', 'success')
+      // Redirigir al lobby
+      router.push('/lobby')
+    } catch (err: any) {
+      toast.showToast(err.message || 'Error al cerrar la partida', 'error')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative">
@@ -505,18 +536,29 @@ export default function GamePage() {
             <span>Volver al Dashboard</span>
           </Link>
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">🌍 Turista Mundial</h1>
                 <p className="text-gray-600">
                   Turno: {currentPlayer?.profile.username || 'Cargando...'}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Sesión</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {session.current_players} jugadores
-                </p>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Sesión</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {session.current_players} jugadores
+                  </p>
+                </div>
+                {isHost && (
+                  <button
+                    onClick={handleClose}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold text-sm shadow-lg"
+                    title="Cerrar partida"
+                  >
+                    🚪 Cerrar
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -146,6 +146,36 @@ export default function SessionPage() {
     }
   }
 
+  const handleClose = async () => {
+    if (!isHost) return
+
+    if (!confirm('¿Estás seguro de que quieres cerrar esta partida? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/game/close-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cerrar la partida')
+      }
+
+      toast.showSuccess('Partida cerrada correctamente')
+      // Redirigir al lobby
+      router.push('/lobby')
+    } catch (err: any) {
+      toast.showError(err.message)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
@@ -341,13 +371,33 @@ export default function SessionPage() {
         )}
 
         {session.status === 'active' && (
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
             <Link
               href={`/game/${sessionId}`}
-              className="block w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition text-center text-lg font-semibold"
+              className="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition text-center text-lg font-semibold shadow-lg"
             >
               🎮 Ir al Juego
             </Link>
+            {isHost && (
+              <button
+                onClick={handleClose}
+                className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition text-center text-lg font-semibold shadow-lg"
+              >
+                🚪 Cerrar Partida
+              </button>
+            )}
+          </div>
+        )}
+
+        {session.status === 'waiting' && isHost && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Opciones del Host</h3>
+            <button
+              onClick={handleClose}
+              className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition text-center font-semibold shadow-lg"
+            >
+              🚪 Cerrar Partida
+            </button>
           </div>
         )}
       </div>
