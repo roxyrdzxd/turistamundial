@@ -7,6 +7,7 @@ import GameBoard from '@/components/game/GameBoard'
 import CountryCarousel from '@/components/game/CountryCarousel'
 import DiceAnimation from '@/components/game/DiceAnimation'
 import TransactionHistory from '@/components/game/TransactionHistory'
+import Chat from '@/components/game/Chat'
 import { useToast } from '@/contexts/ToastContext'
 
 interface Player {
@@ -928,6 +929,11 @@ export default function GamePage() {
           </div>
         </div>
       </div>
+
+      {/* Chat Component */}
+      {currentUserId && (
+        <Chat sessionId={sessionId} currentUserId={currentUserId} />
+      )}
     </div>
   )
 }

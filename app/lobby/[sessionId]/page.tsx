@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import Chat from '@/components/game/Chat'
 import { useToast } from '@/contexts/ToastContext'
 
 interface Player {
@@ -46,7 +47,24 @@ export default function SessionPage() {
   const [error, setError] = useState<string | null>(null)
   const [isHost, setIsHost] = useState(false)
   const [addingNPCs, setAddingNPCs] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const toast = useToast()
+
+  useEffect(() => {
+    // Obtener usuario actual
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/user')
+        const data = await response.json()
+        if (data.data?.user?.id) {
+          setCurrentUserId(data.data.user.id)
+        }
+      } catch (err) {
+        console.error('Error obteniendo usuario:', err)
+      }
+    }
+    fetchUser()
+  }, [])
 
   useEffect(() => {
     if (sessionId) {
@@ -401,6 +419,11 @@ export default function SessionPage() {
           </div>
         )}
       </div>
+
+      {/* Chat Component */}
+      {currentUserId && (
+        <Chat sessionId={sessionId} currentUserId={currentUserId} />
+      )}
     </div>
   )
 }
