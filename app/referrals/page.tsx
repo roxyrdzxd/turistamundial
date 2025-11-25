@@ -79,8 +79,8 @@ export default function ReferralsPage() {
         setReferrals(referralsData as any)
         setStats({
           total: referralsData.length,
-          claimed: referralsData.filter(r => r.reward_claimed).length,
-          pending: referralsData.filter(r => !r.reward_claimed).length,
+          claimed: referralsData.filter((r: any) => r.reward_claimed).length,
+          pending: referralsData.filter((r: any) => !r.reward_claimed).length,
         })
       }
     } catch (error) {
