@@ -641,20 +641,20 @@ export default function CountryCarousel({
                     
                     {/* Botones de acción si es tu turno, la casilla está disponible y tienes dinero */}
                     {isMyTurn && !ownedCountry && currentPlayer && currentPlayer.money >= displayedCountry.price && onBuyCountry && (
-                      <div className="flex gap-2 mt-4">
+                      <div className="flex gap-1.5 mt-2">
                         <button
                           onClick={() => {
                             console.log('Comprar clicked, countryId:', displayedCountry.id)
                             onBuyCountry(displayedCountry.id)
                           }}
-                          className="flex-1 bg-white text-green-600 py-2 px-4 rounded-lg hover:bg-green-50 active:bg-green-100 transition font-semibold shadow-lg border-2 border-white text-sm sm:text-base"
+                          className="flex-1 bg-white text-green-600 py-1.5 px-3 rounded-lg hover:bg-green-50 active:bg-green-100 transition font-semibold shadow-md border-2 border-white text-xs sm:text-sm"
                         >
-                          ✅ Comprar ${displayedCountry.price.toLocaleString()}
+                          ✅ Comprar
                         </button>
                         {onEndTurn && (
                           <button
                             onClick={onEndTurn}
-                            className="flex-1 bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base"
+                            className="flex-1 bg-white/50 text-white py-1.5 px-3 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-xs sm:text-sm"
                           >
                             ❌ Pasar
                           </button>
@@ -664,16 +664,16 @@ export default function CountryCarousel({
                     
                     {/* Mensaje si no tienes suficiente dinero */}
                     {isMyTurn && !ownedCountry && currentPlayer && currentPlayer.money < displayedCountry.price && (
-                      <div className="mt-4 space-y-3">
-                        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
-                          <p className={`${cardColors.textColor} text-sm text-center font-semibold`}>
-                            ⚠️ No tienes suficiente dinero (Tienes: ${currentPlayer.money.toLocaleString()}, Necesitas: ${displayedCountry.price.toLocaleString()})
+                      <div className="mt-2 space-y-1.5">
+                        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-2">
+                          <p className={`${cardColors.textColor} text-xs text-center font-semibold`}>
+                            ⚠️ No tienes suficiente dinero
                           </p>
                         </div>
                         {onEndTurn && (
                           <button
                             onClick={onEndTurn}
-                            className="w-full bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base"
+                            className="w-full bg-white/50 text-white py-1.5 px-3 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-xs sm:text-sm"
                           >
                             ✅ Pasar Turno
                           </button>
