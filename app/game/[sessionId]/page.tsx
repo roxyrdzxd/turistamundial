@@ -14,6 +14,7 @@ import BankModal from '@/components/game/BankModal'
 import SoundSettings from '@/components/game/SoundSettings'
 import FloatingDiceButton from '@/components/game/FloatingDiceButton'
 import MobileBottomNav from '@/components/game/MobileBottomNav'
+import DesktopBottomNav from '@/components/game/DesktopBottomNav'
 import FloatingActions from '@/components/game/FloatingActions'
 import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly } from '@/lib/game/gameEngine'
@@ -77,12 +78,13 @@ export default function GamePage() {
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const toast = useToast()
   
-  // Estados para navegación móvil
+  // Estados para navegación móvil y desktop
   const [showBoardOverview, setShowBoardOverview] = useState(false)
   const [showProperties, setShowProperties] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
+  const [activeDesktopTab, setActiveDesktopTab] = useState<string | null>(null)
 
   // Declarar funciones antes de usarlas en useEffect
   const fetchCountries = async () => {
@@ -1139,11 +1141,6 @@ export default function GamePage() {
 
           {/* Panel Lateral - Mobile First */}
           <div className="space-y-2 self-start">
-            {/* Historial de Transacciones - Solo visible en desktop */}
-            <div className="hidden md:block">
-              <TransactionHistory sessionId={sessionId} />
-            </div>
-
             {/* Mi Información - Siempre visible */}
             {myPlayer && (
               <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
@@ -1165,8 +1162,31 @@ export default function GamePage() {
               </div>
             )}
 
-            {/* Mis Propiedades - Solo visible en desktop */}
-            {myPlayer && (() => {
+            {/* Historial de Transacciones - Solo visible cuando se hace clic en desktop */}
+            {showHistory && (
+              <div className="hidden md:block">
+                <div className="bg-white rounded-lg shadow-md p-3 mb-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold">Historial</h3>
+                    <button
+                      onClick={() => {
+                        setShowHistory(false)
+                        setActiveDesktopTab(null)
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <TransactionHistory sessionId={sessionId} />
+                </div>
+              </div>
+            )}
+
+            {/* Mis Propiedades - Solo visible cuando se hace clic en desktop */}
+            {showProperties && myPlayer && (() => {
               // Mapeo de colores a nombres de continentes
               const continentNames: Record<string, string> = {
                 'blue': 'América del Norte',
@@ -1221,10 +1241,23 @@ export default function GamePage() {
 
               return (
                 <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
-                  <h4 className="text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5">
-                    <span>🏛️</span>
-                    <span>Mis Propiedades ({myProperties.length})</span>
-                  </h4>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h4 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                      <span>🏛️</span>
+                      <span>Mis Propiedades ({myProperties.length})</span>
+                    </h4>
+                    <button
+                      onClick={() => {
+                        setShowProperties(false)
+                        setActiveDesktopTab(null)
+                      }}
+                      className="text-white/80 hover:text-white"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                   {myProperties.length === 0 ? (
                       <p className="text-xs opacity-80 text-center py-1">
                         No tienes propiedades aún
