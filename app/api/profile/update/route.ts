@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { validateUsername } from '@/lib/utils/contentFilter'
 
 export async function POST(request: Request) {
   try {
@@ -29,9 +30,11 @@ export async function POST(request: Request) {
 
     // Validar username si se proporciona
     if (username !== undefined) {
-      if (username.length < 3 || username.length > 20) {
+      // Validar formato y contenido ofensivo
+      const validation = validateUsername(username)
+      if (!validation.valid) {
         return NextResponse.json(
-          { error: 'El nombre de usuario debe tener entre 3 y 20 caracteres' },
+          { error: validation.error },
           { status: 400 }
         )
       }

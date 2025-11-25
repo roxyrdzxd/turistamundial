@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useToast } from '@/contexts/ToastContext'
+import ReportUserButton from '../game/ReportUserButton'
 
 interface Friend {
   id: string
@@ -190,12 +191,18 @@ export default function FriendsList() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/lobby/create"
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition"
-              >
-                Invitar
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/lobby/create"
+                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition"
+                >
+                  Invitar
+                </Link>
+                <ReportUserButton
+                  reportedUserId={friend.id}
+                  reportedUsername={friend.username}
+                />
+              </div>
             </div>
           ))}
         </div>

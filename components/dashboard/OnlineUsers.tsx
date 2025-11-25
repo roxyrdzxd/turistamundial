@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import FriendRequestButton from './FriendRequestButton'
+import ReportUserButton from '../game/ReportUserButton'
 
 interface OnlineUser {
   id: string
@@ -95,7 +96,13 @@ export default function OnlineUsers() {
                   <p className="text-xs text-gray-500">En línea ahora</p>
                 </div>
               </div>
-              <FriendRequestButton targetUserId={user.id} />
+              <div className="flex items-center gap-2">
+                <FriendRequestButton targetUserId={user.id} />
+                <ReportUserButton
+                  reportedUserId={user.id}
+                  reportedUsername={user.username}
+                />
+              </div>
             </div>
           ))}
         </div>

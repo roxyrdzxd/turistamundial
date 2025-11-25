@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import ReportUserButton from './ReportUserButton'
 
 interface ChatMessageRow {
   id: string
@@ -258,8 +259,15 @@ export default function Chat({ sessionId, currentUserId, onUnreadCountChange, fo
 
                     {/* Mensaje */}
                     <div className={`flex flex-col max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
-                      <div className="text-xs text-gray-500 mb-1 px-1">
-                        {msg.profile.username}
+                      <div className={`flex items-center gap-2 text-xs mb-1 px-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <span className="text-gray-500">{msg.profile.username}</span>
+                        {!isOwn && (
+                          <ReportUserButton
+                            reportedUserId={msg.profile.id}
+                            reportedUsername={msg.profile.username}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          />
+                        )}
                       </div>
                       <div
                         className={`rounded-lg px-3 py-2 text-sm ${
@@ -353,7 +361,7 @@ export default function Chat({ sessionId, currentUserId, onUnreadCountChange, fo
                 return (
                   <div
                     key={msg.id}
-                    className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
+                    className={`flex gap-2 group ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
                   >
                     {/* Avatar */}
                     <div className="flex-shrink-0">
@@ -372,8 +380,15 @@ export default function Chat({ sessionId, currentUserId, onUnreadCountChange, fo
 
                     {/* Mensaje */}
                     <div className={`flex flex-col max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
-                      <div className="text-xs text-gray-500 mb-1 px-1">
-                        {msg.profile.username}
+                      <div className={`flex items-center gap-2 text-xs mb-1 px-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <span className="text-gray-500">{msg.profile.username}</span>
+                        {!isOwn && (
+                          <ReportUserButton
+                            reportedUserId={msg.profile.id}
+                            reportedUsername={msg.profile.username}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          />
+                        )}
                       </div>
                       <div
                         className={`rounded-lg px-4 py-2 text-base ${

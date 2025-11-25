@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { validateChatMessage } from '@/lib/utils/contentFilter'
 
 export async function POST(request: Request) {
   try {
@@ -19,16 +20,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'sessionId y message son requeridos' }, { status: 400 })
     }
 
-    // Validar que el mensaje no esté vacío
+    // Validar y filtrar el mensaje
     const trimmedMessage = message.trim()
-    if (!trimmedMessage || trimmedMessage.length === 0) {
-      return NextResponse.json({ error: 'El mensaje no puede estar vacío' }, { status: 400 })
+    const validation = validateChatMessage(trimmedMessage)
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
     }
 
-    // Validar longitud del mensaje (máximo 500 caracteres)
-    if (trimmedMessage.length > 500) {
-      return NextResponse.json({ error: 'El mensaje no puede tener más de 500 caracteres' }, { status: 400 })
-    }
+    // Usar el mensaje filtrado si existe, de lo contrario usar el original
+    const finalMessage = validation.filtered || trimmedMessage
 
     // Verificar que el usuario está en la sesión
     const { data: player } = await supabase
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
       .insert({
         session_id: sessionId,
         user_id: user.id,
-        message: trimmedMessage,
+        message: finalMessage,
       })
       .select(`
         *,

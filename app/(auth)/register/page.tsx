@@ -25,6 +25,16 @@ export default function RegisterPage() {
     setError(null)
 
     try {
+      // Validar username si se proporciona
+      if (username && username.trim().length > 0) {
+        const validation = validateUsername(username.trim())
+        if (!validation.valid) {
+          setError(validation.error || 'Nombre de usuario inválido')
+          setLoading(false)
+          return
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
