@@ -248,6 +248,7 @@ export default function CountryCarousel({
   const displayedCountry = sortedCountries[currentIndex]
   const isSpecialSquare = SPECIAL_SQUARES[displayedCountry?.position || -1]
   const isOnSpecialSquare = SPECIAL_SQUARES[currentPosition]
+  const currentSpecialSquare = isOnSpecialSquare ? SPECIAL_SQUARES[currentPosition] : null
   
   // Verificar si estamos mostrando la posición correcta
   let isCurrentPosition = false
@@ -306,6 +307,22 @@ export default function CountryCarousel({
 
   // Determinar el color de la tarjeta según el estado
   const getCardColor = () => {
+    if (showSpecialCard && currentSpecialSquare) {
+      // Colores específicos para cada casilla especial
+      const specialColors: Record<number, { bg: string; border: string }> = {
+        0: { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: '#10b981' }, // Inicio - Verde
+        10: { bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', border: '#ef4444' }, // Cárcel - Rojo
+        20: { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', border: '#3b82f6' }, // Aeropuerto - Azul
+        30: { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: '#10b981' }, // Banco - Verde
+      }
+      const colors = specialColors[currentPosition] || { bg: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)', border: '#6b7280' }
+      return {
+        bg: colors.bg,
+        border: colors.border,
+        textColor: 'text-white'
+      }
+    }
+    
     if (isSpecialSquare) {
       return {
         bg: `linear-gradient(135deg, ${continentColor} 0%, ${continentColor}dd 100%)`,
