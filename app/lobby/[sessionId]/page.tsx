@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Chat from '@/components/game/Chat'
 import { useToast } from '@/contexts/ToastContext'
+import { createClient } from '@/lib/supabase/client'
 
 interface Player {
   id: string
