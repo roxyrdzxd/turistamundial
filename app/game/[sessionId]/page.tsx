@@ -923,6 +923,7 @@ export default function GamePage() {
                     onBuyCountry={handleBuyCountry}
                     onBuyPropertyFromPlayer={handleBuyPropertyFromPlayer}
                     onEndTurn={handleEndTurn}
+                    actionRequired={actionRequired}
                   />
                 ) : (
                   <div className="min-h-[400px] flex items-center justify-center">

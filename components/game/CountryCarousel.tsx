@@ -45,6 +45,7 @@ interface CountryCarouselProps {
   onBuyCountry?: (countryId: string) => void
   onBuyPropertyFromPlayer?: (playerCountryId: string) => void
   onEndTurn?: () => void
+  actionRequired?: string | null
 }
 
 const CONTINENT_COLORS: Record<string, string> = {
@@ -76,11 +77,11 @@ const PLAYER_COLORS: Record<string, string> = {
   cyan: '#06b6d4',
 }
 
-const SPECIAL_SQUARES: Record<number, { name: string; emoji: string; description: string }> = {
-  0: { name: 'Inicio', emoji: '🏁', description: 'Recibes $200 al pasar' },
-  10: { name: 'Cárcel', emoji: '🚔', description: 'Solo de visita' },
-  20: { name: 'Aeropuerto', emoji: '✈️', description: 'Puedes viajar gratis' },
-  30: { name: 'Banco', emoji: '🏦', description: 'Paga $200 de impuesto' },
+const SPECIAL_SQUARES: Record<number, { name: string; emoji: string; description: string; action?: string }> = {
+  0: { name: 'Inicio', emoji: '🏁', description: 'Recibes $100 al pasar', action: 'start_bonus' },
+  10: { name: 'Cárcel', emoji: '🚔', description: 'Paga multa de $150', action: 'jail_fine' },
+  20: { name: 'Aeropuerto', emoji: '✈️', description: 'Obtienes un turno extra', action: 'airport_extra_turn' },
+  30: { name: 'Banco', emoji: '🏦', description: 'Recibes bono de $300', action: 'bank_bonus' },
 }
 
 export default function CountryCarousel({
@@ -93,6 +94,7 @@ export default function CountryCarousel({
   onBuyCountry,
   onBuyPropertyFromPlayer,
   onEndTurn,
+  actionRequired = null,
 }: CountryCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState(0)
@@ -106,30 +108,32 @@ export default function CountryCarousel({
   // Ordenar países por posición
   const sortedCountries = [...countries].sort((a, b) => a.position - b.position)
 
+  // Estado para controlar si mostrar la tarjeta especial o la del país
+  const [showSpecialCard, setShowSpecialCard] = useState(false)
+
   // Encontrar el índice de la casilla actual
   useEffect(() => {
     if (currentPlayer) {
-      // Si es una casilla especial (0, 10, 20, 30), mostrar la siguiente casilla disponible
+      // Si es una casilla especial (0, 10, 20, 30), mostrar la tarjeta especial
       if (SPECIAL_SQUARES[currentPosition]) {
-        // Para casilla 0, mostrar la primera casilla (posición 1)
+        setShowSpecialCard(true)
+        // También establecer un índice para navegación, pero no es crítico
         if (currentPosition === 0) {
           const firstCountryIndex = sortedCountries.findIndex(c => c.position === 1)
           if (firstCountryIndex !== -1) {
             setCurrentIndex(firstCountryIndex)
           } else {
-            // Si no hay país en posición 1, mostrar el primero disponible
             setCurrentIndex(0)
           }
         } else {
-          // Para otras casillas especiales (10, 20, 30), mostrar la siguiente casilla disponible
           let index = sortedCountries.findIndex(c => c.position > currentPosition)
           if (index === -1) {
-            // Si no hay casilla después, mostrar la primera
             index = 0
           }
           setCurrentIndex(index)
         }
       } else {
+        setShowSpecialCard(false)
         // Para casillas normales, buscar la exacta o la más cercana
         let index = sortedCountries.findIndex(c => c.position === currentPosition)
         
@@ -415,7 +419,15 @@ export default function CountryCarousel({
         <div className="p-6 sm:p-8">
           {/* Header de la casilla */}
           <div className="text-center mb-6">
-            {isSpecialSquare ? (
+            {showSpecialCard && currentSpecialSquare ? (
+              <>
+                <div className="text-6xl mb-3">{currentSpecialSquare.emoji}</div>
+                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                  {currentSpecialSquare.name}
+                </h2>
+                <p className="text-white/90 text-sm sm:text-base">{currentSpecialSquare.description}</p>
+              </>
+            ) : isSpecialSquare ? (
               <>
                 <div className="text-6xl mb-3">{isSpecialSquare.emoji}</div>
                 <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
@@ -619,7 +631,7 @@ export default function CountryCarousel({
           <div className={`w-full ${cardColors.textColor === 'text-white' ? 'bg-white/30' : 'bg-gray-300/50'} rounded-full h-2`}>
             <div
               className={`${cardColors.textColor === 'text-white' ? 'bg-white' : 'bg-gray-700'} rounded-full h-2 transition-all duration-300`}
-              style={{ width: `${((displayedCountry?.position || 0) / 40) * 100}%` }}
+              style={{ width: `${((showSpecialCard ? currentPosition : displayedCountry?.position) || 0) / 40) * 100}%` }}
             />
           </div>
         </div>
