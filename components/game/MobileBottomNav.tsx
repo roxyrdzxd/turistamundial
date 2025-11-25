@@ -21,7 +21,13 @@ export default function MobileBottomNav({
 
   const handleTabClick = (tab: string, callback: () => void) => {
     if (activeTab === tab) {
+      // Si el tab está activo, cerrarlo
       setActiveTab(null)
+      // Para el tablero, también necesitamos cerrar el modal
+      if (tab === 'board') {
+        // El callback debería manejar el cierre, pero por si acaso
+        callback()
+      }
     } else {
       setActiveTab(tab)
       callback()

@@ -1330,8 +1330,8 @@ export default function GamePage() {
               ) : null
             })()}
 
-            {/* Vista del Tablero - Mover después de acciones en desktop */}
-            <div className="lg:col-span-2 order-2 lg:order-3">
+            {/* Vista del Tablero - Solo visible en desktop */}
+            <div className="lg:col-span-2 order-2 lg:order-3 hidden md:block">
               <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
                 <BoardOverview
                   countries={countries}
