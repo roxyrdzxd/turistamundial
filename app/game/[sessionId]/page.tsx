@@ -1151,10 +1151,12 @@ export default function GamePage() {
 
           {/* Panel Lateral - Mobile First */}
           <div className="space-y-4 sm:space-y-6 self-start">
-            {/* Historial de Transacciones */}
-            <TransactionHistory sessionId={sessionId} />
+            {/* Historial de Transacciones - Solo visible en desktop */}
+            <div className="hidden md:block">
+              <TransactionHistory sessionId={sessionId} />
+            </div>
 
-            {/* Mi Información */}
+            {/* Mi Información - Solo visible en desktop */}
             {myPlayer && (() => {
               // Obtener propiedades del jugador actual
               const myProperties = playerCountries
@@ -1166,7 +1168,7 @@ export default function GamePage() {
                 .filter((item): item is any => item !== null)
 
               return (
-                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
                   <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Información</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-1 gap-3 sm:space-y-3 mb-4">
                     <div>
