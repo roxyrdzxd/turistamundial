@@ -44,6 +44,14 @@ export default async function DashboardPage() {
             {/* Acciones del usuario */}
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
+                href="/referrals"
+                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-green-50 to-yellow-50 hover:from-green-100 hover:to-yellow-100 text-green-600 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                title="Sistema de Referidos"
+              >
+                <span className="hidden sm:inline">💰 Referidos</span>
+                <span className="sm:hidden">💰</span>
+              </Link>
+              <Link
                 href="/profile"
                 className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-600 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
                 title="Mi Perfil"

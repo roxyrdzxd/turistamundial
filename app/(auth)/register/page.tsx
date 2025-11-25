@@ -18,6 +18,14 @@ export default function RegisterPage() {
 
   useEffect(() => {
     setMounted(true)
+    
+    // Detectar código de referencia desde la URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const refCode = urlParams.get('ref')
+    if (refCode) {
+      // Guardar en localStorage para usarlo después del registro
+      localStorage.setItem('referral_code', refCode)
+    }
   }, [])
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -36,15 +44,24 @@ export default function RegisterPage() {
         }
       }
 
+      // Obtener código de referencia si existe
+      const referralCode = localStorage.getItem('referral_code')
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             username: username || `Usuario${Math.random().toString(36).substr(2, 8)}`,
+            referral_code: referralCode || null, // Pasar código si existe
           },
         },
       })
+      
+      // Limpiar código de referencia después del registro
+      if (referralCode) {
+        localStorage.removeItem('referral_code')
+      }
 
       if (error) {
         throw error

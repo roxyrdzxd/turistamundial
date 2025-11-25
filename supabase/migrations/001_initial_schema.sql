@@ -170,9 +170,20 @@ CREATE POLICY "Users can create game moves"
 -- Function to automatically create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_referral_code TEXT;
 BEGIN
+  -- Crear perfil
   INSERT INTO public.profiles (id, username)
   VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'username', 'Usuario' || substr(NEW.id::text, 1, 8)));
+  
+  -- Procesar referido si existe código en metadata
+  v_referral_code := NEW.raw_user_meta_data->>'referral_code';
+  IF v_referral_code IS NOT NULL AND v_referral_code != '' THEN
+    -- Llamar a la función de procesamiento de referidos
+    PERFORM process_referral(NEW.id, v_referral_code);
+  END IF;
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
