@@ -64,10 +64,10 @@ export default function MissionsPage() {
           .order('reward_coins', { ascending: false })
 
         if (!allMissionsError && allMissions) {
-          const userMissionIds = new Set((missionsData || []).map(m => m.mission_id))
+          const userMissionIds = new Set((missionsData || []).map((m: any) => m.mission_id))
           const newMissions = allMissions
-            .filter(m => !userMissionIds.has(m.id))
-            .map(mission => ({
+            .filter((m: any) => !userMissionIds.has(m.id))
+            .map((mission: any) => ({
               id: '',
               mission_id: mission.id,
               progress: 0,
