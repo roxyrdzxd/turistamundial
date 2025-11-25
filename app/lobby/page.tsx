@@ -121,6 +121,13 @@ export default function LobbyPage() {
         throw new Error(data.error || 'Error al unirse a la sesión')
       }
 
+      // Si ya estaba en la sesión pero se devolvió éxito, también redirigir
+      if (data.alreadyInSession) {
+        toast.showToast('Ya estás en esta partida', 'info')
+        router.push(`/lobby/${sessionId}`)
+        return
+      }
+
       toast.showToast('Te has unido a la partida', 'success')
       router.push(`/lobby/${sessionId}`)
     } catch (err: any) {
