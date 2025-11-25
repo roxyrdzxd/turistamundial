@@ -71,9 +71,39 @@ export default function SessionPage() {
       fetchSession()
       // Refrescar cada 2 segundos
       const interval = setInterval(fetchSession, 2000)
-      return () => clearInterval(interval)
+      
+      // Escuchar cambios en tiempo real del estado de la sesión
+      const supabase = createClient()
+      const channel = supabase
+        .channel(`session:${sessionId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'game_sessions',
+            filter: `id=eq.${sessionId}`,
+          },
+          (payload) => {
+            const updatedSession = payload.new as any
+            // Si la sesión cambió a 'active', redirigir a los jugadores (excepto el host)
+            if (updatedSession.status === 'active' && !isHost) {
+              router.push(`/game/${sessionId}`)
+            } else if (updatedSession.status === 'active' && isHost) {
+              // El host también se redirige después de iniciar
+              // Esto se maneja en handleStart, pero por si acaso
+              fetchSession()
+            }
+          }
+        )
+        .subscribe()
+      
+      return () => {
+        clearInterval(interval)
+        supabase.removeChannel(channel)
+      }
     }
-  }, [sessionId])
+  }, [sessionId, isHost, router])
 
   const fetchSession = async () => {
     try {
@@ -112,7 +142,7 @@ export default function SessionPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sessionId, count: 3 }),
+        body: JSON.stringify({ sessionId, count: 1 }),
       })
 
       const data = await response.json()
@@ -157,7 +187,8 @@ export default function SessionPage() {
       }
 
       toast.showSuccess('¡Partida iniciada!')
-      // Redirigir al juego
+      // Redirigir al juego (el host se redirige inmediatamente)
+      // Los demás jugadores serán redirigidos automáticamente por el listener de realtime
       router.push(`/game/${sessionId}`)
     } catch (err: any) {
       toast.showError(err.message)
@@ -251,7 +282,7 @@ export default function SessionPage() {
   }
 
   const canStart = session.status === 'waiting' && 
-                   session.current_players >= 4 && 
+                   session.current_players >= 2 && 
                    isHost
 
   const slotsRemaining = session.max_players - session.current_players
@@ -384,7 +415,7 @@ export default function SessionPage() {
                     ) : (
                       <>
                         <span>🤖</span>
-                        <span>Agregar 3 NPCs</span>
+                        <span>Agregar NPC</span>
                       </>
                     )}
                   </button>
