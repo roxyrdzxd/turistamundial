@@ -136,20 +136,14 @@ export async function POST(request: Request) {
             .eq('id', currentPlayer.id)
           actionRequired = 'start_bonus'
         } else if (newPosition === 10) {
-          // Cárcel - solo visitar
-          actionRequired = 'jail_visit'
-        } else if (newPosition === 20) {
-          // Aeropuerto
-          actionRequired = 'airport'
-        } else if (newPosition === 30) {
-          // Banco - impuesto
-          const tax = 200
-          if (currentPlayer.money >= tax) {
+          // Cárcel - cobrar multa
+          const jailFine = 150
+          if (currentPlayer.money >= jailFine) {
             await supabase
               .from('session_players')
-              .update({ money: currentPlayer.money - tax })
+              .update({ money: currentPlayer.money - jailFine })
               .eq('id', currentPlayer.id)
-            actionRequired = 'bank_tax'
+            actionRequired = 'jail_fine'
           } else {
             // Bancarrota
             await supabase
@@ -158,6 +152,21 @@ export async function POST(request: Request) {
               .eq('id', currentPlayer.id)
             actionRequired = 'bankrupt'
           }
+        } else if (newPosition === 20) {
+          // Aeropuerto - dar turno extra
+          await supabase
+            .from('session_players')
+            .update({ extra_turn: true })
+            .eq('id', currentPlayer.id)
+          actionRequired = 'airport_extra_turn'
+        } else if (newPosition === 30) {
+          // Banco - pagar bono
+          const bankBonus = 300
+          await supabase
+            .from('session_players')
+            .update({ money: currentPlayer.money + bankBonus })
+            .eq('id', currentPlayer.id)
+          actionRequired = 'bank_bonus'
         }
       }
     }

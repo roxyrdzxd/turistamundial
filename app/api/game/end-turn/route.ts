@@ -72,6 +72,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No es tu turno' }, { status: 403 })
     }
 
+    // Verificar si el jugador tiene un turno extra del aeropuerto
+    if (currentPlayer.extra_turn) {
+      // Usar el turno extra - resetear el flag pero mantener el turno
+      const { error: extraTurnError } = await supabase
+        .from('session_players')
+        .update({ extra_turn: false })
+        .eq('id', currentPlayer.id)
+
+      if (extraTurnError) {
+        return NextResponse.json({ error: extraTurnError.message }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Has usado tu turno extra. Puedes tirar dados de nuevo.',
+        nextTurn: session.current_turn, // Mantener el mismo turno
+        usedExtraTurn: true,
+      })
+    }
+
     // Avanzar al siguiente turno
     const gameState = {
       sessionId,

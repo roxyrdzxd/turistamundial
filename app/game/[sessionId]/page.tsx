@@ -741,13 +741,22 @@ export default function GamePage() {
         throw new Error(data.error || 'Error al finalizar turno')
       }
 
-      toast.showInfo('Turno finalizado')
-
-      setActionRequired(null)
-      setDiceResult(null)
-      setCurrentCountry(null)
-      setCanBuyCountry(false)
-      setNeedsToPayToll(false)
+      if (data.usedExtraTurn) {
+        toast.showSuccess('Has usado tu turno extra. Puedes tirar los dados de nuevo.')
+        // No resetear el estado completamente, solo permitir tirar dados de nuevo
+        setDiceResult(null)
+        setActionRequired(null)
+        setCurrentCountry(null)
+        setCanBuyCountry(false)
+        setNeedsToPayToll(false)
+      } else {
+        toast.showInfo('Turno finalizado')
+        setActionRequired(null)
+        setDiceResult(null)
+        setCurrentCountry(null)
+        setCanBuyCountry(false)
+        setNeedsToPayToll(false)
+      }
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
@@ -1072,6 +1081,33 @@ export default function GamePage() {
                   </div>
                 )}
 
+                {actionRequired === 'jail_fine' && (
+                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4">
+                    <p className="font-semibold text-red-800">
+                      🚔 Has pagado multa en la cárcel: -$150
+                    </p>
+                  </div>
+                )}
+
+                {actionRequired === 'airport_extra_turn' && (
+                  <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4">
+                    <p className="font-semibold text-blue-800">
+                      ✈️ ¡Has llegado al aeropuerto! Tienes un turno extra
+                    </p>
+                    <p className="text-sm text-blue-600 mt-2">
+                      Podrás tirar los dados una vez más después de terminar este turno.
+                    </p>
+                  </div>
+                )}
+
+                {actionRequired === 'bank_bonus' && (
+                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
+                    <p className="font-semibold text-green-800">
+                      🏦 ¡Bono del banco! +$300
+                    </p>
+                  </div>
+                )}
+
                 {actionRequired === 'bank_tax' && (
                   <div className="bg-orange-50 border-2 border-orange-500 rounded-lg p-4">
                     <p className="font-semibold text-orange-800">
@@ -1385,7 +1421,7 @@ export default function GamePage() {
               setShowHistory(false)
               setShowChat(false)
             }}
-            canEndTurn={!showDiceAnimation && (actionRequired === null || actionRequired === 'start_bonus' || actionRequired === 'bank_tax' || (!canBuyCountry && !needsToPayToll && !propertyForSale))}
+            canEndTurn={!showDiceAnimation && (actionRequired === null || actionRequired === 'start_bonus' || actionRequired === 'bank_tax' || actionRequired === 'bank_bonus' || actionRequired === 'jail_fine' || actionRequired === 'airport_extra_turn' || (!canBuyCountry && !needsToPayToll && !propertyForSale))}
           />
         </>
       )}
