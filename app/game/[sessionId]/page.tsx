@@ -1492,6 +1492,23 @@ export default function GamePage() {
               </button>
             </div>
             {(() => {
+              // Mapeo de colores a nombres de continentes
+              const continentNames: Record<string, string> = {
+                'blue': 'América del Norte',
+                'pink': 'Europa',
+                'orange': 'Asia',
+                'red': 'América del Sur',
+                'yellow': 'África',
+                'green': 'Oceanía',
+                'purple': 'Especial',
+                'america': 'América',
+                'europa': 'Europa',
+                'asia': 'Asia',
+                'africa': 'África',
+                'oceania': 'Oceanía',
+                'especial': 'Especial',
+              }
+
               const myProperties = playerCountries
                 .filter(pc => pc.player_id === myPlayer.id)
                 .map(pc => {
@@ -1508,56 +1525,109 @@ export default function GamePage() {
                 )
               }
 
+              // Agrupar propiedades por continente
+              const propertiesByContinent = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
+                const continent = prop.country.continent
+                if (!acc[continent]) {
+                  acc[continent] = []
+                }
+                acc[continent].push(prop)
+                return acc
+              }, {})
+
+              // Calcular progreso de monopolio para cada continente
+              const continentProgress = Object.keys(propertiesByContinent).map(continent => {
+                const continentCountries = countries.filter(c => c.continent === continent)
+                const ownedCount = propertiesByContinent[continent].length
+                const totalCount = continentCountries.length
+                const hasMonopolyStatus = hasMonopoly(continent, myPlayer.id, countries, playerCountries)
+                return {
+                  continent,
+                  continentName: continentNames[continent] || continent,
+                  properties: propertiesByContinent[continent].sort((a, b) => a.country.position - b.country.position),
+                  ownedCount,
+                  totalCount,
+                  hasMonopoly: hasMonopolyStatus,
+                }
+              }).sort((a, b) => a.continentName.localeCompare(b.continentName))
+
               return (
-                <div className="space-y-4">
-                  {myProperties.map((prop: any) => (
-                    <div key={prop.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
-                      <h3 className="font-bold text-lg mb-2">{prop.country.name}</h3>
-                      <div className="space-y-2 text-sm">
-                        <p>📍 Casilla {prop.country.position}</p>
-                        <p>💰 Renta base: ${prop.country.base_rent.toLocaleString()}</p>
-                        {prop.houses > 0 && <p>🏠 Casas: {prop.houses}</p>}
-                        {prop.hotels > 0 && <p>🏨 Hoteles: {prop.hotels}</p>}
-                        {prop.is_mortgaged && <p className="text-yellow-600">⚠️ Hipotecada</p>}
-                        {prop.is_for_sale && (
-                          <p className="text-purple-600">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
-                        )}
+                <div className="space-y-6">
+                  {continentProgress.map(({ continent, continentName, properties, ownedCount, totalCount, hasMonopoly }) => (
+                    <div key={continent} className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow-md p-4 border-2 border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🌍</span>
+                          <h3 className="font-bold text-lg text-gray-800">{continentName}</h3>
+                          {hasMonopoly && (
+                            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                              ✅ Monopolio
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700 bg-white/60 px-3 py-1 rounded-full">
+                          {ownedCount}/{totalCount}
+                        </span>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-gray-200 flex gap-2">
-                        <BankModal
-                          property={{
-                            id: prop.id,
-                            country: prop.country,
-                            houses: prop.houses || 0,
-                            hotels: prop.hotels || 0,
-                            is_mortgaged: prop.is_mortgaged || false,
-                          }}
-                          playerMoney={myPlayer.money}
-                          onMortgage={() => {
-                            handleMortgage(prop.id)
-                            setShowProperties(false)
-                          }}
-                          onUnmortgage={() => {
-                            handleUnmortgage(prop.id)
-                            setShowProperties(false)
-                          }}
-                          onSellBuild={(houses, hotels) => {
-                            handleSellBuild(prop.id, houses, hotels)
-                            setShowProperties(false)
-                          }}
-                        />
-                        {!prop.is_mortgaged && (
-                          prop.is_for_sale ? (
-                            <button className="flex-1 bg-red-500 text-white text-sm py-2 px-3 rounded">
-                              Retirar de venta
-                            </button>
-                          ) : (
-                            <PropertySaleModal
-                              property={prop}
-                              onSell={() => setShowProperties(false)}
-                            />
-                          )
-                        )}
+                      {!hasMonopoly && (
+                        <div className="mb-3 p-2 bg-yellow-50 border border-yellow-300 rounded-lg">
+                          <p className="text-sm text-yellow-800 font-semibold">
+                            ⚠️ Faltan {totalCount - ownedCount} {totalCount - ownedCount === 1 ? 'propiedad' : 'propiedades'} para el monopolio
+                          </p>
+                        </div>
+                      )}
+                      <div className="space-y-3">
+                        {properties.map((prop: any) => (
+                          <div key={prop.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
+                            <h4 className="font-bold text-base mb-2">{prop.country.name}</h4>
+                            <div className="space-y-2 text-sm">
+                              <p>📍 Casilla {prop.country.position}</p>
+                              <p>💰 Renta base: ${prop.country.base_rent.toLocaleString()}</p>
+                              {prop.houses > 0 && <p>🏠 Casas: {prop.houses}</p>}
+                              {prop.hotels > 0 && <p>🏨 Hoteles: {prop.hotels}</p>}
+                              {prop.is_mortgaged && <p className="text-yellow-600">⚠️ Hipotecada</p>}
+                              {prop.is_for_sale && (
+                                <p className="text-purple-600">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
+                              )}
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-gray-200 flex gap-2">
+                              <BankModal
+                                property={{
+                                  id: prop.id,
+                                  country: prop.country,
+                                  houses: prop.houses || 0,
+                                  hotels: prop.hotels || 0,
+                                  is_mortgaged: prop.is_mortgaged || false,
+                                }}
+                                playerMoney={myPlayer.money}
+                                onMortgage={() => {
+                                  handleMortgage(prop.id)
+                                  setShowProperties(false)
+                                }}
+                                onUnmortgage={() => {
+                                  handleUnmortgage(prop.id)
+                                  setShowProperties(false)
+                                }}
+                                onSellBuild={(houses, hotels) => {
+                                  handleSellBuild(prop.id, houses, hotels)
+                                  setShowProperties(false)
+                                }}
+                              />
+                              {!prop.is_mortgaged && (
+                                prop.is_for_sale ? (
+                                  <button className="flex-1 bg-red-500 text-white text-sm py-2 px-3 rounded">
+                                    Retirar de venta
+                                  </button>
+                                ) : (
+                                  <PropertySaleModal
+                                    property={prop}
+                                    onSell={() => setShowProperties(false)}
+                                  />
+                                )
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
