@@ -52,6 +52,14 @@ export default async function DashboardPage() {
                 <span className="sm:hidden">💰</span>
               </Link>
               <Link
+                href="/recognition"
+                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                title="Salón de la Fama"
+              >
+                <span className="hidden sm:inline">🏆 Rankings</span>
+                <span className="sm:hidden">🏆</span>
+              </Link>
+              <Link
                 href="/referrals"
                 className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-green-50 to-yellow-50 hover:from-green-100 hover:to-yellow-100 text-green-600 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
                 title="Sistema de Referidos"

@@ -124,7 +124,7 @@ export default function WalletPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Link
             href="/missions"
             className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-transparent hover:border-blue-300"
@@ -140,6 +140,14 @@ export default function WalletPage() {
             <div className="text-4xl mb-2">🛒</div>
             <h3 className="font-semibold text-gray-900 mb-1">Tienda</h3>
             <p className="text-sm text-gray-600">Gasta coins</p>
+          </Link>
+          <Link
+            href="/recognition"
+            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-transparent hover:border-yellow-300"
+          >
+            <div className="text-4xl mb-2">🏆</div>
+            <h3 className="font-semibold text-gray-900 mb-1">Rankings</h3>
+            <p className="text-sm text-gray-600">Salón de la Fama</p>
           </Link>
           <Link
             href="/referrals"
