@@ -92,15 +92,6 @@ export async function POST(request: Request) {
       })
     }
 
-    // Avanzar al siguiente turno
-    const gameState = {
-      sessionId,
-      players: players || [],
-      playerCountries: [],
-      countries: [],
-      currentTurn: session.current_turn,
-    }
-
     const nextTurn = getNextPlayer(session.current_turn, players || [])
 
     // Obtener países y player_countries para verificar si el juego terminó
