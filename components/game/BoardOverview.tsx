@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 interface Country {
   id: string
@@ -79,6 +79,9 @@ export default function BoardOverview({
   currentTurn,
   playerCountries = [],
 }: BoardOverviewProps) {
+  // Estado para el continente seleccionado (filtro)
+  const [selectedContinent, setSelectedContinent] = useState<string | null>(null)
+
   // Organizar países por continente
   const countriesByContinent = useMemo(() => {
     const grouped: Record<string, Country[]> = {}
@@ -139,21 +142,71 @@ export default function BoardOverview({
     return [...countries].sort((a, b) => a.position - b.position)
   }, [countries])
 
+  // Filtrar países por continente seleccionado
+  const filteredCountries = useMemo(() => {
+    if (!selectedContinent) return sortedCountries
+    return sortedCountries.filter(country => country.continent === selectedContinent)
+  }, [sortedCountries, selectedContinent])
+
+  // Función para alternar el filtro de continente
+  const toggleContinentFilter = (continent: string) => {
+    if (selectedContinent === continent) {
+      setSelectedContinent(null) // Deseleccionar si ya está seleccionado
+    } else {
+      setSelectedContinent(continent) // Seleccionar el continente
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 overflow-hidden">
       <h3 className="text-xl font-bold mb-4 text-gray-900">Vista del Tablero</h3>
       
       {/* Tablero - 40 casillas en grid */}
       <div className="relative w-full max-w-5xl mx-auto overflow-x-auto">
+        {selectedContinent && (
+          <div className="mb-4 p-3 bg-blue-50 border-2 border-blue-500 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-700 font-semibold">🔍 Filtrando por:</span>
+              <span className="text-blue-800 font-bold capitalize">{selectedContinent}</span>
+              <span className="text-blue-600 text-sm">
+                ({filteredCountries.length} {filteredCountries.length === 1 ? 'país' : 'países'})
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedContinent(null)}
+              className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+            >
+              ✕ Limpiar filtro
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-1.5 sm:gap-2 min-w-[400px]">
           {Array.from({ length: 40 }).map((_, index) => {
             const country = sortedCountries.find(c => c.position === index)
+            // Si hay un filtro activo, solo mostrar países del continente seleccionado o casillas especiales
+            const shouldShow = !selectedContinent || 
+              (country && country.continent === selectedContinent) || 
+              SPECIAL_SQUARES[index]
             const specialSquare = SPECIAL_SQUARES[index]
             const playersAtPos = getPlayersAtPosition(index)
             const continentColor = country ? getContinentColor(country.continent) : getContinentColor('especial')
             const owner = country ? getOwner(country.id) : null
             const isOwned = country ? isCountryOwned(country.id) : false
             const isCurrentPlayer = currentUserId ? playersAtPos.some(p => p.user_id === currentUserId) : false
+
+            // Si hay filtro y esta casilla no debe mostrarse, mostrarla atenuada
+            if (!shouldShow) {
+              return (
+                <div
+                  key={index}
+                  className="relative aspect-square rounded-lg border-2 border-gray-200 bg-gray-100 opacity-30"
+                >
+                  <div className="absolute top-0 left-0 text-[9px] sm:text-xs font-bold text-gray-400 bg-white/90 rounded-br-md px-1.5 py-0.5">
+                    {index}
+                  </div>
+                </div>
+              )
+            }
 
             return (
               <div
@@ -246,16 +299,25 @@ export default function BoardOverview({
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {Object.entries(countriesByContinent).map(([continent, continentCountries]) => {
             const color = getContinentColor(continent)
+            const isSelected = selectedContinent === continent
             return (
-              <div
+              <button
                 key={continent}
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-lg border-2 ${color.border} ${color.bg} shadow-sm hover:shadow-md transition-shadow`}
+                onClick={() => toggleContinentFilter(continent)}
+                className={`
+                  flex items-center gap-2.5 px-4 py-2 rounded-lg border-2 cursor-pointer
+                  ${color.border} ${color.bg} shadow-sm hover:shadow-md transition-all
+                  ${isSelected ? 'ring-4 ring-blue-500 ring-offset-2 scale-105' : 'hover:scale-105'}
+                `}
+                title={`Click para ${isSelected ? 'quitar el filtro' : 'filtrar por'} ${continent}`}
               >
-                <div className={`w-5 h-5 rounded border-2 ${color.border} shadow-sm`} style={{ backgroundColor: color.bg.replace('100', '300') }} />
+                <div className={`w-5 h-5 rounded border-2 ${color.border} shadow-sm flex items-center justify-center`} style={{ backgroundColor: color.bg.replace('100', '300') }}>
+                  {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+                </div>
                 <span className={`text-xs sm:text-sm font-bold ${color.text} capitalize`}>
                   {continent} <span className="text-gray-600">({continentCountries.length})</span>
                 </span>
-              </div>
+              </button>
             )
           })}
         </div>
