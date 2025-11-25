@@ -109,21 +109,52 @@ export default function CountryCarousel({
   // Encontrar el índice de la casilla actual
   useEffect(() => {
     if (currentPlayer) {
-      // Si es una casilla especial, encontrar la casilla más cercana
+      // Si es una casilla especial (0, 10, 20, 30), mostrar la siguiente casilla disponible
       if (SPECIAL_SQUARES[currentPosition]) {
-        // Para casillas especiales, mostrar la siguiente casilla disponible
-        let index = sortedCountries.findIndex(c => c.position > currentPosition)
-        if (index === -1) {
-          // Si no hay casilla después, mostrar la primera
-          index = 0
-        }
-        setCurrentIndex(index)
-      } else {
-        // Para casillas normales, buscar la exacta
-        const index = sortedCountries.findIndex(c => c.position === currentPosition)
-        if (index !== -1) {
+        // Para casilla 0, mostrar la primera casilla (posición 1)
+        if (currentPosition === 0) {
+          const firstCountryIndex = sortedCountries.findIndex(c => c.position === 1)
+          if (firstCountryIndex !== -1) {
+            setCurrentIndex(firstCountryIndex)
+          } else {
+            // Si no hay país en posición 1, mostrar el primero disponible
+            setCurrentIndex(0)
+          }
+        } else {
+          // Para otras casillas especiales (10, 20, 30), mostrar la siguiente casilla disponible
+          let index = sortedCountries.findIndex(c => c.position > currentPosition)
+          if (index === -1) {
+            // Si no hay casilla después, mostrar la primera
+            index = 0
+          }
           setCurrentIndex(index)
         }
+      } else {
+        // Para casillas normales, buscar la exacta o la más cercana
+        let index = sortedCountries.findIndex(c => c.position === currentPosition)
+        
+        // Si no hay país exacto en esa posición, buscar el más cercano después
+        if (index === -1) {
+          index = sortedCountries.findIndex(c => c.position > currentPosition)
+        }
+        
+        // Si aún no se encuentra, buscar el más cercano antes
+        if (index === -1) {
+          // Encontrar la última casilla antes de la posición actual
+          for (let i = sortedCountries.length - 1; i >= 0; i--) {
+            if (sortedCountries[i].position < currentPosition) {
+              index = i
+              break
+            }
+          }
+        }
+        
+        // Si aún no se encuentra, mostrar la primera
+        if (index === -1) {
+          index = 0
+        }
+        
+        setCurrentIndex(index)
       }
     }
   }, [currentPlayer?.position, sortedCountries, currentPosition])
@@ -138,27 +169,36 @@ export default function CountryCarousel({
   }
 
   const goToCurrent = () => {
-    // Si es una casilla especial, no hay país en esa posición
-    // Mostrar la siguiente casilla disponible
+    // Si es una casilla especial (0, 10, 20, 30)
     if (SPECIAL_SQUARES[currentPosition]) {
-      let index = sortedCountries.findIndex(c => c.position > currentPosition)
-      if (index === -1) {
-        // Si no hay casilla después, mostrar la primera
-        index = 0
+      // Para casilla 0, mostrar la primera casilla (posición 1)
+      if (currentPosition === 0) {
+        const firstCountryIndex = sortedCountries.findIndex(c => c.position === 1)
+        if (firstCountryIndex !== -1) {
+          setCurrentIndex(firstCountryIndex)
+        } else {
+          setCurrentIndex(0)
+        }
+      } else {
+        // Para otras casillas especiales, mostrar la siguiente casilla disponible
+        let index = sortedCountries.findIndex(c => c.position > currentPosition)
+        if (index === -1) {
+          index = 0
+        }
+        setCurrentIndex(index)
       }
-      setCurrentIndex(index)
       return
     }
     
-    // Para casillas normales, buscar la exacta
+    // Para casillas normales, buscar la exacta o la más cercana
     let index = sortedCountries.findIndex(c => c.position === currentPosition)
     
-    // Si no se encuentra exacta, buscar la más cercana después
+    // Si no hay país exacto en esa posición, buscar el más cercano después
     if (index === -1) {
       index = sortedCountries.findIndex(c => c.position > currentPosition)
     }
     
-    // Si aún no se encuentra, buscar la más cercana antes
+    // Si aún no se encuentra, buscar el más cercano antes
     if (index === -1) {
       // Encontrar la última casilla antes de la posición actual
       for (let i = sortedCountries.length - 1; i >= 0; i--) {
@@ -169,7 +209,7 @@ export default function CountryCarousel({
       }
     }
     
-    // Si aún no se encuentra, ir al inicio
+    // Si aún no se encuentra, mostrar la primera
     if (index === -1) {
       index = 0
     }
@@ -206,19 +246,32 @@ export default function CountryCarousel({
   const isOnSpecialSquare = SPECIAL_SQUARES[currentPosition]
   
   // Verificar si estamos mostrando la posición correcta
-  // Para casillas especiales, consideramos que estamos en la posición correcta si mostramos la siguiente casilla disponible
-  // Para casillas normales, debe coincidir exactamente
   let isCurrentPosition = false
   if (isOnSpecialSquare) {
-    // Si estamos en una casilla especial, estamos en la posición correcta si:
-    // 1. La casilla mostrada es la primera después de la posición actual, O
-    // 2. Es la primera casilla del array y la posición actual es 0
-    const nextCountryIndex = sortedCountries.findIndex(c => c.position > currentPosition)
-    isCurrentPosition = (nextCountryIndex !== -1 && currentIndex === nextCountryIndex) ||
-                       (currentPosition === 0 && currentIndex === 0)
+    // Si estamos en una casilla especial
+    if (currentPosition === 0) {
+      // Para posición 0, estamos correctos si mostramos la casilla 1 (primer país)
+      const firstCountryIndex = sortedCountries.findIndex(c => c.position === 1)
+      isCurrentPosition = firstCountryIndex !== -1 && currentIndex === firstCountryIndex
+    } else {
+      // Para otras casillas especiales (10, 20, 30), estamos correctos si mostramos la siguiente casilla
+      const nextCountryIndex = sortedCountries.findIndex(c => c.position > currentPosition)
+      isCurrentPosition = nextCountryIndex !== -1 && currentIndex === nextCountryIndex
+    }
   } else {
-    // Para casillas normales, debe coincidir exactamente
-    isCurrentPosition = displayedCountry?.position === currentPosition
+    // Para casillas normales, verificar si la casilla mostrada corresponde a la posición actual
+    // Puede ser exacta o la más cercana (si no hay país en esa posición exacta)
+    if (displayedCountry) {
+      // Si hay un país exacto en la posición actual, debe coincidir
+      const exactCountryIndex = sortedCountries.findIndex(c => c.position === currentPosition)
+      if (exactCountryIndex !== -1) {
+        isCurrentPosition = currentIndex === exactCountryIndex
+      } else {
+        // Si no hay país exacto, estamos correctos si mostramos el país más cercano después
+        const nextCountryIndex = sortedCountries.findIndex(c => c.position > currentPosition)
+        isCurrentPosition = nextCountryIndex !== -1 && currentIndex === nextCountryIndex
+      }
+    }
   }
 
   // Información de propiedad
@@ -309,7 +362,21 @@ export default function CountryCarousel({
         </button>
         <div className="flex-1 text-center">
           <p className="text-sm text-gray-600">
-            Casilla {displayedCountry?.position || 0} de 40
+            {isOnSpecialSquare ? (
+              <>
+                Casilla {currentPosition} de 40
+                <span className="ml-2 text-xs">({SPECIAL_SQUARES[currentPosition].name})</span>
+              </>
+            ) : displayedCountry ? (
+              <>
+                Casilla {displayedCountry.position} de 40
+                {displayedCountry.position !== currentPosition && (
+                  <span className="ml-2 text-xs text-gray-500">(Estás en {currentPosition})</span>
+                )}
+              </>
+            ) : (
+              `Casilla ${currentPosition} de 40`
+            )}
           </p>
           {isCurrentPosition && (
             <p className="text-xs text-blue-600 font-semibold mt-1">📍 Tu posición</p>
