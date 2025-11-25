@@ -62,6 +62,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Error al enviar mensaje' }, { status: 500 })
     }
 
+    // Actualizar progreso de misiones - enviar mensaje
+    try {
+      await supabase.rpc('update_mission_progress', {
+        p_user_id: user.id,
+        p_action: 'send_message',
+        p_count: 1,
+        p_session_id: sessionId
+      })
+    } catch (missionError) {
+      console.error('Error actualizando misión de mensaje:', missionError)
+    }
+
     return NextResponse.json({ 
       success: true,
       message: newMessage 

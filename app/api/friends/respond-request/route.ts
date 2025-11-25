@@ -44,6 +44,28 @@ export async function POST(request: Request) {
     }
 
     // Si se acepta, la amistad se crea automáticamente por el trigger
+    // Actualizar progreso de misiones - agregar amigo
+    if (action === 'accept') {
+      try {
+        // Actualizar para ambos usuarios (el que acepta y el que envió la solicitud)
+        await Promise.all([
+          supabase.rpc('update_mission_progress', {
+            p_user_id: user.id,
+            p_action: 'add_friend',
+            p_count: 1,
+            p_session_id: null
+          }),
+          supabase.rpc('update_mission_progress', {
+            p_user_id: friendRequest.sender_id,
+            p_action: 'add_friend',
+            p_count: 1,
+            p_session_id: null
+          })
+        ])
+      } catch (missionError) {
+        console.error('Error actualizando misión de amigo:', missionError)
+      }
+    }
 
     return NextResponse.json({
       message: action === 'accept' 

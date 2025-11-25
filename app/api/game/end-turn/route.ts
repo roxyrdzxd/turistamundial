@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { getNextPlayer } from '@/lib/game/gameEngine'
+import { getNextPlayer, isGameOver } from '@/lib/game/gameEngine'
 
 export async function POST(request: Request) {
   try {
@@ -103,6 +103,54 @@ export async function POST(request: Request) {
 
     const nextTurn = getNextPlayer(session.current_turn, players || [])
 
+    // Obtener países y player_countries para verificar si el juego terminó
+    const { data: countries } = await supabase
+      .from('countries')
+      .select('*')
+
+    const { data: playerCountries } = await supabase
+      .from('player_countries')
+      .select('*')
+      .eq('session_id', sessionId)
+
+    // Verificar si el juego terminó
+    const gameState = {
+      sessionId,
+      players: players || [],
+      playerCountries: playerCountries || [],
+      countries: countries || [],
+      currentTurn: nextTurn,
+    }
+
+    const gameOver = isGameOver(gameState)
+
+    // Si el juego terminó, actualizar misiones para el ganador
+    if (gameOver.isOver && gameOver.winner) {
+      // Obtener el user_id del ganador
+      const winnerPlayer = players?.find(p => p.id === gameOver.winner?.id)
+      if (winnerPlayer && winnerPlayer.user_id && !winnerPlayer.user_id.startsWith('npc-')) {
+        try {
+          await supabase.rpc('update_mission_progress', {
+            p_user_id: winnerPlayer.user_id,
+            p_action: 'win_game',
+            p_count: 1,
+            p_session_id: sessionId
+          })
+        } catch (missionError) {
+          console.error('Error actualizando misión de victoria:', missionError)
+        }
+      }
+
+      // Cerrar la sesión automáticamente
+      await supabase
+        .from('game_sessions')
+        .update({
+          status: 'finished',
+          finished_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId)
+    }
+
     const { error: turnError } = await supabase
       .from('game_sessions')
       .update({ current_turn: nextTurn })
@@ -114,8 +162,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Turno finalizado',
+      message: gameOver.isOver ? '¡Juego terminado!' : 'Turno finalizado',
       nextTurn,
+      gameOver: gameOver.isOver,
+      winner: gameOver.winner ? {
+        id: gameOver.winner.id,
+        playerId: gameOver.winner.id
+      } : null,
     })
   } catch (error: any) {
     console.error('[End Turn] Error:', error)
