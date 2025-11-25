@@ -16,6 +16,7 @@ export async function GET(request: Request) {
           .from('user_wallet')
           .select(`
             coins,
+            user_id,
             profile:profiles!user_wallet_user_id_fkey(id, username, avatar_url)
           `)
           .order('coins', { ascending: false })
@@ -23,15 +24,21 @@ export async function GET(request: Request) {
 
         if (!coinsError && coinsData) {
           leaderboard = coinsData
-            .filter(item => item.profile) // Filtrar perfiles nulos
-            .map((item, index) => ({
-              rank: index + 1,
-              userId: item.profile.id,
-              username: item.profile.username,
-              avatarUrl: item.profile.avatar_url,
-              value: item.coins,
-              type: 'coins'
-            }))
+            .filter((item: any) => {
+              const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
+              return profile && profile.id
+            })
+            .map((item: any, index: number) => {
+              const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
+              return {
+                rank: index + 1,
+                userId: profile.id,
+                username: profile.username,
+                avatarUrl: profile.avatar_url,
+                value: item.coins,
+                type: 'coins'
+              }
+            })
         }
         break
 
