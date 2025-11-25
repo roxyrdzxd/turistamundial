@@ -708,7 +708,9 @@ export default function CountryCarousel({
           <div className={`w-full ${cardColors.textColor === 'text-white' ? 'bg-white/30' : 'bg-gray-300/50'} rounded-full h-2`}>
             <div
               className={`${cardColors.textColor === 'text-white' ? 'bg-white' : 'bg-gray-700'} rounded-full h-2 transition-all duration-300`}
-              style={{ width: `${((showSpecialCard ? currentPosition : displayedCountry?.position) || 0) / 40) * 100}%` }}
+              style={{ 
+                width: `${((showSpecialCard ? currentPosition : (displayedCountry?.position || 0)) / 40) * 100}%` 
+              }}
             />
           </div>
         </div>
