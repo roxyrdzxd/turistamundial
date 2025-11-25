@@ -31,10 +31,10 @@ export default function MissionsPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    initializeAndFetchMissions()
+    fetchMissions()
   }, [])
 
-  const initializeAndFetchMissions = async () => {
+  const fetchMissions = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
