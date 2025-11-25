@@ -25,27 +25,33 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <header className="bg-white/80 backdrop-blur-lg shadow-md border-b border-gray-200/50 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+            {/* Logo y título */}
+            <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3 group">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-300">
                 🌍
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+              <div className="hidden sm:block">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
                   Turista Mundial
                 </h1>
-                <p className="text-sm text-gray-500">Juego Virtual</p>
+                <p className="text-xs sm:text-sm text-gray-500">Juego Virtual</p>
               </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4">
+            </Link>
+
+            {/* Acciones del usuario */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/profile"
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition font-semibold text-sm sm:text-base"
+                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-600 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                title="Mi Perfil"
               >
-                <span>👤</span>
-                <span className="hidden sm:inline">Mi Perfil</span>
+                <span className="flex items-center gap-1 sm:gap-2">
+                  <span className="text-lg sm:text-xl">👤</span>
+                  <span className="hidden md:inline">Mi Perfil</span>
+                </span>
               </Link>
               <LogoutButton />
             </div>
