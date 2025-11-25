@@ -427,34 +427,34 @@ export default function CountryCarousel({
           </div>
         )}
 
-        <div className="p-6 sm:p-8">
+        <div className="p-3 sm:p-4">
           {/* Header de la casilla */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-3">
             {showSpecialCard && currentSpecialSquare ? (
               <>
-                <div className="text-6xl mb-3">{currentSpecialSquare.emoji}</div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                <div className="text-4xl mb-2">{currentSpecialSquare.emoji}</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 drop-shadow-lg">
                   {currentSpecialSquare.name}
                 </h2>
-                <p className="text-white/90 text-sm sm:text-base">{currentSpecialSquare.description}</p>
+                <p className="text-white/90 text-xs sm:text-sm">{currentSpecialSquare.description}</p>
               </>
             ) : isSpecialSquare ? (
               <>
-                <div className="text-6xl mb-3">{isSpecialSquare.emoji}</div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                <div className="text-4xl mb-2">{isSpecialSquare.emoji}</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 drop-shadow-lg">
                   {isSpecialSquare.name}
                 </h2>
-                <p className="text-white/90 text-sm sm:text-base">{isSpecialSquare.description}</p>
+                <p className="text-white/90 text-xs sm:text-sm">{isSpecialSquare.description}</p>
               </>
             ) : (
               <>
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full shadow-lg flex items-center justify-center bg-white/20">
-                  <span className="text-2xl">🌍</span>
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full shadow-lg flex items-center justify-center bg-white/20">
+                  <span className="text-lg">🌍</span>
                 </div>
-                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${cardColors.textColor}`}>
+                <h2 className={`text-lg sm:text-xl font-bold mb-1 ${cardColors.textColor}`}>
                   {displayedCountry?.name || 'Cargando...'}
                 </h2>
-                <p className={`${cardColors.textColor} opacity-90 text-sm sm:text-base`}>
+                <p className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm`}>
                   {displayedCountry ? CONTINENT_NAMES[displayedCountry.continent] : ''}
                 </p>
               </>
@@ -463,29 +463,29 @@ export default function CountryCarousel({
 
           {/* Tarjeta especial cuando el jugador está en una casilla especial */}
           {showSpecialCard && currentSpecialSquare && (
-            <div className="space-y-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 shadow-lg border-2 border-white/30">
-                <div className="text-center space-y-4">
+            <div className="space-y-2">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 shadow-lg border-2 border-white/30">
+                <div className="text-center space-y-2">
                   {/* Información de la acción */}
                   {actionRequired === 'start_bonus' && (
-                    <div className="bg-yellow-500/30 border-2 border-yellow-400 rounded-lg p-3">
-                      <p className="text-white font-semibold text-sm sm:text-base">
+                    <div className="bg-yellow-500/30 border-2 border-yellow-400 rounded-lg p-2">
+                      <p className="text-white font-semibold text-xs sm:text-sm">
                         🎉 ¡Has recibido $100!
                       </p>
                     </div>
                   )}
 
                   {actionRequired === 'jail_fine' && (
-                    <div className="bg-red-500/30 border-2 border-red-400 rounded-lg p-3">
-                      <p className="text-white font-semibold text-sm sm:text-base">
+                    <div className="bg-red-500/30 border-2 border-red-400 rounded-lg p-2">
+                      <p className="text-white font-semibold text-xs sm:text-sm">
                         🚔 Has pagado multa de $150
                       </p>
                     </div>
                   )}
 
                   {actionRequired === 'airport_extra_turn' && (
-                    <div className="bg-blue-500/30 border-2 border-blue-400 rounded-lg p-3">
-                      <p className="text-white font-semibold text-sm sm:text-base mb-2">
+                    <div className="bg-blue-500/30 border-2 border-blue-400 rounded-lg p-2">
+                      <p className="text-white font-semibold text-xs sm:text-sm mb-1">
                         ✈️ ¡Tienes un turno extra!
                       </p>
                       <p className="text-white/90 text-xs">
@@ -494,7 +494,7 @@ export default function CountryCarousel({
                       {isMyTurn && onEndTurn && (
                         <button
                           onClick={onEndTurn}
-                          className="mt-3 w-full bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition font-semibold shadow-lg border-2 border-white text-sm sm:text-base"
+                          className="mt-2 w-full bg-white text-blue-600 py-1.5 px-3 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition font-semibold shadow-md border-2 border-white text-xs sm:text-sm"
                         >
                           ✈️ Usar Turno Extra
                         </button>
@@ -503,8 +503,8 @@ export default function CountryCarousel({
                   )}
 
                   {actionRequired === 'bank_bonus' && (
-                    <div className="bg-green-500/30 border-2 border-green-400 rounded-lg p-3">
-                      <p className="text-white font-semibold text-sm sm:text-base">
+                    <div className="bg-green-500/30 border-2 border-green-400 rounded-lg p-2">
+                      <p className="text-white font-semibold text-xs sm:text-sm">
                         🏦 ¡Has recibido bono de $300!
                       </p>
                     </div>
@@ -529,23 +529,23 @@ export default function CountryCarousel({
 
           {/* Información de propiedad - Solo mostrar si NO estamos en una casilla especial */}
           {!showSpecialCard && !isSpecialSquare && displayedCountry && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               {/* Estado de propiedad */}
               {ownedCountry ? (
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 shadow-lg border-2 border-white/30">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <p className={`font-semibold ${cardColors.textColor} text-sm sm:text-base`}>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 shadow-lg border-2 border-white/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-2">
+                    <p className={`font-semibold ${cardColors.textColor} text-xs sm:text-sm`}>
                       {owner && currentPlayer && owner.id === currentPlayer.id 
                         ? '🏛️ Tu Propiedad' 
                         : 'Propiedad de:'}
                     </p>
                     {owner && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <div
-                          className="w-6 h-6 rounded-full border-2 border-white shadow-md"
+                          className="w-4 h-4 rounded-full border-2 border-white shadow-md"
                           style={{ backgroundColor: PLAYER_COLORS[owner.color] || '#gray' }}
                         />
-                        <span className={`font-bold ${cardColors.textColor} text-sm sm:text-base`}>
+                        <span className={`font-bold ${cardColors.textColor} text-xs sm:text-sm`}>
                           {owner.profile.username}
                         </span>
                       </div>
@@ -554,41 +554,41 @@ export default function CountryCarousel({
 
                   {/* Estado de hipoteca */}
                   {ownedCountry.is_mortgaged && (
-                    <div className="bg-yellow-500/30 border-2 border-yellow-400 rounded-lg p-2 mb-3">
-                      <p className={`${cardColors.textColor} text-sm font-semibold text-center`}>⚠️ HIPOTECADA</p>
+                    <div className="bg-yellow-500/30 border-2 border-yellow-400 rounded-lg p-1.5 mb-2">
+                      <p className={`${cardColors.textColor} text-xs font-semibold text-center`}>⚠️ HIPOTECADA</p>
                     </div>
                   )}
 
                   {/* Construcciones */}
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {ownedCountry.hotels > 0 ? (
-                      <div className="flex items-center justify-between bg-white/20 rounded-lg p-2 border border-white/30">
-                        <span className={`${cardColors.textColor} font-semibold text-sm sm:text-base`}>🏨 Hoteles: {ownedCountry.hotels}</span>
-                        <span className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm`}>Renta: ${currentRent.toLocaleString()}</span>
+                      <div className="flex items-center justify-between bg-white/20 rounded-lg p-1.5 border border-white/30">
+                        <span className={`${cardColors.textColor} font-semibold text-xs`}>🏨 Hoteles: {ownedCountry.hotels}</span>
+                        <span className={`${cardColors.textColor} opacity-90 text-xs`}>Renta: ${currentRent.toLocaleString()}</span>
                       </div>
                     ) : ownedCountry.houses > 0 ? (
-                      <div className="flex items-center justify-between bg-white/20 rounded-lg p-2 border border-white/30">
-                        <span className={`${cardColors.textColor} font-semibold text-sm sm:text-base`}>🏠 Casas: {ownedCountry.houses}</span>
-                        <span className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm`}>Renta: ${currentRent.toLocaleString()}</span>
+                      <div className="flex items-center justify-between bg-white/20 rounded-lg p-1.5 border border-white/30">
+                        <span className={`${cardColors.textColor} font-semibold text-xs`}>🏠 Casas: {ownedCountry.houses}</span>
+                        <span className={`${cardColors.textColor} opacity-90 text-xs`}>Renta: ${currentRent.toLocaleString()}</span>
                       </div>
                     ) : (
-                      <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-                        <p className={`${cardColors.textColor} text-sm text-center`}>Sin construcciones</p>
-                        <p className={`${cardColors.textColor} opacity-75 text-xs text-center mt-1`}>Renta base: ${displayedCountry.base_rent.toLocaleString()}</p>
+                      <div className="bg-white/20 rounded-lg p-1.5 border border-white/30">
+                        <p className={`${cardColors.textColor} text-xs text-center`}>Sin construcciones</p>
+                        <p className={`${cardColors.textColor} opacity-75 text-xs text-center mt-0.5`}>Renta base: ${displayedCountry.base_rent.toLocaleString()}</p>
                       </div>
                     )}
                   </div>
 
                   {/* Si es tu propiedad */}
                   {owner && currentPlayer && owner.id === currentPlayer.id && (
-                    <div className="mt-3 pt-3 border-t border-white/30 space-y-3">
-                      <p className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm text-center`}>
-                        💡 Puedes construir casas/hoteles si tienes el monopolio del continente
+                    <div className="mt-2 pt-2 border-t border-white/30 space-y-1.5">
+                      <p className={`${cardColors.textColor} opacity-90 text-xs text-center`}>
+                        💡 Puedes construir si tienes monopolio
                       </p>
                       {isMyTurn && onEndTurn && (
                         <button
                           onClick={onEndTurn}
-                          className="w-full bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base"
+                          className="w-full bg-white/50 text-white py-1.5 px-3 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-xs sm:text-sm"
                         >
                           ✅ Pasar Turno
                         </button>
@@ -598,13 +598,13 @@ export default function CountryCarousel({
 
                   {/* Si no es tu propiedad */}
                   {owner && currentPlayer && owner.id !== currentPlayer.id && (
-                    <div className="mt-3 pt-3 border-t border-white/30 bg-white/10 rounded-lg p-2">
+                    <div className="mt-2 pt-2 border-t border-white/30 bg-white/10 rounded-lg p-1.5">
                       {ownedCountry.is_for_sale && ownedCountry.sale_price ? (
-                        <div className="space-y-2">
-                          <p className={`${cardColors.textColor} font-semibold text-center text-sm sm:text-base`}>
-                            🏪 Esta propiedad está en venta
+                        <div className="space-y-1">
+                          <p className={`${cardColors.textColor} font-semibold text-center text-xs sm:text-sm`}>
+                            🏪 En venta
                           </p>
-                          <p className={`${cardColors.textColor} text-center text-lg sm:text-xl font-bold`}>
+                          <p className={`${cardColors.textColor} text-center text-sm sm:text-base font-bold`}>
                             ${ownedCountry.sale_price.toLocaleString()}
                           </p>
                           {isMyTurn && onBuyPropertyFromPlayer && (
@@ -612,31 +612,31 @@ export default function CountryCarousel({
                               onClick={() => {
                                 onBuyPropertyFromPlayer(ownedCountry.id)
                               }}
-                              className="w-full bg-white text-purple-600 py-2 px-4 rounded-lg hover:bg-purple-50 active:bg-purple-100 transition font-semibold shadow-lg border-2 border-white text-sm sm:text-base mt-2"
+                              className="w-full bg-white text-purple-600 py-1.5 px-3 rounded-lg hover:bg-purple-50 active:bg-purple-100 transition font-semibold shadow-md border-2 border-white text-xs sm:text-sm mt-1"
                             >
-                              💰 Comprar por ${ownedCountry.sale_price.toLocaleString()}
+                              💰 Comprar
                             </button>
                           )}
                         </div>
                       ) : (
-                        <p className={`${cardColors.textColor} font-semibold text-center text-sm sm:text-base`}>
-                          💰 Debes pagar ${currentRent.toLocaleString()} de peaje
+                        <p className={`${cardColors.textColor} font-semibold text-center text-xs sm:text-sm`}>
+                          💰 Debes pagar ${currentRent.toLocaleString()}
                         </p>
                       )}
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-xl p-4 shadow-lg">
+                <div className="bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-lg p-2 shadow-lg">
                   <div className="text-center">
-                    <p className={`${cardColors.textColor} font-bold text-lg sm:text-xl mb-2`}>🏛️ Disponible para comprar</p>
-                    <p className={`text-2xl sm:text-3xl font-bold ${cardColors.textColor} mb-3`}>
+                    <p className={`${cardColors.textColor} font-bold text-sm sm:text-base mb-1`}>🏛️ Disponible</p>
+                    <p className={`text-lg sm:text-xl font-bold ${cardColors.textColor} mb-2`}>
                       ${displayedCountry.price.toLocaleString()}
                     </p>
-                    <div className="space-y-2 text-sm sm:text-base mb-4">
-                      <p className={cardColors.textColor + ' opacity-90'}>💰 Renta base: ${displayedCountry.base_rent.toLocaleString()}</p>
-                      <p className={cardColors.textColor + ' opacity-90'}>🏠 Precio casa: ${displayedCountry.house_price.toLocaleString()}</p>
-                      <p className={cardColors.textColor + ' opacity-90'}>🏨 Precio hotel: ${displayedCountry.hotel_price.toLocaleString()}</p>
+                    <div className="space-y-1 text-xs mb-2">
+                      <p className={cardColors.textColor + ' opacity-90'}>💰 Renta: ${displayedCountry.base_rent.toLocaleString()}</p>
+                      <p className={cardColors.textColor + ' opacity-90'}>🏠 Casa: ${displayedCountry.house_price.toLocaleString()}</p>
+                      <p className={cardColors.textColor + ' opacity-90'}>🏨 Hotel: ${displayedCountry.hotel_price.toLocaleString()}</p>
                     </div>
                     
                     {/* Botones de acción si es tu turno, la casilla está disponible y tienes dinero */}

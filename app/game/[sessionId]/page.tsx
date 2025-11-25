@@ -851,23 +851,23 @@ export default function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative pb-20 md:pb-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative pb-20 md:pb-0 overflow-hidden flex flex-col">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-3 flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-2 flex-shrink-0">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
+            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-1 transition text-xs sm:text-sm"
           >
             <span>←</span>
-            <span>Volver al Dashboard</span>
+            <span>Volver</span>
           </Link>
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="bg-white rounded-lg shadow-md p-2 sm:p-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">🌍 Turista Mundial</h1>
-                <div className="flex items-center gap-3">
-                  <p className="text-gray-600">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">🌍 Turista Mundial</h1>
+                <div className="flex items-center gap-2">
+                  <p className="text-gray-600 text-xs sm:text-sm">
                     Turno: {currentPlayer?.profile.username || 'Cargando...'}
                   </p>
                   {isMyTurn && timeLeft !== null && timeLeft > 0 && (
@@ -886,17 +886,17 @@ export default function GamePage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Sesión</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xs text-gray-500">Sesión</p>
+                  <p className="text-sm font-semibold text-gray-900">
                     {session.current_players} jugadores
                   </p>
                 </div>
                 {isHost && (
                   <button
                     onClick={handleClose}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold text-sm shadow-lg"
+                    className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold text-xs shadow-md"
                     title="Cerrar partida"
                   >
                     🚪 Cerrar
@@ -907,12 +907,12 @@ export default function GamePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 items-start flex-1 overflow-hidden min-h-0">
           {/* Tablero / Área Principal */}
-          <div className="lg:col-span-2 order-1">
-            <div className="bg-white rounded-xl shadow-lg p-3 sm:p-6 mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4 text-center">Casilla Actual</h2>
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-2 sm:p-4">
+          <div className="lg:col-span-2 order-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 mb-2 flex-1 flex flex-col min-h-0">
+              <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center">Casilla Actual</h2>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-1 sm:p-2 flex-1 min-h-0">
                 {countries.length > 0 && myPlayer ? (
                   <CountryCarousel
                     countries={countries}
@@ -926,10 +926,10 @@ export default function GamePage() {
                     actionRequired={actionRequired}
                   />
                 ) : (
-                  <div className="min-h-[400px] flex items-center justify-center">
+                  <div className="min-h-[200px] flex items-center justify-center">
                     <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-600">Cargando casilla...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                      <p className="text-gray-600 text-sm">Cargando casilla...</p>
                     </div>
                   </div>
                 )}
@@ -938,12 +938,12 @@ export default function GamePage() {
 
             {/* Acciones del Turno */}
             {isMyTurn && (
-              <div className="hidden md:block bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4 order-2 lg:order-2">
-                <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Turno</h3>
+              <div className="hidden md:block bg-white rounded-lg shadow-md p-2 sm:p-3 space-y-2 order-2 lg:order-2 flex-shrink-0">
+                <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2">Tu Turno</h3>
                 
                 {/* Animación de dados - pequeña, arriba del botón */}
                 {showDiceAnimation && (
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <DiceAnimation
                       result={diceResult || undefined}
                       die1={diceDetails.die1}
@@ -959,11 +959,11 @@ export default function GamePage() {
                   <button
                     onClick={handleRollDice}
                     disabled={rolling}
-                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold text-lg shadow-lg"
+                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2 px-3 rounded-lg hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold text-sm shadow-md"
                   >
                     {rolling ? (
                       <span className="flex items-center justify-center gap-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         Tirando dados...
                       </span>
                     ) : (
@@ -973,37 +973,32 @@ export default function GamePage() {
                 )}
 
                 {diceResult && !showDiceAnimation && (
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <p className="text-5xl font-bold text-blue-600 mb-2">{diceResult}</p>
-                    <p className="text-gray-600">Resultado de los dados</p>
+                  <div className="text-center p-2 bg-blue-50 rounded-lg">
+                    <p className="text-3xl font-bold text-blue-600 mb-1">{diceResult}</p>
+                    <p className="text-gray-600 text-xs">Resultado de los dados</p>
                   </div>
                 )}
 
                 {/* Propiedad en venta */}
                 {actionRequired === 'can_buy_from_player' && propertyForSale && currentCountry && (
-                  <div className="bg-purple-50 border-2 border-purple-500 rounded-lg p-4">
-                    <p className="font-semibold text-purple-800 mb-2">
+                  <div className="bg-purple-50 border-2 border-purple-500 rounded-lg p-2">
+                    <p className="font-semibold text-purple-800 mb-1 text-xs sm:text-sm">
                       🏪 {currentCountry.name} está en venta
                     </p>
-                    <p className="text-sm text-purple-700 mb-3">
-                      Precio de venta: ${propertyForSale.salePrice.toLocaleString()}
+                    <p className="text-xs text-purple-700 mb-2">
+                      Precio: ${propertyForSale.salePrice.toLocaleString()}
                     </p>
                     {myPlayer && myPlayer.money >= propertyForSale.salePrice ? (
                       <button
                         onClick={() => handleBuyPropertyFromPlayer(propertyForSale.playerCountryId)}
-                        className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition font-semibold"
+                        className="w-full bg-purple-600 text-white py-1.5 px-3 rounded-lg hover:bg-purple-700 transition font-semibold text-xs sm:text-sm"
                       >
-                        💰 Comprar por ${propertyForSale.salePrice.toLocaleString()}
+                        💰 Comprar
                       </button>
                     ) : (
-                      <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
-                        <p className="text-sm text-red-800 font-semibold text-center">
+                      <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-2">
+                        <p className="text-xs text-red-800 font-semibold text-center">
                           ⚠️ No tienes suficiente dinero
-                          {myPlayer && (
-                            <span className="block mt-1 text-xs">
-                              (Tienes: ${myPlayer.money.toLocaleString()}, Necesitas: ${propertyForSale.salePrice.toLocaleString()})
-                            </span>
-                          )}
                         </p>
                       </div>
                     )}
@@ -1012,43 +1007,38 @@ export default function GamePage() {
 
                 {/* Acciones después de tirar dados */}
                 {(actionRequired === 'can_buy' || canBuyCountry) && currentCountry && !propertyForSale && (
-                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
-                    <p className="font-semibold text-green-800 mb-2">
-                      🏛️ {currentCountry.name} está disponible
+                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-2">
+                    <p className="font-semibold text-green-800 mb-1 text-xs sm:text-sm">
+                      🏛️ {currentCountry.name} disponible
                     </p>
-                    <p className="text-sm text-green-700 mb-3">
+                    <p className="text-xs text-green-700 mb-2">
                       Precio: ${currentCountry.price.toLocaleString()}
                     </p>
                     {myPlayer && myPlayer.money >= currentCountry.price ? (
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5">
                         <button
                           onClick={() => handleBuyCountry()}
-                          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition font-semibold"
+                          className="flex-1 bg-green-600 text-white py-1.5 px-2 rounded-lg hover:bg-green-700 transition font-semibold text-xs"
                         >
                           ✅ Comprar
                         </button>
                         <button
                           onClick={handleEndTurn}
-                          className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition font-semibold"
+                          className="flex-1 bg-gray-300 text-gray-700 py-1.5 px-2 rounded-lg hover:bg-gray-400 transition font-semibold text-xs"
                         >
                           ❌ Pasar
                         </button>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-3">
-                          <p className="text-sm text-red-800 font-semibold text-center">
-                            ⚠️ No tienes suficiente dinero para comprar
-                            {myPlayer && (
-                              <span className="block mt-1 text-xs">
-                                (Tienes: ${myPlayer.money.toLocaleString()}, Necesitas: ${currentCountry.price.toLocaleString()})
-                              </span>
-                            )}
+                      <div className="space-y-1.5">
+                        <div className="bg-red-500/20 border-2 border-red-500/50 rounded-lg p-2">
+                          <p className="text-xs text-red-800 font-semibold text-center">
+                            ⚠️ No tienes suficiente dinero
                           </p>
                         </div>
                         <button
                           onClick={handleEndTurn}
-                          className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition font-semibold"
+                          className="w-full bg-gray-600 text-white py-1.5 px-3 rounded-lg hover:bg-gray-700 transition font-semibold text-xs"
                         >
                           ✅ Pasar Turno
                         </button>
@@ -1058,16 +1048,16 @@ export default function GamePage() {
                 )}
 
                 {actionRequired === 'pay_toll' && needsToPayToll && (
-                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4">
-                    <p className="font-semibold text-red-800 mb-2">
+                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-2">
+                    <p className="font-semibold text-red-800 mb-1 text-xs sm:text-sm">
                       💰 Debes pagar peaje
                     </p>
-                    <p className="text-sm text-red-700 mb-3">
+                    <p className="text-xs text-red-700 mb-2">
                       Cantidad: ${tollAmount.toLocaleString()}
                     </p>
                     <button
                       onClick={handlePayToll}
-                      className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition font-semibold"
+                      className="w-full bg-red-600 text-white py-1.5 px-3 rounded-lg hover:bg-red-700 transition font-semibold text-xs"
                     >
                       💵 Pagar Peaje
                     </button>
@@ -1075,44 +1065,41 @@ export default function GamePage() {
                 )}
 
                 {actionRequired === 'start_bonus' && (
-                  <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-4">
-                    <p className="font-semibold text-yellow-800">
+                  <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-2">
+                    <p className="font-semibold text-yellow-800 text-xs sm:text-sm">
                       🎉 ¡Has pasado por el inicio! +$100
                     </p>
                   </div>
                 )}
 
                 {actionRequired === 'jail_fine' && (
-                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4">
-                    <p className="font-semibold text-red-800">
+                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-2">
+                    <p className="font-semibold text-red-800 text-xs sm:text-sm">
                       🚔 Has pagado multa en la cárcel: -$150
                     </p>
                   </div>
                 )}
 
                 {actionRequired === 'airport_extra_turn' && (
-                  <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-4">
-                    <p className="font-semibold text-blue-800">
-                      ✈️ ¡Has llegado al aeropuerto! Tienes un turno extra
-                    </p>
-                    <p className="text-sm text-blue-600 mt-2">
-                      Podrás tirar los dados una vez más después de terminar este turno.
+                  <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-2">
+                    <p className="font-semibold text-blue-800 text-xs sm:text-sm">
+                      ✈️ ¡Aeropuerto! Turno extra
                     </p>
                   </div>
                 )}
 
                 {actionRequired === 'bank_bonus' && (
-                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
-                    <p className="font-semibold text-green-800">
+                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-2">
+                    <p className="font-semibold text-green-800 text-xs sm:text-sm">
                       🏦 ¡Bono del banco! +$300
                     </p>
                   </div>
                 )}
 
                 {actionRequired === 'bank_tax' && (
-                  <div className="bg-orange-50 border-2 border-orange-500 rounded-lg p-4">
-                    <p className="font-semibold text-orange-800">
-                      🏦 Has pagado impuesto al banco: -$200
+                  <div className="bg-orange-50 border-2 border-orange-500 rounded-lg p-2">
+                    <p className="font-semibold text-orange-800 text-xs sm:text-sm">
+                      🏦 Has pagado impuesto: -$200
                     </p>
                   </div>
                 )}
@@ -1121,7 +1108,7 @@ export default function GamePage() {
                 {actionRequired === 'airport_extra_turn' && (
                   <button
                     onClick={handleEndTurn}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition font-semibold"
+                    className="w-full bg-blue-600 text-white py-1.5 px-3 rounded-lg hover:bg-blue-700 transition font-semibold text-xs"
                   >
                     ✈️ Usar Turno Extra
                   </button>
@@ -1133,7 +1120,7 @@ export default function GamePage() {
                  actionRequired !== 'airport_extra_turn' && actionRequired !== 'can_buy_from_player' && (
                   <button
                     onClick={handleEndTurn}
-                    className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition font-semibold"
+                    className="w-full bg-gray-600 text-white py-1.5 px-3 rounded-lg hover:bg-gray-700 transition font-semibold text-xs"
                   >
                     ✅ Finalizar Turno
                   </button>
@@ -1142,8 +1129,8 @@ export default function GamePage() {
             )}
 
             {!isMyTurn && currentPlayer && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                <p className="text-center text-yellow-800 font-semibold">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 flex-shrink-0">
+                <p className="text-center text-yellow-800 font-semibold text-xs sm:text-sm">
                   ⏳ Esperando turno de {currentPlayer.profile.username}
                 </p>
               </div>
@@ -1151,28 +1138,28 @@ export default function GamePage() {
           </div>
 
           {/* Panel Lateral - Mobile First */}
-          <div className="space-y-4 sm:space-y-6 self-start">
+          <div className="space-y-2 self-start flex flex-col min-h-0 overflow-y-auto">
             {/* Historial de Transacciones - Solo visible en desktop */}
-            <div className="hidden md:block">
+            <div className="hidden md:block flex-shrink-0">
               <TransactionHistory sessionId={sessionId} />
             </div>
 
             {/* Mi Información - Siempre visible */}
             {myPlayer && (
-              <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-                <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Información</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-1 gap-3 sm:space-y-3">
+              <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white flex-shrink-0">
+                <h3 className="text-xs sm:text-sm font-bold mb-1 sm:mb-2">Tu Información</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-1.5 sm:space-y-1.5">
                   <div>
-                    <p className="text-xs sm:text-sm opacity-90">Jugador</p>
-                    <p className="text-base sm:text-lg font-semibold truncate">{myPlayer.profile.username}</p>
+                    <p className="text-xs opacity-90">Jugador</p>
+                    <p className="text-xs sm:text-sm font-semibold truncate">{myPlayer.profile.username}</p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm opacity-90">Dinero</p>
-                    <p className="text-xl sm:text-2xl font-bold">${myPlayer.money.toLocaleString()}</p>
+                    <p className="text-xs opacity-90">Dinero</p>
+                    <p className="text-sm sm:text-base font-bold">${myPlayer.money.toLocaleString()}</p>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <p className="text-xs sm:text-sm opacity-90">Posición</p>
-                    <p className="text-base sm:text-lg font-semibold">Casilla {myPlayer.position}</p>
+                    <p className="text-xs opacity-90">Posición</p>
+                    <p className="text-xs sm:text-sm font-semibold">Casilla {myPlayer.position}</p>
                   </div>
                 </div>
               </div>
@@ -1233,25 +1220,25 @@ export default function GamePage() {
               }).sort((a, b) => a.continentName.localeCompare(b.continentName))
 
               return (
-                <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-                  <h4 className="text-sm sm:text-base font-semibold mb-3 flex items-center gap-2">
+                <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white flex-shrink-0">
+                  <h4 className="text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5">
                     <span>🏛️</span>
                     <span>Mis Propiedades ({myProperties.length})</span>
                   </h4>
                   {myProperties.length === 0 ? (
-                      <p className="text-xs sm:text-sm opacity-80 text-center py-2">
+                      <p className="text-xs opacity-80 text-center py-1">
                         No tienes propiedades aún
                       </p>
                     ) : (
-                      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
                         {continentProgress.map(({ continent, continentName, properties, ownedCount, totalCount, hasMonopoly }) => (
-                          <div key={continent} className="bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm sm:text-base">🌍 {continentName}</span>
+                          <div key={continent} className="bg-white/10 hover:bg-white/20 rounded p-1.5 transition-colors">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-xs">🌍 {continentName}</span>
                                 {hasMonopoly && (
-                                  <span className="bg-green-500/30 text-green-200 px-2 py-0.5 rounded text-xs font-semibold">
-                                    ✅ Monopolio
+                                  <span className="bg-green-500/30 text-green-200 px-1 py-0.5 rounded text-xs font-semibold">
+                                    ✅
                                   </span>
                                 )}
                               </div>
@@ -1260,39 +1247,39 @@ export default function GamePage() {
                               </span>
                             </div>
                             {!hasMonopoly && (
-                              <p className="text-xs opacity-80 mb-2">
-                                Faltan {totalCount - ownedCount} {totalCount - ownedCount === 1 ? 'propiedad' : 'propiedades'} para el monopolio
+                              <p className="text-xs opacity-80 mb-1">
+                                Faltan {totalCount - ownedCount}
                               </p>
                             )}
-                            <div className="space-y-1.5">
+                            <div className="space-y-1">
                               {properties.map((prop: any) => (
                                 <div
                                   key={prop.id}
-                                  className="bg-white/5 hover:bg-white/10 rounded p-2 transition-colors"
+                                  className="bg-white/5 hover:bg-white/10 rounded p-1 transition-colors"
                                 >
                                   <div className="flex items-start justify-between">
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-semibold text-xs sm:text-sm truncate">
+                                      <p className="font-semibold text-xs truncate">
                                         {prop.country.name}
                                       </p>
-                                      <div className="flex items-center gap-2 mt-0.5 text-xs opacity-90 flex-wrap">
-                                        <span>📍 Casilla {prop.country.position}</span>
+                                      <div className="flex items-center gap-1 mt-0.5 text-xs opacity-90 flex-wrap">
+                                        <span>📍 {prop.country.position}</span>
                                         {prop.is_mortgaged && (
-                                          <span className="bg-yellow-500/30 text-yellow-200 px-1.5 py-0.5 rounded text-xs">
-                                            ⚠️ Hipotecada
+                                          <span className="bg-yellow-500/30 text-yellow-200 px-1 py-0.5 rounded text-xs">
+                                            ⚠️
                                           </span>
                                         )}
                                       </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1 ml-2">
+                                    <div className="flex flex-col items-end gap-0.5 ml-1">
                                       {prop.hotels > 0 ? (
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-lg">🏨</span>
+                                        <div className="flex items-center gap-0.5">
+                                          <span className="text-sm">🏨</span>
                                           <span className="text-xs font-semibold">{prop.hotels}</span>
                                         </div>
                                       ) : prop.houses > 0 ? (
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-sm">🏠</span>
+                                        <div className="flex items-center gap-0.5">
+                                          <span className="text-xs">🏠</span>
                                           <span className="text-xs font-semibold">{prop.houses}</span>
                                         </div>
                                       ) : null}
