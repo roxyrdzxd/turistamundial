@@ -907,12 +907,12 @@ export default function GamePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 items-start flex-1 overflow-hidden min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 items-start">
           {/* Tablero / Área Principal */}
-          <div className="lg:col-span-2 order-1 flex flex-col min-h-0 overflow-hidden">
-            <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 mb-2 flex-1 flex flex-col min-h-0">
+          <div className="lg:col-span-2 order-1">
+            <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 mb-2">
               <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center">Casilla Actual</h2>
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-1 sm:p-2 flex-1 min-h-0">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-1 sm:p-2">
                 {countries.length > 0 && myPlayer ? (
                   <CountryCarousel
                     countries={countries}
@@ -1129,7 +1129,7 @@ export default function GamePage() {
             )}
 
             {!isMyTurn && currentPlayer && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 flex-shrink-0">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
                 <p className="text-center text-yellow-800 font-semibold text-xs sm:text-sm">
                   ⏳ Esperando turno de {currentPlayer.profile.username}
                 </p>
@@ -1138,9 +1138,9 @@ export default function GamePage() {
           </div>
 
           {/* Panel Lateral - Mobile First */}
-          <div className="space-y-2 self-start flex flex-col min-h-0 overflow-y-auto">
+          <div className="space-y-2 self-start">
             {/* Historial de Transacciones - Solo visible en desktop */}
-            <div className="hidden md:block flex-shrink-0">
+            <div className="hidden md:block">
               <TransactionHistory sessionId={sessionId} />
             </div>
 
@@ -1220,7 +1220,7 @@ export default function GamePage() {
               }).sort((a, b) => a.continentName.localeCompare(b.continentName))
 
               return (
-                <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white flex-shrink-0">
+                <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
                   <h4 className="text-xs sm:text-sm font-semibold mb-1.5 flex items-center gap-1.5">
                     <span>🏛️</span>
                     <span>Mis Propiedades ({myProperties.length})</span>
@@ -1230,7 +1230,7 @@ export default function GamePage() {
                         No tienes propiedades aún
                       </p>
                     ) : (
-                      <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+                      <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
                         {continentProgress.map(({ continent, continentName, properties, ownedCount, totalCount, hasMonopoly }) => (
                           <div key={continent} className="bg-white/10 hover:bg-white/20 rounded p-1.5 transition-colors">
                             <div className="flex items-center justify-between mb-1">
