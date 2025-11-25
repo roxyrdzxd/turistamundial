@@ -1116,7 +1116,20 @@ export default function GamePage() {
                   </div>
                 )}
 
-                {actionRequired && !canBuyCountry && !needsToPayToll && !propertyForSale && actionRequired !== 'start_bonus' && actionRequired !== 'bank_tax' && actionRequired !== 'can_buy_from_player' && (
+                {/* Botón para usar turno extra del aeropuerto */}
+                {actionRequired === 'airport_extra_turn' && (
+                  <button
+                    onClick={handleEndTurn}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition font-semibold"
+                  >
+                    ✈️ Usar Turno Extra
+                  </button>
+                )}
+
+                {actionRequired && !canBuyCountry && !needsToPayToll && !propertyForSale && 
+                 actionRequired !== 'start_bonus' && actionRequired !== 'bank_tax' && 
+                 actionRequired !== 'bank_bonus' && actionRequired !== 'jail_fine' && 
+                 actionRequired !== 'airport_extra_turn' && actionRequired !== 'can_buy_from_player' && (
                   <button
                     onClick={handleEndTurn}
                     className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition font-semibold"
