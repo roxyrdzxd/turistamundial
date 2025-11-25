@@ -360,6 +360,8 @@ export default function CountryCarousel({
     }
   }
 
+  }
+
   const cardColors = getCardColor()
 
   return (
