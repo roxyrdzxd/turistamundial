@@ -253,16 +253,8 @@ export default function CountryCarousel({
   // Verificar si estamos mostrando la posición correcta
   let isCurrentPosition = false
   if (isOnSpecialSquare) {
-    // Si estamos en una casilla especial
-    if (currentPosition === 0) {
-      // Para posición 0, estamos correctos si mostramos la casilla 1 (primer país)
-      const firstCountryIndex = sortedCountries.findIndex(c => c.position === 1)
-      isCurrentPosition = firstCountryIndex !== -1 && currentIndex === firstCountryIndex
-    } else {
-      // Para otras casillas especiales (10, 20, 30), estamos correctos si mostramos la siguiente casilla
-      const nextCountryIndex = sortedCountries.findIndex(c => c.position > currentPosition)
-      isCurrentPosition = nextCountryIndex !== -1 && currentIndex === nextCountryIndex
-    }
+    // Si estamos en una casilla especial, estamos correctos si showSpecialCard es true
+    isCurrentPosition = showSpecialCard
   } else {
     // Para casillas normales, verificar si la casilla mostrada corresponde a la posición actual
     // Puede ser exacta o la más cercana (si no hay país en esa posición exacta)
