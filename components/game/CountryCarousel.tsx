@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 interface Country {
   id: string
@@ -360,7 +360,7 @@ export default function CountryCarousel({
     }
   }
 
-  const cardColors = getCardColor()
+  const cardColors = useMemo(() => getCardColor(), [showSpecialCard, currentSpecialSquare, isSpecialSquare, displayedCountry, ownedCountry, owner, currentPlayer, currentPosition, continentColor])
 
   return (
     <div className="w-full">
