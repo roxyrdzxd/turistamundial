@@ -364,7 +364,8 @@ export default function CountryCarousel({
   const cardColors = getCardColor()
 
   return (
-    <div className="w-full">
+    <>
+      <div className="w-full">
       {/* Indicador de posición */}
       <div className="mb-4 flex items-center justify-center gap-2">
         <button
@@ -740,6 +741,7 @@ export default function CountryCarousel({
         </div>
       )}
     </div>
+    </>
   )
 }
 
