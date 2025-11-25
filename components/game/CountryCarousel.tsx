@@ -298,7 +298,7 @@ export default function CountryCarousel({
   const currentRent = calculateRent()
 
   // Determinar el color de la tarjeta según el estado
-  const getCardColor = () => {
+  const getCardColor = (): { bg: string; border: string; textColor: string } => {
     if (showSpecialCard && currentSpecialSquare) {
       // Colores específicos para cada casilla especial
       const specialColors: Record<number, { bg: string; border: string }> = {
@@ -350,13 +350,13 @@ export default function CountryCarousel({
         border: '#3b82f6',
         textColor: 'text-white'
       }
-    } else {
-      // Rojo: Propiedad de otro jugador
-      return {
-        bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-        border: '#ef4444',
-        textColor: 'text-white'
-      }
+    }
+    
+    // Rojo: Propiedad de otro jugador
+    return {
+      bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+      border: '#ef4444',
+      textColor: 'text-white'
     }
   }
 
