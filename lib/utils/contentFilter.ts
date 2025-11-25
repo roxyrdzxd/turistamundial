@@ -17,6 +17,45 @@ const BANNED_WORDS = [
   'estupido', 'estúpido', 'estupida', 'estúpida',
   'retrasado', 'retrasada', 'tonto', 'tonta',
   'imbecil', 'imbécil', 'imbeciles', 'imbéciles',
+  
+  // Palabras relacionadas con sexo explícito
+  'sexo', 'sexual', 'coito', 'cojer', 'coger', 'follar', 'follando',
+  'pene', 'pito', 'polla', 'pollas', 'vagina', 'vaginas', 'vulva',
+  'masturbar', 'masturbacion', 'masturbación', 'masturbando',
+  'orgasmo', 'orgasmos', 'eyaculacion', 'eyaculación', 'eyaculando',
+  'pornografia', 'pornografía', 'porno', 'xxx', 'xxx',
+  'prostituta', 'prostitutas', 'prostibulo', 'prostíbulo',
+  'escort', 'escorts', 'puteria', 'putería',
+  'zoofilia', 'pedofilia', 'necrofilia',
+  'violacion', 'violación', 'violar', 'violando',
+  'incesto', 'incestuoso',
+  
+  // Palabras relacionadas con narcotráfico
+  'narcotrafico', 'narcotráfico', 'narco', 'narcos',
+  'traficante', 'traficantes', 'trafico', 'tráfico',
+  'cartel', 'carteles', 'cartel de drogas',
+  'sicario', 'sicarios', 'matar', 'matando', 'asesinar', 'asesinato',
+  'coca', 'cocaina', 'cocaína', 'coke', 'perico',
+  'marihuana', 'marijuana', 'mota', 'hierba', 'weed', 'ganja',
+  'heroina', 'heroína', 'heroin', 'chiva',
+  'cristal', 'cristal meth', 'metanfetamina', 'anfetamina',
+  'lsd', 'acido', 'ácido', 'hongos', 'hongos alucinogenos',
+  'mdma', 'extasis', 'éxtasis', 'molly',
+  'crack', 'crack cocaine', 'piedra',
+  'fentanilo', 'fentanyl', 'opio', 'opioides',
+  'drogadicto', 'drogadicta', 'adicto', 'adicta',
+  'drogas', 'droga', 'drogado', 'drogada', 'drogandose',
+  'inyectar', 'inyeccion', 'inyección', 'inyectando',
+  'snort', 'esnifar', 'esnifando', 'fumar', 'fumando',
+  'dealer', 'dealers', 'vendedor de drogas',
+  'plantacion', 'plantación', 'cultivo de drogas',
+  'laboratorio', 'laboratorios', 'cocina de drogas',
+  
+  // Variaciones y evasiones comunes
+  's3x0', 's3xo', 'c0j3r', 'c0jer', 'f0ll4r',
+  'p3n3', 'p1t0', 'p0ll4', 'v4g1n4',
+  'n4rc0', 'tr4f1c0', 'dr0g4', 'dr0g4s',
+  'c0c4', 'c0c41n4', 'm4r1h14n4', 'h3r01n4',
 ]
 
 /**
