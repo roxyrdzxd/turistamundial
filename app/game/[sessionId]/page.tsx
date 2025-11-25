@@ -1525,6 +1525,60 @@ export default function GamePage() {
         unreadChatCount={chatUnreadCount}
       />
 
+      {/* Navegación inferior desktop */}
+      <DesktopBottomNav
+        onShowBoard={() => {
+          if (activeDesktopTab === 'board') {
+            setShowBoardOverview(false)
+            setActiveDesktopTab(null)
+          } else {
+            setShowBoardOverview(true)
+            setShowProperties(false)
+            setShowHistory(false)
+            setShowChat(false)
+            setActiveDesktopTab('board')
+          }
+        }}
+        onShowProperties={() => {
+          if (activeDesktopTab === 'properties') {
+            setShowProperties(false)
+            setActiveDesktopTab(null)
+          } else {
+            setShowProperties(true)
+            setShowBoardOverview(false)
+            setShowHistory(false)
+            setShowChat(false)
+            setActiveDesktopTab('properties')
+          }
+        }}
+        onShowHistory={() => {
+          if (activeDesktopTab === 'history') {
+            setShowHistory(false)
+            setActiveDesktopTab(null)
+          } else {
+            setShowHistory(true)
+            setShowBoardOverview(false)
+            setShowProperties(false)
+            setShowChat(false)
+            setActiveDesktopTab('history')
+          }
+        }}
+        onShowChat={() => {
+          if (activeDesktopTab === 'chat') {
+            setShowChat(false)
+            setActiveDesktopTab(null)
+          } else {
+            setShowChat(true)
+            setShowBoardOverview(false)
+            setShowProperties(false)
+            setShowHistory(false)
+            setActiveDesktopTab('chat')
+          }
+        }}
+        unreadChatCount={chatUnreadCount}
+        activeTab={activeDesktopTab}
+      />
+
       {/* Modales móviles para propiedades e historial */}
       {showProperties && myPlayer && (
         <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
