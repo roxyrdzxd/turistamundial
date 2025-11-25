@@ -406,7 +406,9 @@ export default function CountryCarousel({
         {isCurrentPosition && (
           <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold z-10 flex items-center gap-1">
             <span>📍</span>
-            <span>Aquí estás</span>
+            <span>
+              {isOnSpecialSquare ? SPECIAL_SQUARES[currentPosition].name : 'Aquí estás'}
+            </span>
           </div>
         )}
 
