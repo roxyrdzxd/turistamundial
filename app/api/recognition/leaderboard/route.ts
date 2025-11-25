@@ -105,8 +105,7 @@ export async function GET(request: Request) {
               mission:missions!user_missions_mission_id_fkey(id, requirement),
               profile:profiles!user_missions_user_id_fkey(id, username, avatar_url)
             `)
-            .eq('completed_at', null) // Solo completadas
-            .not('completed_at', 'is', null)
+            .not('completed_at', 'is', null) // Solo completadas
 
           if (winsFallback) {
             const winCounts: Record<string, { count: number; profile: any }> = {}
