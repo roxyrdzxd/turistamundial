@@ -511,14 +511,14 @@ export default function CountryCarousel({
                   {/* Botón para pasar turno si no hay acción pendiente */}
                   {isMyTurn && onEndTurn && 
                    actionRequired !== 'airport_extra_turn' && 
-                   (actionRequired === 'start_bonus' || actionRequired === 'jail_fine' || actionRequired === 'bank_bonus' || !actionRequired) && (
+                   (actionRequired === 'start_bonus' || actionRequired === 'jail_fine' || actionRequired === 'bank_bonus' || !actionRequired) ? (
                     <button
                       onClick={onEndTurn}
                       className="w-full bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base mt-4"
                     >
                       ✅ Pasar Turno
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
