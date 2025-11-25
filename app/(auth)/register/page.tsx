@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { validateUsername } from '@/lib/utils/contentFilter'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
