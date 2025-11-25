@@ -1450,13 +1450,13 @@ export default function GamePage() {
           setShowChat(false)
         }}
         onShowProperties={() => {
-          setShowProperties(!showProperties)
+          setShowProperties(true)
           setShowBoardOverview(false)
           setShowHistory(false)
           setShowChat(false)
         }}
         onShowHistory={() => {
-          setShowHistory(!showHistory)
+          setShowHistory(true)
           setShowBoardOverview(false)
           setShowProperties(false)
           setShowChat(false)
