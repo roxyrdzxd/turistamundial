@@ -50,6 +50,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
   }
 
+  // Obtener todos los jugadores de la sesión para actualizar sus misiones
+  const { data: players } = await supabase
+    .from('session_players')
+    .select('user_id')
+    .eq('session_id', sessionId)
+
+  // Actualizar progreso de misiones para todos los jugadores
+  if (players) {
+    for (const player of players) {
+      // Solo actualizar para usuarios reales (no NPCs)
+      if (player.user_id && !player.user_id.startsWith('npc-')) {
+        try {
+          await supabase.rpc('update_mission_progress', {
+            p_user_id: player.user_id,
+            p_action: 'play_game',
+            p_count: 1,
+            p_session_id: sessionId
+          })
+        } catch (missionError) {
+          console.error(`Error actualizando misión para usuario ${player.user_id}:`, missionError)
+        }
+      }
+    }
+  }
+
   return NextResponse.json({ success: true, message: 'Partida iniciada' })
 }
 

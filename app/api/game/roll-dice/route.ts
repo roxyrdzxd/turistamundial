@@ -51,6 +51,9 @@ export async function POST(request: Request) {
 
     // Calcular nueva posición (tablero de 40 casillas)
     const newPosition = (currentPlayer.position + total) % 40
+    
+    // Verificar si completó una vuelta al tablero (cruzó la posición 0)
+    const completedLap = currentPlayer.position + total >= 40
 
     // Actualizar posición del jugador
     const { error: updateError } = await supabase
@@ -188,6 +191,21 @@ export async function POST(request: Request) {
         },
       })
 
+    // Actualizar progreso de misiones
+    // Completar vuelta al tablero (cuando cruza la posición 0)
+    if (completedLap) {
+      try {
+        await supabase.rpc('update_mission_progress', {
+          p_user_id: currentPlayer.user_id,
+          p_action: 'complete_lap',
+          p_count: 1,
+          p_session_id: sessionId
+        })
+      } catch (missionError) {
+        console.error('Error actualizando misión de vuelta:', missionError)
+      }
+    }
+
     return NextResponse.json({
       success: true,
       diceResult: total,
@@ -202,6 +220,7 @@ export async function POST(request: Request) {
       ownerId,
       propertyForSale,
       message: `Avanzaste ${total} casillas`,
+      completedLap,
     })
   } catch (error: any) {
     console.error('[Roll Dice] Error general:', error)

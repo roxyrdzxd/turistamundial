@@ -122,6 +122,18 @@ export async function POST(request: Request) {
         },
       })
 
+    // Actualizar progreso de misiones - comprar propiedad
+    try {
+      await supabase.rpc('update_mission_progress', {
+        p_user_id: currentPlayer.user_id,
+        p_action: 'buy_property',
+        p_count: 1,
+        p_session_id: sessionId
+      })
+    } catch (missionError) {
+      console.error('Error actualizando misión de compra:', missionError)
+    }
+
     // Avanzar al siguiente turno después de comprar
     const { data: allPlayers } = await supabase
       .from('session_players')

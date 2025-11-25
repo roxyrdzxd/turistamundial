@@ -31,15 +31,24 @@ export default function MissionsPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchMissions()
+    initializeAndFetchMissions()
   }, [])
 
-  const fetchMissions = async () => {
+  const initializeAndFetchMissions = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         setLoading(false)
         return
+      }
+
+      // Inicializar misiones para el usuario (crear progreso si no existe)
+      try {
+        await fetch('/api/missions/initialize', {
+          method: 'POST',
+        })
+      } catch (initError) {
+        console.error('Error inicializando misiones:', initError)
       }
 
       // Obtener misiones activas con progreso del usuario
