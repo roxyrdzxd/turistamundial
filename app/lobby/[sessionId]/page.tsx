@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Chat from '@/components/game/Chat'
 import { useToast } from '@/contexts/ToastContext'
 import { createClient } from '@/lib/supabase/client'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 interface Player {
   id: string
@@ -85,7 +86,7 @@ export default function SessionPage() {
             table: 'game_sessions',
             filter: `id=eq.${sessionId}`,
           },
-          (payload) => {
+          (payload: RealtimePostgresChangesPayload<any>) => {
             const updatedSession = payload.new as any
             // Si la sesión cambió a 'active', redirigir a los jugadores (excepto el host)
             if (updatedSession.status === 'active' && !isHost) {
