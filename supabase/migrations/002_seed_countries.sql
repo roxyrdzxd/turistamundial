@@ -4,7 +4,9 @@
 INSERT INTO countries (name, continent, price, base_rent, house_price, hotel_price, position) VALUES
 -- Continente Azul (América del Norte)
 ('Vancouver', 'blue', 60, 2, 50, 200, 1),
+('CdMX', 'blue', 60, 4, 50, 200, 2),
 ('Seattle', 'blue', 60, 4, 50, 200, 3),
+('Monterrey', 'blue', 80, 6, 50, 200, 4),
 ('San Francisco', 'blue', 200, 6, 50, 200, 6),
 ('Los Angeles', 'blue', 200, 6, 50, 200, 8),
 ('Las Vegas', 'blue', 180, 14, 100, 300, 9),
