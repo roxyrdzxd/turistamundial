@@ -1194,7 +1194,7 @@ export default function GamePage() {
                     <span>🏛️</span>
                     <span>Mis Propiedades ({myProperties.length})</span>
                   </h4>
-                    {myProperties.length === 0 ? (
+                  {myProperties.length === 0 ? (
                       <p className="text-xs sm:text-sm opacity-80 text-center py-2">
                         No tienes propiedades aún
                       </p>
