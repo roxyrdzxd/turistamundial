@@ -1156,7 +1156,28 @@ export default function GamePage() {
               <TransactionHistory sessionId={sessionId} />
             </div>
 
-            {/* Mi Información - Solo visible en desktop */}
+            {/* Mi Información - Siempre visible */}
+            {myPlayer && (
+              <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
+                <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Información</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-3 sm:space-y-3">
+                  <div>
+                    <p className="text-xs sm:text-sm opacity-90">Jugador</p>
+                    <p className="text-base sm:text-lg font-semibold truncate">{myPlayer.profile.username}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm opacity-90">Dinero</p>
+                    <p className="text-xl sm:text-2xl font-bold">${myPlayer.money.toLocaleString()}</p>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <p className="text-xs sm:text-sm opacity-90">Posición</p>
+                    <p className="text-base sm:text-lg font-semibold">Casilla {myPlayer.position}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mis Propiedades - Solo visible en desktop */}
             {myPlayer && (() => {
               // Obtener propiedades del jugador actual
               const myProperties = playerCountries
@@ -1169,28 +1190,10 @@ export default function GamePage() {
 
               return (
                 <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Tu Información</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-3 sm:space-y-3 mb-4">
-                    <div>
-                      <p className="text-xs sm:text-sm opacity-90">Jugador</p>
-                      <p className="text-base sm:text-lg font-semibold truncate">{myPlayer.profile.username}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm opacity-90">Dinero</p>
-                      <p className="text-xl sm:text-2xl font-bold">${myPlayer.money.toLocaleString()}</p>
-                    </div>
-                    <div className="col-span-2 sm:col-span-1">
-                      <p className="text-xs sm:text-sm opacity-90">Posición</p>
-                      <p className="text-base sm:text-lg font-semibold">Casilla {myPlayer.position}</p>
-                    </div>
-                  </div>
-
-                  {/* Propiedades Compradas */}
-                  <div className="mt-4 pt-4 border-t border-white/20">
-                    <h4 className="text-sm sm:text-base font-semibold mb-2 flex items-center gap-2">
-                      <span>🏛️</span>
-                      <span>Mis Propiedades ({myProperties.length})</span>
-                    </h4>
+                  <h4 className="text-sm sm:text-base font-semibold mb-2 flex items-center gap-2">
+                    <span>🏛️</span>
+                    <span>Mis Propiedades ({myProperties.length})</span>
+                  </h4>
                     {myProperties.length === 0 ? (
                       <p className="text-xs sm:text-sm opacity-80 text-center py-2">
                         No tienes propiedades aún
