@@ -258,7 +258,7 @@ export default function SessionPage() {
   const isNPC = (player: Player) => player.user_id.startsWith('npc-') || player.profile.username.startsWith('Bot')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-20 md:pb-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -302,7 +302,7 @@ export default function SessionPage() {
               </span>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {session.players.map((player) => (
               <div
                 key={player.id}
@@ -369,12 +369,12 @@ export default function SessionPage() {
             </div>
 
             {isHost && (
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {session.current_players < session.max_players && (
                   <button
                     onClick={handleAddNPCs}
                     disabled={addingNPCs || session.current_players >= session.max_players}
-                    className="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
+                    className="w-full sm:flex-1 bg-purple-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     {addingNPCs ? (
                       <>
@@ -393,7 +393,7 @@ export default function SessionPage() {
                 {canStart && (
                   <button
                     onClick={handleStart}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition font-semibold text-lg shadow-lg"
+                    className="w-full sm:flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition font-semibold text-base sm:text-lg shadow-lg"
                   >
                     🎮 Iniciar Partida
                   </button>
@@ -418,14 +418,14 @@ export default function SessionPage() {
           <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
             <Link
               href={`/game/${sessionId}`}
-              className="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition text-center text-lg font-semibold shadow-lg"
+              className="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition text-center text-base sm:text-lg font-semibold shadow-lg"
             >
               🎮 Ir al Juego
             </Link>
             {isHost && (
               <button
                 onClick={handleClose}
-                className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition text-center text-lg font-semibold shadow-lg"
+                className="w-full bg-red-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-red-700 transition text-center text-base sm:text-lg font-semibold shadow-lg"
               >
                 🚪 Cerrar Partida
               </button>

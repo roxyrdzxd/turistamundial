@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/auth/LogoutButton'
 import DashboardSocial from '@/components/dashboard/DashboardSocial'
+import FloatingCreateButton from '@/components/dashboard/FloatingCreateButton'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -38,13 +39,13 @@ export default async function DashboardPage() {
                 <p className="text-sm text-gray-500">Juego Virtual</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link
                 href="/profile"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition font-semibold"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition font-semibold text-sm sm:text-base"
               >
                 <span>👤</span>
-                <span>Mi Perfil</span>
+                <span className="hidden sm:inline">Mi Perfil</span>
               </Link>
               <LogoutButton />
             </div>
@@ -64,7 +65,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Link
             href="/lobby/create"
             className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-transparent hover:border-blue-500"
@@ -166,7 +167,7 @@ export default async function DashboardPage() {
         <DashboardSocial />
 
         {/* Active Games */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-20 md:mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Mis Partidas Activas</h2>
             <span className="text-sm text-gray-500">0 partidas</span>
@@ -185,6 +186,9 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Botón flotante para crear partida (solo móvil) */}
+      <FloatingCreateButton />
     </div>
   )
 }

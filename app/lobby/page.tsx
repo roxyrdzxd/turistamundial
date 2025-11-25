@@ -166,7 +166,7 @@ export default function LobbyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -185,7 +185,7 @@ export default function LobbyPage() {
               </div>
               <Link
                 href="/lobby/create"
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition font-semibold shadow-lg"
+                className="hidden md:inline-block bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition font-semibold shadow-lg"
               >
                 + Crear Partida
               </Link>
@@ -215,7 +215,7 @@ export default function LobbyPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {sessions.map((session) => {
               const isFull = session.current_players >= session.max_players
               const progress = (session.current_players / session.max_players) * 100
@@ -319,11 +319,11 @@ export default function LobbyPage() {
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       {isHost && !isFinished && (
                         <button
                           onClick={(e) => handleClose(session.id, e)}
-                          className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition font-semibold shadow-lg"
+                          className="w-full sm:flex-1 bg-red-600 text-white py-2.5 sm:py-3 px-4 rounded-lg hover:bg-red-700 transition font-semibold shadow-lg text-sm sm:text-base"
                         >
                           🚪 Cerrar
                         </button>
@@ -331,7 +331,7 @@ export default function LobbyPage() {
                       <button
                         onClick={() => handleJoin(session.id)}
                         disabled={isFull || isFinished}
-                        className={`flex-1 py-3 px-4 rounded-lg font-semibold transition ${
+                        className={`w-full sm:flex-1 py-2.5 sm:py-3 px-4 rounded-lg font-semibold transition text-sm sm:text-base ${
                           isFull || isFinished
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
@@ -347,6 +347,19 @@ export default function LobbyPage() {
           </div>
         )}
       </div>
+
+      {/* Botón flotante para crear partida (solo móvil) */}
+      <Link
+        href="/lobby/create"
+        className="fixed bottom-20 right-4 z-40 md:hidden"
+      >
+        <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white w-16 h-16 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 border-4 border-white">
+          <span className="text-3xl">➕</span>
+        </button>
+        <p className="text-center text-xs font-semibold text-white mt-2 bg-black/50 rounded-full px-3 py-1">
+          Crear Partida
+        </p>
+      </Link>
     </div>
   )
 }

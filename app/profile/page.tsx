@@ -191,10 +191,10 @@ export default function ProfilePage() {
             <p className="text-gray-600">Gestiona tu información personal y avatar</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Avatar Section */}
             <div className="lg:col-span-1">
-              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
                 <h2 className="text-xl font-bold mb-6 text-gray-800">Avatar</h2>
                 
                 <div className="flex flex-col items-center">
@@ -245,7 +245,7 @@ export default function ProfilePage() {
 
             {/* Profile Info Section */}
             <div className="lg:col-span-2">
-              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
                 <h2 className="text-xl font-bold mb-6 text-gray-800">Información Personal</h2>
 
                 <form onSubmit={handleUpdateUsername} className="space-y-6">
