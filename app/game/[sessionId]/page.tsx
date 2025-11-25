@@ -854,7 +854,7 @@ export default function GamePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-3">
         {/* Header */}
-        <div className="mb-2 flex-shrink-0">
+        <div className="mb-2">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-1 transition text-xs sm:text-sm"
@@ -938,7 +938,7 @@ export default function GamePage() {
 
             {/* Acciones del Turno */}
             {isMyTurn && (
-              <div className="hidden md:block bg-white rounded-lg shadow-md p-2 sm:p-3 space-y-2 order-2 lg:order-2 flex-shrink-0">
+              <div className="hidden md:block bg-white rounded-lg shadow-md p-2 sm:p-3 space-y-2 order-2 lg:order-2">
                 <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2">Tu Turno</h3>
                 
                 {/* Animación de dados - pequeña, arriba del botón */}
@@ -1146,7 +1146,7 @@ export default function GamePage() {
 
             {/* Mi Información - Siempre visible */}
             {myPlayer && (
-              <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white flex-shrink-0">
+              <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
                 <h3 className="text-xs sm:text-sm font-bold mb-1 sm:mb-2">Tu Información</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-1 gap-1.5 sm:space-y-1.5">
                   <div>
