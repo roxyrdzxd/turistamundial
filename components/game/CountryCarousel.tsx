@@ -467,8 +467,73 @@ export default function CountryCarousel({
             )}
           </div>
 
-          {/* Información de propiedad */}
-          {!isSpecialSquare && displayedCountry && (
+          {/* Tarjeta especial cuando el jugador está en una casilla especial */}
+          {showSpecialCard && currentSpecialSquare && (
+            <div className="space-y-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 shadow-lg border-2 border-white/30">
+                <div className="text-center space-y-4">
+                  {/* Información de la acción */}
+                  {actionRequired === 'start_bonus' && (
+                    <div className="bg-yellow-500/30 border-2 border-yellow-400 rounded-lg p-3">
+                      <p className="text-white font-semibold text-sm sm:text-base">
+                        🎉 ¡Has recibido $100!
+                      </p>
+                    </div>
+                  )}
+
+                  {actionRequired === 'jail_fine' && (
+                    <div className="bg-red-500/30 border-2 border-red-400 rounded-lg p-3">
+                      <p className="text-white font-semibold text-sm sm:text-base">
+                        🚔 Has pagado multa de $150
+                      </p>
+                    </div>
+                  )}
+
+                  {actionRequired === 'airport_extra_turn' && (
+                    <div className="bg-blue-500/30 border-2 border-blue-400 rounded-lg p-3">
+                      <p className="text-white font-semibold text-sm sm:text-base mb-2">
+                        ✈️ ¡Tienes un turno extra!
+                      </p>
+                      <p className="text-white/90 text-xs">
+                        Podrás tirar los dados una vez más después de terminar este turno.
+                      </p>
+                      {isMyTurn && onEndTurn && (
+                        <button
+                          onClick={onEndTurn}
+                          className="mt-3 w-full bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition font-semibold shadow-lg border-2 border-white text-sm sm:text-base"
+                        >
+                          ✈️ Usar Turno Extra
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {actionRequired === 'bank_bonus' && (
+                    <div className="bg-green-500/30 border-2 border-green-400 rounded-lg p-3">
+                      <p className="text-white font-semibold text-sm sm:text-base">
+                        🏦 ¡Has recibido bono de $300!
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Botón para pasar turno si no hay acción pendiente */}
+                  {isMyTurn && onEndTurn && 
+                   actionRequired !== 'airport_extra_turn' && 
+                   (actionRequired === 'start_bonus' || actionRequired === 'jail_fine' || actionRequired === 'bank_bonus' || !actionRequired) && (
+                    <button
+                      onClick={onEndTurn}
+                      className="w-full bg-white/50 text-white py-2 px-4 rounded-lg hover:bg-white/70 active:bg-white/80 transition font-semibold border-2 border-white/50 text-sm sm:text-base mt-4"
+                    >
+                      ✅ Pasar Turno
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Información de propiedad - Solo mostrar si NO estamos en una casilla especial */}
+          {!showSpecialCard && !isSpecialSquare && displayedCountry && (
             <div className="space-y-4">
               {/* Estado de propiedad */}
               {ownedCountry ? (
