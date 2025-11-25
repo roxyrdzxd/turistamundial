@@ -360,7 +360,20 @@ export default function CountryCarousel({
     }
   }
 
-  const cardColors = useMemo(() => getCardColor(), [showSpecialCard, currentSpecialSquare, isSpecialSquare, displayedCountry, ownedCountry, owner, currentPlayer, currentPosition, continentColor])
+  const cardColors = useMemo(
+    () => getCardColor(),
+    [
+      showSpecialCard,
+      currentSpecialSquare,
+      isSpecialSquare,
+      displayedCountry,
+      ownedCountry,
+      owner,
+      currentPlayer,
+      currentPosition,
+      continentColor,
+    ]
+  )
 
   return (
     <div className="w-full">
