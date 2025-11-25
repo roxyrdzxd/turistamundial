@@ -1393,7 +1393,7 @@ export default function GamePage() {
       {/* Navegación inferior móvil */}
       <MobileBottomNav
         onShowBoard={() => {
-          setShowBoardOverview(!showBoardOverview)
+          setShowBoardOverview(true)
           setShowProperties(false)
           setShowHistory(false)
           setShowChat(false)
