@@ -12,6 +12,43 @@ export async function POST() {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
 
+  // Asegurar que el perfil existe antes de crear la sesión
+  // Esto es un fallback si el trigger no funcionó correctamente
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single()
+
+  if (!existingProfile) {
+    // Si el perfil no existe, intentar crearlo usando la función SQL
+    const { error: profileError } = await supabase.rpc('ensure_user_profile', {
+      p_user_id: user.id
+    })
+
+    if (profileError) {
+      console.error('[CreateSession] Error al crear perfil:', profileError)
+      // Si falla la función, intentar crear el perfil directamente
+      const defaultUsername = 'Usuario' + user.id.substring(0, 8).toUpperCase()
+      const { error: directInsertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          username: defaultUsername,
+        })
+        .select()
+        .single()
+
+      if (directInsertError) {
+        console.error('[CreateSession] Error al crear perfil directamente:', directInsertError)
+        return NextResponse.json(
+          { error: 'Error al crear perfil de usuario. Por favor, contacta al soporte.' },
+          { status: 500 }
+        )
+      }
+    }
+  }
+
   // Crear nueva sesión de juego
   const { data: session, error: sessionError } = await supabase
     .from('game_sessions')
