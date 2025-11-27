@@ -104,10 +104,18 @@ export default function RegisterPage() {
     setError(null)
 
     try {
+      // Obtener código de referencia si existe
+      const referralCode = localStorage.getItem('referral_code')
+      
+      // Pasar el referral_code en la URL del callback si existe
+      const callbackUrl = referralCode 
+        ? `${window.location.origin}/auth/callback?ref=${encodeURIComponent(referralCode)}`
+        : `${window.location.origin}/auth/callback`
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl,
         },
       })
 
