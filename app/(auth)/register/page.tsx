@@ -75,7 +75,26 @@ export default function RegisterPage() {
         window.location.href = '/dashboard'
       }
     } catch (error: any) {
-      setError(error.message || 'Error al registrarse')
+      console.error('Error en registro:', error)
+      
+      // Mensajes de error más descriptivos
+      let errorMessage = 'Error al registrarse'
+      
+      if (error.message) {
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'Este email ya está registrado. Intenta iniciar sesión.'
+        } else if (error.message.includes('Email rate limit')) {
+          errorMessage = 'Demasiados intentos. Por favor espera unos minutos.'
+        } else if (error.message.includes('Password')) {
+          errorMessage = 'La contraseña no cumple con los requisitos.'
+        } else if (error.message.includes('Database error') || error.message.includes('saving new user')) {
+          errorMessage = 'Error al crear tu cuenta. Por favor intenta de nuevo. Si el problema persiste, contacta al soporte.'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      setError(errorMessage)
       setLoading(false)
     }
   }
