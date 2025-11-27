@@ -7,8 +7,8 @@ export async function GET() {
   // Obtener usuario actual
   const { data: { user } } = await supabase.auth.getUser()
   
-  // Obtener todas las sesiones waiting y active
-  // Si el usuario está autenticado, también mostrar sus sesiones activas como host
+  // Obtener solo sesiones en estado 'waiting' (esperando jugadores)
+  // Las sesiones 'active' ya están en curso y no se pueden unir
   let query = supabase
     .from('game_sessions')
     .select(`
@@ -22,7 +22,7 @@ export async function GET() {
         profile:profiles!session_players_user_id_fkey(username)
       )
     `)
-    .in('status', ['waiting', 'active'])
+    .eq('status', 'waiting')
     .order('created_at', { ascending: false })
 
   const { data: sessions, error } = await query

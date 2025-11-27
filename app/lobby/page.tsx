@@ -223,20 +223,26 @@ export default function LobbyPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {sessions.map((session) => {
-              const isFull = session.current_players >= session.max_players
-              const progress = (session.current_players / session.max_players) * 100
-              const isHost = currentUserId === session.host_id
-              const isFinished = session.status === 'finished'
+            {sessions
+              .filter((session) => {
+                // Solo mostrar sesiones que estén esperando jugadores y no estén llenas
+                return session.status === 'waiting' && session.current_players < session.max_players
+              })
+              .map((session) => {
+                const isFull = session.current_players >= session.max_players
+                const progress = (session.current_players / session.max_players) * 100
+                const isHost = currentUserId === session.host_id
+                const canJoin = !isFull && session.status === 'waiting'
               
               return (
                 <div
                   key={session.id}
                   className={`bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 ${
-                    isFinished 
-                      ? 'border-gray-300 opacity-75' 
-                      : 'border-transparent hover:border-blue-500'
+                    canJoin
+                      ? 'border-transparent hover:border-green-500 cursor-pointer'
+                      : 'border-gray-300 opacity-75'
                   }`}
+                  onClick={() => canJoin && !isHost && handleJoin(session.id)}
                 >
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -245,9 +251,9 @@ export default function LobbyPage() {
                           <h3 className="text-xl font-bold text-gray-900">
                             Partida de {session.host.username}
                           </h3>
-                          {isFinished && (
-                            <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-semibold rounded">
-                              Finalizada
+                          {canJoin && (
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                              Disponible
                             </span>
                           )}
                         </div>
@@ -260,7 +266,7 @@ export default function LobbyPage() {
                           })}
                         </p>
                       </div>
-                      {isHost && !isFinished && (
+                      {isHost && canJoin && (
                         <div className="flex gap-2">
                           <button
                             onClick={(e) => handleCopyInviteLink(session.id, e)}
@@ -327,25 +333,41 @@ export default function LobbyPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2">
-                      {isHost && !isFinished && (
+                      {isHost && canJoin && (
                         <button
-                          onClick={(e) => handleClose(session.id, e)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleClose(session.id, e)
+                          }}
                           className="w-full sm:flex-1 bg-red-600 text-white py-2.5 sm:py-3 px-4 rounded-lg hover:bg-red-700 transition font-semibold shadow-lg text-sm sm:text-base"
                         >
                           🚪 Cerrar
                         </button>
                       )}
-                      <button
-                        onClick={() => handleJoin(session.id)}
-                        disabled={isFull || isFinished}
-                        className={`w-full sm:flex-1 py-2.5 sm:py-3 px-4 rounded-lg font-semibold transition text-sm sm:text-base ${
-                          isFull || isFinished
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
-                        }`}
-                      >
-                        {isFinished ? '✅ Finalizada' : isFull ? '❌ Llena' : '✅ Unirse'}
-                      </button>
+                      {isHost && canJoin ? (
+                        <Link
+                          href={`/lobby/${session.id}`}
+                          className="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2.5 sm:py-3 px-4 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition font-semibold shadow-lg text-sm sm:text-base text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          🎮 Entrar
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleJoin(session.id)
+                          }}
+                          disabled={!canJoin}
+                          className={`w-full sm:flex-1 py-2.5 sm:py-3 px-4 rounded-lg font-semibold transition text-sm sm:text-base ${
+                            !canJoin
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
+                          }`}
+                        >
+                          {canJoin ? '✅ Unirse' : '❌ No disponible'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
