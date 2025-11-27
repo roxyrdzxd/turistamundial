@@ -11,34 +11,49 @@ export async function GET(request: Request) {
 
     switch (type) {
       case 'coins':
-        // Top 5 jugadores con más TC
+        // Top 5 jugadores con más TC usando función SQL
         const { data: coinsData, error: coinsError } = await supabase
-          .from('user_wallet')
-          .select(`
-            coins,
-            user_id,
-            profile:profiles!user_wallet_user_id_fkey(id, username, avatar_url)
-          `)
-          .order('coins', { ascending: false })
-          .limit(5)
+          .rpc('get_top_players_by_coins', { limit_count: 5 })
 
         if (!coinsError && coinsData) {
-          leaderboard = coinsData
-            .filter((item: any) => {
-              const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
-              return profile && profile.id
-            })
-            .map((item: any, index: number) => {
-              const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
-              return {
-                rank: index + 1,
-                userId: profile.id,
-                username: profile.username,
-                avatarUrl: profile.avatar_url,
-                value: item.coins,
-                type: 'coins'
-              }
-            })
+          leaderboard = coinsData.map((item: any, index: number) => ({
+            rank: index + 1,
+            userId: item.user_id,
+            username: item.username || 'Usuario',
+            avatarUrl: item.avatar_url,
+            value: item.coins || 0,
+            type: 'coins'
+          }))
+        } else {
+          // Fallback: consulta directa si la función no existe
+          const { data: coinsFallback, error: coinsFallbackError } = await supabase
+            .from('user_wallet')
+            .select(`
+              coins,
+              user_id,
+              profile:profiles!user_wallet_user_id_fkey(id, username, avatar_url)
+            `)
+            .order('coins', { ascending: false })
+            .limit(5)
+
+          if (!coinsFallbackError && coinsFallback) {
+            leaderboard = coinsFallback
+              .filter((item: any) => {
+                const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
+                return profile && profile.id && (item.coins || 0) > 0
+              })
+              .map((item: any, index: number) => {
+                const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
+                return {
+                  rank: index + 1,
+                  userId: profile.id,
+                  username: profile.username || 'Usuario',
+                  avatarUrl: profile.avatar_url,
+                  value: item.coins || 0,
+                  type: 'coins'
+                }
+              })
+          }
         }
         break
 

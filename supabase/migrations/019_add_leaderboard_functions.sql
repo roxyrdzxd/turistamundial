@@ -1,5 +1,28 @@
 -- Funciones para calcular rankings de jugadores
 
+-- Función para obtener top jugadores por TuristaCoins
+CREATE OR REPLACE FUNCTION get_top_players_by_coins(limit_count INTEGER DEFAULT 5)
+RETURNS TABLE (
+  user_id UUID,
+  username TEXT,
+  avatar_url TEXT,
+  coins INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    p.id AS user_id,
+    p.username,
+    p.avatar_url,
+    COALESCE(uw.coins, 0) AS coins
+  FROM profiles p
+  LEFT JOIN user_wallet uw ON uw.user_id = p.id
+  WHERE COALESCE(uw.coins, 0) > 0
+  ORDER BY coins DESC
+  LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Función para obtener top jugadores por número de partidas
 CREATE OR REPLACE FUNCTION get_top_players_by_games(limit_count INTEGER DEFAULT 5)
 RETURNS TABLE (
