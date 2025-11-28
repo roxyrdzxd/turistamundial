@@ -1213,31 +1213,55 @@ export default function GamePage() {
                 })
                 .filter((item): item is any => item !== null)
 
-              // Agrupar propiedades por continente
-              const propertiesByContinent = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
-                const continent = prop.country.continent
-                if (!acc[continent]) {
-                  acc[continent] = []
+              // Agrupar propiedades por monopoly_group (si existe) o por continente
+              const propertiesByGroup = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
+                // Si tiene monopoly_group, usar ese; si no, usar continent
+                const groupKey = prop.country.monopoly_group || prop.country.continent
+                if (!acc[groupKey]) {
+                  acc[groupKey] = []
                 }
-                acc[continent].push(prop)
+                acc[groupKey].push(prop)
                 return acc
               }, {})
 
-              // Calcular progreso de monopolio para cada continente
-              const continentProgress = Object.keys(propertiesByContinent).map(continent => {
-                const continentCountries = countries.filter(c => c.continent === continent)
-                const ownedCount = propertiesByContinent[continent].length
-                const totalCount = continentCountries.length
-                const hasMonopolyStatus = hasMonopoly(continent, myPlayer.id, countries, playerCountries)
+              // Calcular progreso de monopolio para cada grupo
+              const groupProgress = Object.keys(propertiesByGroup).map(groupKey => {
+                // Determinar si es un monopoly_group o un continent
+                const firstProp = propertiesByGroup[groupKey][0]
+                const isMonopolyGroup = !!firstProp.country.monopoly_group
+                
+                // Obtener países del grupo
+                const groupCountries = countries.filter(c => {
+                  if (isMonopolyGroup) {
+                    return c.monopoly_group === groupKey && c.property_type === 'city'
+                  } else {
+                    return c.continent === groupKey
+                  }
+                })
+                
+                const ownedCount = propertiesByGroup[groupKey].length
+                const totalCount = groupCountries.length
+                
+                // Verificar monopolio usando el método correcto
+                const hasMonopolyStatus = isMonopolyGroup
+                  ? hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, true)
+                  : hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, false)
+                
+                // Obtener nombre del grupo
+                const groupName = isMonopolyGroup 
+                  ? groupKey // Usar el nombre del monopolio directamente
+                  : (continentNames[groupKey] || groupKey)
+                
                 return {
-                  continent,
-                  continentName: continentNames[continent] || continent,
-                  properties: propertiesByContinent[continent].sort((a, b) => a.country.position - b.country.position),
+                  groupKey,
+                  groupName,
+                  isMonopolyGroup,
+                  properties: propertiesByGroup[groupKey].sort((a, b) => a.country.position - b.country.position),
                   ownedCount,
                   totalCount,
                   hasMonopoly: hasMonopolyStatus,
                 }
-              }).sort((a, b) => a.continentName.localeCompare(b.continentName))
+              }).sort((a, b) => a.groupName.localeCompare(b.groupName))
 
               return (
                 <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
