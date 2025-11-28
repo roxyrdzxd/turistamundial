@@ -255,10 +255,10 @@ export default function SessionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 p-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando sesión...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+          <p className="text-white/80">Cargando sesión...</p>
         </div>
       </div>
     )
@@ -266,14 +266,14 @@ export default function SessionPage() {
 
   if (error || !session) {
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
-            <p className="text-gray-600 mb-4">{error || 'Sesión no encontrada'}</p>
+          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-6 border border-white/20">
+            <h1 className="text-2xl font-bold mb-4 text-red-400">Error</h1>
+            <p className="text-white/80 mb-4">{error || 'Sesión no encontrada'}</p>
             <Link
               href="/lobby"
-              className="text-blue-600 hover:underline"
+              className="text-cyan-400 hover:text-cyan-300 transition"
             >
               ← Volver al Lobby
             </Link>
@@ -291,32 +291,32 @@ export default function SessionPage() {
   const isNPC = (player: Player) => player.user_id.startsWith('npc-') || player.profile.username.startsWith('Bot')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-20 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 pb-20 md:pb-8">
       <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8">
         {/* Header - Compacto en mobile */}
         <div className="mb-3 sm:mb-8">
           <Link
             href="/lobby"
-            className="inline-flex items-center gap-1 sm:gap-2 text-blue-600 hover:text-blue-700 mb-2 sm:mb-4 transition text-sm sm:text-base"
+            className="inline-flex items-center gap-1 sm:gap-2 text-cyan-400 hover:text-cyan-300 mb-2 sm:mb-4 transition text-sm sm:text-base"
           >
             <span>←</span>
             <span>Volver al Lobby</span>
           </Link>
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 border border-white/20">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Sala de Espera</h1>
+                <h1 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">Sala de Espera</h1>
                 <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                   <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold ${
                     session.status === 'waiting' 
-                      ? 'bg-yellow-100 text-yellow-800'
+                      ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30'
                       : session.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-green-500/20 text-green-300 border border-green-400/30'
+                      : 'bg-white/10 text-white/70 border border-white/20'
                   }`}>
                     {session.status === 'waiting' ? '⏳ Esperando' : session.status === 'active' ? '▶️ En Curso' : '✅ Finalizada'}
                   </span>
-                  <span className="text-xs sm:text-base text-gray-600">
+                  <span className="text-xs sm:text-base text-white/80">
                     👥 {session.current_players}/{session.max_players} jugadores
                   </span>
                 </div>
@@ -326,11 +326,11 @@ export default function SessionPage() {
         </div>
 
         {/* Players Grid - Compacto en mobile */}
-        <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 mb-3 sm:mb-6">
+        <div className="bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 mb-3 sm:mb-6 border border-white/20">
           <div className="flex items-center justify-between mb-3 sm:mb-6">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">Jugadores</h2>
+            <h2 className="text-lg sm:text-2xl font-bold text-white">Jugadores</h2>
             {session.status === 'waiting' && slotsRemaining > 0 && (
-              <span className="text-xs sm:text-sm text-gray-500">
+              <span className="text-xs sm:text-sm text-white/60">
                 {slotsRemaining} espacio{slotsRemaining > 1 ? 's' : ''} disponible{slotsRemaining > 1 ? 's' : ''}
               </span>
             )}
@@ -352,32 +352,32 @@ export default function SessionPage() {
                   >
                     {isNPC(player) ? '🤖' : player.profile.username.charAt(0).toUpperCase()}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                      <p className="font-bold text-gray-900 truncate text-xs sm:text-base">{player.profile.username}</p>
-                      {isNPC(player) && (
-                        <span className="text-xs bg-purple-100 text-purple-700 px-1 sm:px-2 py-0.5 rounded">NPC</span>
-                      )}
-                      {player.turn_order === 0 && (
-                        <span className="text-xs bg-yellow-100 text-yellow-700 px-1 sm:px-2 py-0.5 rounded">👑</span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                        <p className="font-bold text-white truncate text-xs sm:text-base">{player.profile.username}</p>
+                        {isNPC(player) && (
+                          <span className="text-xs bg-purple-500/20 text-purple-300 px-1 sm:px-2 py-0.5 rounded border border-purple-400/30">NPC</span>
+                        )}
+                        {player.turn_order === 0 && (
+                          <span className="text-xs bg-yellow-500/20 text-yellow-300 px-1 sm:px-2 py-0.5 rounded border border-yellow-400/30">👑</span>
+                        )}
+                      </div>
+                      <p className="text-xs sm:text-sm text-white/70 flex items-center gap-1">
+                        <span>💰</span>
+                        <span className="font-semibold">${player.money.toLocaleString()}</span>
+                      </p>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-1">
-                      <span>💰</span>
-                      <span className="font-semibold">${player.money.toLocaleString()}</span>
-                    </p>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
             
             {/* Empty Slots */}
             {Array.from({ length: slotsRemaining }).map((_, index) => (
               <div
                 key={`empty-${index}`}
-                className="p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center"
+                className="p-2 sm:p-4 rounded-lg sm:rounded-xl border-2 border-dashed border-white/20 bg-white/5 flex items-center justify-center"
               >
-                <span className="text-gray-400 text-xs sm:text-sm">Vacío</span>
+                <span className="text-white/40 text-xs sm:text-sm">Vacío</span>
               </div>
             ))}
           </div>
@@ -385,18 +385,18 @@ export default function SessionPage() {
 
         {/* Actions - Compacto en mobile */}
         {session.status === 'waiting' && (
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 mb-3 sm:mb-6">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 mb-3 sm:mb-6 border border-white/20">
             <div className="mb-3 sm:mb-6">
               {session.current_players < 2 ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-4 mb-2 sm:mb-4">
-                  <p className="text-yellow-800 font-semibold mb-1 text-xs sm:text-sm">⚠️ Se necesitan más jugadores</p>
-                  <p className="text-yellow-700 text-xs sm:text-sm">
+                <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-2 sm:p-4 mb-2 sm:mb-4">
+                  <p className="text-yellow-200 font-semibold mb-1 text-xs sm:text-sm">⚠️ Se necesitan más jugadores</p>
+                  <p className="text-yellow-100 text-xs sm:text-sm">
                     Se requieren al menos 2 jugadores para iniciar. Faltan {2 - session.current_players} jugador{2 - session.current_players > 1 ? 'es' : ''}.
                   </p>
                 </div>
               ) : (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-2 sm:p-4 mb-2 sm:mb-4">
-                  <p className="text-green-800 font-semibold text-xs sm:text-sm">✅ La partida está lista para comenzar</p>
+                <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-2 sm:p-4 mb-2 sm:mb-4">
+                  <p className="text-green-200 font-semibold text-xs sm:text-sm">✅ La partida está lista para comenzar</p>
                 </div>
               )}
             </div>
@@ -436,8 +436,8 @@ export default function SessionPage() {
 
             {!isHost && (
               <div className="text-center py-2 sm:py-4">
-                <p className="text-gray-600 mb-2 text-xs sm:text-sm">Esperando a que el host inicie la partida...</p>
-                <div className="flex items-center justify-center gap-2 text-gray-400">
+                <p className="text-white/80 mb-2 text-xs sm:text-sm">Esperando a que el host inicie la partida...</p>
+                <div className="flex items-center justify-center gap-2 text-white/40">
                   <div className="animate-pulse">●</div>
                   <div className="animate-pulse" style={{ animationDelay: '0.2s' }}>●</div>
                   <div className="animate-pulse" style={{ animationDelay: '0.4s' }}>●</div>
@@ -448,10 +448,10 @@ export default function SessionPage() {
         )}
 
         {session.status === 'active' && (
-          <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 space-y-4 border border-white/20">
             <Link
               href={`/game/${sessionId}`}
-              className="block w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition text-center text-base sm:text-lg font-semibold shadow-lg"
+              className="block w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition text-center text-base sm:text-lg font-semibold shadow-lg"
             >
               🎮 Ir al Juego
             </Link>
@@ -467,12 +467,12 @@ export default function SessionPage() {
         )}
 
         {session.status === 'waiting' && isHost && (
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 mt-3 sm:mt-6">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Opciones del Host</h3>
+          <div className="bg-white/10 backdrop-blur-md rounded-lg sm:rounded-xl shadow-lg p-3 sm:p-6 mt-3 sm:mt-6 border border-white/20">
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Opciones del Host</h3>
             <div className="space-y-2 sm:space-y-3">
               <button
                 onClick={handleCopyInviteLink}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transition text-center font-semibold shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm lg:text-base"
+                className="w-full bg-gradient-to-r from-cyan-500 to-pink-600 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-cyan-600 hover:to-pink-700 transition text-center font-semibold shadow-lg flex items-center justify-center gap-2 text-xs sm:text-sm lg:text-base"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />

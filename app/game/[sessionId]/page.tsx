@@ -779,8 +779,8 @@ export default function GamePage() {
 
   if (error || !session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-md border border-white/20">
           <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
           <p className="text-gray-600 mb-4">{error || 'Sesión no encontrada'}</p>
           <Link
@@ -796,8 +796,8 @@ export default function GamePage() {
 
   if (session.status !== 'active') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-md text-center border border-white/20">
           <h1 className="text-2xl font-bold mb-4">Partida no iniciada</h1>
           <p className="text-gray-600 mb-6">
             {session.status === 'waiting' 
@@ -853,32 +853,32 @@ export default function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 relative pb-20 md:pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative pb-20 md:pb-20">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-3">
         {/* Header */}
         <div className="mb-2">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 mb-1 transition text-xs sm:text-sm"
+            className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 mb-1 transition text-xs sm:text-sm"
           >
             <span>←</span>
             <span>Volver</span>
           </Link>
-          <div className="bg-white rounded-lg shadow-md p-2 sm:p-3">
+          <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-2 sm:p-3 border border-white/20">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">🌍 Turista Mundial</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-white mb-1">Turix</h1>
                 <div className="flex items-center gap-2">
-                  <p className="text-gray-600 text-xs sm:text-sm">
+                  <p className="text-white/80 text-xs sm:text-sm">
                     Turno: {currentPlayer?.profile.username || 'Cargando...'}
                   </p>
                   {isMyTurn && timeLeft !== null && timeLeft > 0 && (
                     <div className={`flex items-center gap-2 px-3 py-1 rounded-full font-semibold ${
                       timeLeft <= 10 
-                        ? 'bg-red-100 text-red-700 animate-pulse' 
+                        ? 'bg-red-500/20 text-red-300 animate-pulse border border-red-400/30' 
                         : timeLeft <= 20 
-                        ? 'bg-yellow-100 text-yellow-700' 
-                        : 'bg-green-100 text-green-700'
+                        ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30' 
+                        : 'bg-green-500/20 text-green-300 border border-green-400/30'
                     }`}>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -890,8 +890,8 @@ export default function GamePage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">Sesión</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-xs text-white/60">Sesión</p>
+                  <p className="text-sm font-semibold text-white">
                     {session.current_players} jugadores
                   </p>
                 </div>
@@ -912,9 +912,9 @@ export default function GamePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 items-start">
           {/* Tablero / Área Principal */}
           <div className="lg:col-span-2 order-1">
-            <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 mb-2">
-              <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center">Casilla Actual</h2>
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-1 sm:p-2">
+            <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-2 sm:p-3 mb-2 border border-white/20">
+              <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center text-white">Casilla Actual</h2>
+              <div className="bg-gradient-to-br from-white/5 to-white/10 rounded-lg p-1 sm:p-2">
                 {countries.length > 0 && myPlayer ? (
                   <CountryCarousel
                     countries={countries}
@@ -930,8 +930,8 @@ export default function GamePage() {
                 ) : (
                   <div className="min-h-[200px] flex items-center justify-center">
                     <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-gray-600 text-sm">Cargando casilla...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto mb-2"></div>
+                      <p className="text-white/80 text-sm">Cargando casilla...</p>
                     </div>
                   </div>
                 )}
@@ -940,8 +940,8 @@ export default function GamePage() {
 
             {/* Acciones del Turno */}
             {isMyTurn && (
-              <div className="hidden md:block bg-white rounded-lg shadow-md p-2 sm:p-3 space-y-2 order-2 lg:order-2">
-                <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2">Tu Turno</h3>
+              <div className="hidden md:block bg-white/10 backdrop-blur-md rounded-lg shadow-md p-2 sm:p-3 space-y-2 order-2 lg:order-2 border border-white/20">
+                <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-white">Tu Turno</h3>
                 
                 {/* Animación de dados - pequeña, arriba del botón */}
                 {showDiceAnimation && (
@@ -976,7 +976,7 @@ export default function GamePage() {
 
                 {diceResult && !showDiceAnimation && (
                   <div className="text-center p-2 bg-blue-50 rounded-lg">
-                    <p className="text-3xl font-bold text-blue-600 mb-1">{diceResult}</p>
+                    <p className="text-3xl font-bold text-cyan-400 mb-1">{diceResult}</p>
                     <p className="text-gray-600 text-xs">Resultado de los dados</p>
                   </div>
                 )}

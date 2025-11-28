@@ -129,23 +129,23 @@ function CreateLobbyContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 border border-white/20">
           <div className="mb-6">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
+              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 transition"
             >
               <span>←</span>
               <span>Volver al Dashboard</span>
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Crear Nueva Partida</h1>
-            <p className="text-gray-600">Configura tu sesión de juego</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Crear Nueva Partida</h1>
+            <p className="text-white/80">Configura tu sesión de juego</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-500/20 border-l-4 border-red-400 text-red-200 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm">
               <p className="font-semibold">Error</p>
               <p>{error}</p>
             </div>
@@ -154,29 +154,29 @@ function CreateLobbyContent() {
           <div className="space-y-6 mb-8">
             {loadingBoards ? (
               <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-600 mt-2">Cargando tableros...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto"></div>
+                <p className="text-white/80 mt-2">Cargando tableros...</p>
               </div>
             ) : (
               <div>
-                <label htmlFor="board" className="block text-sm font-medium text-gray-700 mb-3">
+                <label htmlFor="board" className="block text-sm font-medium text-white mb-3">
                   Seleccionar Tablero
                 </label>
                 <select
                   id="board"
                   value={selectedBoardId}
                   onChange={(e) => setSelectedBoardId(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 bg-white"
+                  className="w-full px-4 py-3 border-2 border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all duration-300 bg-white/10 backdrop-blur-sm text-white"
                   required
                 >
                   {boards.map((board) => (
-                    <option key={board.id} value={board.id}>
+                    <option key={board.id} value={board.id} className="bg-slate-900">
                       {board.name} {board.description && `- ${board.description}`}
                     </option>
                   ))}
                 </select>
                 {selectedBoardId && (
-                  <p className="mt-2 text-xs text-gray-500">
+                  <p className="mt-2 text-xs text-white/60">
                     {boards.find(b => b.id === selectedBoardId)?.description || ''}
                   </p>
                 )}
@@ -184,8 +184,8 @@ function CreateLobbyContent() {
             )}
 
             <div>
-              <label htmlFor="maxPlayers" className="block text-sm font-medium text-gray-700 mb-3">
-                Número máximo de jugadores: <span className="text-blue-600 font-bold text-lg">{maxPlayers}</span>
+              <label htmlFor="maxPlayers" className="block text-sm font-medium text-white mb-3">
+                Número máximo de jugadores: <span className="text-cyan-400 font-bold text-lg">{maxPlayers}</span>
               </label>
               <input
                 id="maxPlayers"
@@ -194,16 +194,16 @@ function CreateLobbyContent() {
                 max="8"
                 value={maxPlayers}
                 onChange={(e) => setMaxPlayers(Number(e.target.value))}
-                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-3 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <div className="flex justify-between text-xs text-white/60 mt-2">
                 <span>2 (Mínimo)</span>
                 <span>8 (Máximo)</span>
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div className="bg-cyan-500/20 border border-cyan-400/30 rounded-lg p-4">
+              <p className="text-sm text-cyan-200">
                 <strong>💡 Tip:</strong> La partida comenzará cuando tengas al menos 2 jugadores.
                 Puedes agregar NPCs automáticamente desde la sala de espera para empezar rápido.
               </p>
@@ -214,7 +214,7 @@ function CreateLobbyContent() {
             <button
               onClick={handleCreate}
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold shadow-lg"
+              className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 px-6 rounded-lg hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold shadow-lg"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -227,7 +227,7 @@ function CreateLobbyContent() {
             </button>
             <Link
               href="/dashboard"
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold text-center"
+              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition font-semibold text-center border border-white/20"
             >
               Cancelar
             </Link>
@@ -241,8 +241,8 @@ function CreateLobbyContent() {
 export default function CreateLobbyPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
       </div>
     }>
       <CreateLobbyContent />
