@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import LogoutButton from '@/components/auth/LogoutButton'
 import DashboardSocial from '@/components/dashboard/DashboardSocial'
 import FloatingCreateButton from '@/components/dashboard/FloatingCreateButton'
@@ -23,21 +24,28 @@ export default async function DashboardPage() {
     .single()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-lg shadow-md border-b border-gray-200/50 sticky top-0 z-30">
+      <header className="bg-white/10 backdrop-blur-md shadow-md border-b border-white/20 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex justify-between items-center">
             {/* Logo y título */}
             <Link href="/dashboard" className="flex items-center gap-2 sm:gap-3 group">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg group-hover:scale-110 transition-transform duration-300">
-                🌍
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 relative overflow-hidden">
+                <Image
+                  src="https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/avatars/turix.png"
+                  alt="Turix Logo"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-contain"
+                  priority
+                />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                  Turista Mundial
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
+                  Turix
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-500">Juego Virtual</p>
+                <p className="text-xs sm:text-sm text-white/70 uppercase tracking-wider">TURISTA MUNDIAL</p>
               </div>
             </Link>
 
@@ -45,7 +53,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/wallet"
-                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 text-yellow-700 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Mi Wallet"
               >
                 <span className="hidden sm:inline">💰 Wallet</span>
@@ -53,7 +61,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/recognition"
-                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Salón de la Fama"
               >
                 <span className="hidden sm:inline">🏆 Rankings</span>
@@ -61,7 +69,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/referrals"
-                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-green-50 to-yellow-50 hover:from-green-100 hover:to-yellow-100 text-green-600 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Sistema de Referidos"
               >
                 <span className="hidden sm:inline">👥 Referidos</span>
@@ -69,7 +77,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/profile"
-                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-blue-600 rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group"
+                className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Mi Perfil"
               >
                 <span className="flex items-center gap-1 sm:gap-2">
@@ -85,11 +93,11 @@ export default async function DashboardPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
+        <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-pink-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
           <h2 className="text-3xl font-bold mb-2">
             ¡Bienvenido, {profile?.username || 'Usuario'}! 👋
           </h2>
-          <p className="text-blue-100 text-lg">
+          <p className="text-white/90 text-lg">
             Conquista el mundo comprando países y construyendo tu imperio turístico
           </p>
         </div>
@@ -98,56 +106,56 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Link
             href="/lobby/create"
-            className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-transparent hover:border-blue-500"
+            className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-cyan-400"
           >
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+              <div className="w-16 h-16 bg-cyan-500/20 rounded-xl flex items-center justify-center group-hover:bg-cyan-500 transition-colors border border-cyan-400/30">
                 <span className="text-3xl group-hover:scale-110 transition-transform">➕</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Crear Partida</h3>
-                <p className="text-sm text-gray-500">Nueva sesión</p>
+                <h3 className="text-xl font-bold text-white">Crear Partida</h3>
+                <p className="text-sm text-white/70">Nueva sesión</p>
               </div>
             </div>
-            <p className="text-gray-600">
+            <p className="text-white/80">
               Crea una nueva partida y espera a que se unan jugadores o agrega NPCs para empezar rápido
             </p>
           </Link>
 
           <Link
             href="/lobby"
-            className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-transparent hover:border-green-500"
+            className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-pink-400"
           >
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-600 transition-colors">
+              <div className="w-16 h-16 bg-pink-500/20 rounded-xl flex items-center justify-center group-hover:bg-pink-500 transition-colors border border-pink-400/30">
                 <span className="text-3xl group-hover:scale-110 transition-transform">🔍</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Buscar Partidas</h3>
-                <p className="text-sm text-gray-500">Únete ahora</p>
+                <h3 className="text-xl font-bold text-white">Buscar Partidas</h3>
+                <p className="text-sm text-white/70">Únete ahora</p>
               </div>
             </div>
-            <p className="text-gray-600">
+            <p className="text-white/80">
               Encuentra partidas disponibles y únete a la acción
             </p>
           </Link>
 
-          <div className="group bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+          <div className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 border-2 border-white/20">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center">
+              <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center border border-purple-400/30">
                 <span className="text-3xl">🤖</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Modo Práctica</h3>
-                <p className="text-sm text-gray-500">Con NPCs</p>
+                <h3 className="text-xl font-bold text-white">Modo Práctica</h3>
+                <p className="text-sm text-white/70">Con NPCs</p>
               </div>
             </div>
-            <p className="text-gray-600 mb-4">
+            <p className="text-white/80 mb-4">
               Crea una partida y agrega NPCs automáticamente para practicar
             </p>
             <Link
               href="/lobby/create?npcs=true"
-              className="inline-block w-full text-center bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition font-semibold"
+              className="inline-block w-full text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition font-semibold"
             >
               Crear con NPCs
             </Link>
@@ -156,37 +164,37 @@ export default async function DashboardPage() {
 
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 border-l-4 border-cyan-400 border border-white/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Partidas Jugadas</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-white/70 mb-1">Partidas Jugadas</p>
+                <p className="text-3xl font-bold text-white">0</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center border border-cyan-400/30">
                 <span className="text-2xl">🎮</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 border-l-4 border-pink-400 border border-white/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Victorias</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-white/70 mb-1">Victorias</p>
+                <p className="text-3xl font-bold text-white">0</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center border border-pink-400/30">
                 <span className="text-2xl">🏆</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 border-l-4 border-yellow-400 border border-white/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Países Conquistados</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
+                <p className="text-sm text-white/70 mb-1">Países Conquistados</p>
+                <p className="text-3xl font-bold text-white">0</p>
               </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center border border-yellow-400/30">
                 <span className="text-2xl">🌎</span>
               </div>
             </div>
@@ -197,19 +205,19 @@ export default async function DashboardPage() {
         <DashboardSocial />
 
         {/* Active Games */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-20 md:mb-6">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 mb-20 md:mb-6 border border-white/20">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Mis Partidas Activas</h2>
-            <span className="text-sm text-gray-500">0 partidas</span>
+            <h2 className="text-2xl font-bold text-white">Mis Partidas Activas</h2>
+            <span className="text-sm text-white/70">0 partidas</span>
           </div>
           <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/20">
               <span className="text-4xl">🎯</span>
             </div>
-            <p className="text-gray-600 mb-2">No tienes partidas activas</p>
+            <p className="text-white/80 mb-2">No tienes partidas activas</p>
             <Link
               href="/lobby/create"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
             >
               Crear tu primera partida →
             </Link>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useToast } from '@/contexts/ToastContext'
 
 interface Session {
@@ -163,36 +164,36 @@ export default function LobbyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Cargando partidas...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-400 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-white/80 text-lg">Cargando partidas...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-20 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 transition"
           >
             <span>←</span>
             <span>Volver al Dashboard</span>
           </Link>
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/20">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Buscar Partidas</h1>
-                <p className="text-gray-600">Únete a una partida existente o crea una nueva</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Buscar Partidas</h1>
+                <p className="text-white/80">Únete a una partida existente o crea una nueva</p>
               </div>
               <Link
                 href="/lobby/create"
-                className="hidden md:inline-block bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition font-semibold shadow-lg"
+                className="hidden md:inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold shadow-lg"
               >
                 + Crear Partida
               </Link>
@@ -201,22 +202,22 @@ export default function LobbyPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-500/20 border-l-4 border-red-400 text-red-200 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm">
             <p className="font-semibold">Error</p>
             <p>{error}</p>
           </div>
         )}
 
         {sessions.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-12 text-center border border-white/20">
+            <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/20">
               <span className="text-5xl">🎮</span>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No hay partidas disponibles</h2>
-            <p className="text-gray-600 mb-6">Sé el primero en crear una partida y comienza a jugar</p>
+            <h2 className="text-2xl font-bold text-white mb-2">No hay partidas disponibles</h2>
+            <p className="text-white/80 mb-6">Sé el primero en crear una partida y comienza a jugar</p>
             <Link
               href="/lobby/create"
-              className="inline-block bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition font-semibold shadow-lg"
+              className="inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold shadow-lg"
             >
               Crear Primera Partida
             </Link>
@@ -237,10 +238,10 @@ export default function LobbyPage() {
               return (
                 <div
                   key={session.id}
-                  className={`bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 ${
+                  className={`bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 ${
                     canJoin
-                      ? 'border-transparent hover:border-green-500 cursor-pointer'
-                      : 'border-gray-300 opacity-75'
+                      ? 'border-white/20 hover:border-pink-400 cursor-pointer'
+                      : 'border-white/10 opacity-75'
                   }`}
                   onClick={() => canJoin && !isHost && handleJoin(session.id)}
                 >
@@ -248,16 +249,16 @@ export default function LobbyPage() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-xl font-bold text-gray-900">
+                          <h3 className="text-xl font-bold text-white">
                             Partida de {session.host.username}
                           </h3>
                           {canJoin && (
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded">
+                            <span className="px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-semibold rounded border border-green-400/30">
                               Disponible
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-white/70">
                           Creada {new Date(session.created_at).toLocaleString('es-ES', { 
                             day: 'numeric', 
                             month: 'short', 
@@ -270,7 +271,7 @@ export default function LobbyPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={(e) => handleCopyInviteLink(session.id, e)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            className="p-2 text-cyan-400 hover:bg-white/10 rounded-lg transition"
                             title="Copiar link de invitación"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +280,7 @@ export default function LobbyPage() {
                           </button>
                           <button
                             onClick={(e) => handleClose(session.id, e)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            className="p-2 text-red-400 hover:bg-white/10 rounded-lg transition"
                             title="Cerrar partida"
                           >
                             🚪
@@ -291,19 +292,19 @@ export default function LobbyPage() {
                     {/* Progress Bar */}
                     <div className="mb-4">
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600 font-semibold">
+                        <span className="text-white/80 font-semibold">
                           👥 {session.current_players}/{session.max_players} jugadores
                         </span>
                         <span className={`font-semibold ${
-                          isFull ? 'text-red-600' : 'text-green-600'
+                          isFull ? 'text-red-400' : 'text-green-400'
                         }`}>
                           {isFull ? 'Llena' : 'Disponible'}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            isFull ? 'bg-red-500' : 'bg-gradient-to-r from-blue-500 to-green-500'
+                            isFull ? 'bg-red-500' : 'bg-gradient-to-r from-cyan-500 to-pink-500'
                           }`}
                           style={{ width: `${progress}%` }}
                         />
@@ -312,12 +313,12 @@ export default function LobbyPage() {
 
                     {/* Players List */}
                     <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-2 font-semibold">Jugadores:</p>
+                      <p className="text-sm text-white/80 mb-2 font-semibold">Jugadores:</p>
                       <div className="flex flex-wrap gap-2">
                         {session.players.map((player) => (
                           <span
                             key={player.id}
-                            className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-medium flex items-center gap-1"
+                            className="px-3 py-1 bg-white/10 rounded-lg text-xs font-medium flex items-center gap-1 text-white border border-white/20"
                             style={{
                               borderLeft: `3px solid ${getColorHex(player.color)}`,
                             }}
@@ -347,7 +348,7 @@ export default function LobbyPage() {
                       {isHost && canJoin ? (
                         <Link
                           href={`/lobby/${session.id}`}
-                          className="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-2.5 sm:py-3 px-4 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition font-semibold shadow-lg text-sm sm:text-base text-center"
+                          className="w-full sm:flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-2.5 sm:py-3 px-4 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold shadow-lg text-sm sm:text-base text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
                           🎮 Entrar
@@ -361,8 +362,8 @@ export default function LobbyPage() {
                           disabled={!canJoin}
                           className={`w-full sm:flex-1 py-2.5 sm:py-3 px-4 rounded-lg font-semibold transition text-sm sm:text-base ${
                             !canJoin
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg'
+                              ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
+                              : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 shadow-lg'
                           }`}
                         >
                           {canJoin ? '✅ Unirse' : '❌ No disponible'}
@@ -382,10 +383,10 @@ export default function LobbyPage() {
         href="/lobby/create"
         className="fixed bottom-20 right-4 z-40 md:hidden"
       >
-        <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white w-16 h-16 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 border-4 border-white">
+        <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white w-16 h-16 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 border-4 border-white/20">
           <span className="text-3xl">➕</span>
         </button>
-        <p className="text-center text-xs font-semibold text-white mt-2 bg-black/50 rounded-full px-3 py-1">
+        <p className="text-center text-xs font-semibold text-white mt-2 bg-black/50 rounded-full px-3 py-1 backdrop-blur-sm">
           Crear Partida
         </p>
       </Link>
