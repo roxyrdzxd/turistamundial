@@ -6,6 +6,20 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/contexts/ToastContext'
 
+interface PurchasedAvatar {
+  id: string
+  item_id: string
+  is_equipped: boolean
+  purchased_at: string
+  item: {
+    id: string
+    name: string
+    description: string
+    image_url: string | null
+    data: any
+  }
+}
+
 export default function ProfilePage() {
   const [username, setUsername] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -13,6 +27,8 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [purchasedAvatars, setPurchasedAvatars] = useState<PurchasedAvatar[]>([])
+  const [equipping, setEquipping] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const toast = useToast()
@@ -21,6 +37,7 @@ export default function ProfilePage() {
   useEffect(() => {
     setMounted(true)
     fetchProfile()
+    fetchPurchasedAvatars()
   }, [])
 
   const fetchProfile = async () => {
@@ -52,6 +69,79 @@ export default function ProfilePage() {
     } catch (error: any) {
       console.error('Error:', error)
       toast.showToast('Error al cargar el perfil', 'error')
+    }
+  }
+
+  const fetchPurchasedAvatars = async () => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser) return
+
+      // Primero obtener todos los items de inventario del usuario
+      const { data: inventoryItems, error: inventoryError } = await supabase
+        .from('user_inventory')
+        .select(`
+          id,
+          item_id,
+          is_equipped,
+          purchased_at,
+          item:shop_items(
+            id,
+            name,
+            description,
+            image_url,
+            category,
+            data
+          )
+        `)
+        .eq('user_id', currentUser.id)
+        .order('purchased_at', { ascending: false })
+
+      if (inventoryError) {
+        console.error('Error obteniendo inventario:', inventoryError)
+        return
+      }
+
+      // Filtrar solo items de categoría avatar
+      const avatarItems = (inventoryItems || []).filter((item: any) => {
+        return item.item && item.item.category === 'avatar'
+      })
+
+      setPurchasedAvatars(avatarItems as PurchasedAvatar[])
+    } catch (error) {
+      console.error('Error obteniendo avatares comprados:', error)
+    }
+  }
+
+  const handleEquipAvatar = async (itemId: string) => {
+    if (!user) return
+
+    setEquipping(itemId)
+    try {
+      const response = await fetch('/api/inventory/equip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ itemId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al equipar avatar')
+      }
+
+      toast.showToast('Avatar equipado correctamente', 'success')
+      
+      // Actualizar estado local
+      await fetchPurchasedAvatars()
+      await fetchProfile()
+    } catch (error: any) {
+      console.error('Error equipando avatar:', error)
+      toast.showToast(error.message || 'Error al equipar avatar', 'error')
+    } finally {
+      setEquipping(null)
     }
   }
 
@@ -322,6 +412,80 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Purchased Avatars Section */}
+          {purchasedAvatars.length > 0 && (
+            <div className="mt-8">
+              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-800">Avatares Comprados</h2>
+                  <Link
+                    href="/shop"
+                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
+                  >
+                    Ver Tienda →
+                  </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {purchasedAvatars.map((avatar) => (
+                    <div
+                      key={avatar.id}
+                      className={`bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 ${
+                        avatar.is_equipped
+                          ? 'border-green-500 shadow-lg'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center overflow-hidden">
+                          {avatar.item.image_url ? (
+                            <img
+                              src={avatar.item.image_url}
+                              alt={avatar.item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-2xl">⭐</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-gray-900 text-sm">{avatar.item.name}</h3>
+                          {avatar.is_equipped && (
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded">
+                              Equipado
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                        {avatar.item.description}
+                      </p>
+                      
+                      <button
+                        onClick={() => handleEquipAvatar(avatar.item.id)}
+                        disabled={avatar.is_equipped || equipping === avatar.item.id}
+                        className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition ${
+                          avatar.is_equipped
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : equipping === avatar.item.id
+                            ? 'bg-blue-300 text-blue-700 cursor-wait'
+                            : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-md'
+                        }`}
+                      >
+                        {equipping === avatar.item.id
+                          ? 'Equipando...'
+                          : avatar.is_equipped
+                          ? '✓ Equipado'
+                          : 'Equipar'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
