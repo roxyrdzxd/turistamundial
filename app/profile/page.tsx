@@ -54,15 +54,56 @@ export default function ProfilePage() {
         .from('profiles')
         .select('username, avatar_url')
         .eq('id', currentUser.id)
-        .single()
+        .maybeSingle()
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error)
         toast.showToast('Error al cargar el perfil', 'error')
         return
       }
 
-      if (profile) {
+      // Si el perfil no existe, intentar crearlo
+      if (!profile) {
+        console.log('Profile does not exist, creating it for user:', currentUser.id)
+        
+        // Intentar usar la función ensure_user_profile
+        const { error: createError } = await supabase.rpc('ensure_user_profile', {
+          p_user_id: currentUser.id
+        })
+
+        if (createError) {
+          console.error('Error creating profile with RPC:', createError)
+          // Fallback: crear manualmente
+          const defaultUsername = currentUser.user_metadata?.username || `Usuario${currentUser.id.substring(0, 8)}`
+          const { error: manualCreateError } = await supabase
+            .from('profiles')
+            .insert({
+              id: currentUser.id,
+              username: defaultUsername,
+            })
+
+          if (manualCreateError) {
+            console.error('Error creating profile manually:', manualCreateError)
+            toast.showToast('Error al crear el perfil. Por favor recarga la página.', 'error')
+            return
+          }
+        }
+
+        // Intentar obtener el perfil nuevamente después de crearlo
+        const { data: newProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('username, avatar_url')
+          .eq('id', currentUser.id)
+          .single()
+
+        if (newProfile) {
+          setUsername(newProfile.username || '')
+          setAvatarUrl(newProfile.avatar_url)
+        } else if (fetchError) {
+          console.error('Error fetching newly created profile:', fetchError)
+          toast.showToast('Error al cargar el perfil', 'error')
+        }
+      } else {
         setUsername(profile.username || '')
         setAvatarUrl(profile.avatar_url)
       }

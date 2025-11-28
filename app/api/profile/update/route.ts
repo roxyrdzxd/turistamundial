@@ -55,6 +55,49 @@ export async function POST(request: Request) {
       }
     }
 
+    // Verificar si el perfil existe, si no, crearlo primero
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking profile:', checkError)
+      return NextResponse.json(
+        { error: 'Error al verificar el perfil' },
+        { status: 500 }
+      )
+    }
+
+    // Si el perfil no existe, crearlo primero usando ensure_user_profile
+    if (!existingProfile) {
+      console.log('Profile does not exist, creating it for user:', user.id)
+      const { error: createError } = await supabase.rpc('ensure_user_profile', {
+        p_user_id: user.id
+      })
+
+      if (createError) {
+        console.error('Error creating profile:', createError)
+        // Intentar crear manualmente como fallback
+        const defaultUsername = user.user_metadata?.username || `Usuario${user.id.substring(0, 8)}`
+        const { error: manualCreateError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            username: defaultUsername,
+          })
+
+        if (manualCreateError) {
+          console.error('Error creating profile manually:', manualCreateError)
+          return NextResponse.json(
+            { error: 'Error al crear el perfil. Por favor intenta de nuevo.' },
+            { status: 500 }
+          )
+        }
+      }
+    }
+
     // Actualizar perfil
     const updateData: { username?: string; avatar_url?: string; updated_at?: string } = {}
     
