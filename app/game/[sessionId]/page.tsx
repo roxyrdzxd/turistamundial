@@ -1197,6 +1197,13 @@ export default function GamePage() {
                 'green': 'Oceanía',
                 'purple': 'Especial',
                 'america': 'América',
+                // Monopolios del tablero Nuevo León
+                'Capital Regia': 'Capital Regia',
+                'Ruta Citrícola': 'Ruta Citrícola',
+                'Corredor Industrial': 'Corredor Industrial',
+                'Tierras Nuevas': 'Tierras Nuevas',
+                'Transporte': 'Transporte',
+                'Atracciones Turísticas': 'Atracciones Turísticas',
                 'europa': 'Europa',
                 'asia': 'Asia',
                 'africa': 'África',
@@ -1364,6 +1371,13 @@ export default function GamePage() {
                 'yellow': 'África',
                 'green': 'Oceanía',
                 'purple': 'Especial',
+                // Monopolios del tablero Nuevo León
+                'Capital Regia': 'Capital Regia',
+                'Ruta Citrícola': 'Ruta Citrícola',
+                'Corredor Industrial': 'Corredor Industrial',
+                'Tierras Nuevas': 'Tierras Nuevas',
+                'Transporte': 'Transporte',
+                'Atracciones Turísticas': 'Atracciones Turísticas',
               }
               
               // Calcular monopolios de todos los jugadores
@@ -1420,6 +1434,13 @@ export default function GamePage() {
                 'África': '🌍',
                 'Oceanía': '🌏',
                 'Especial': '⭐',
+                // Monopolios del tablero Nuevo León
+                'Capital Regia': '🏛️',
+                'Ruta Citrícola': '🍊',
+                'Corredor Industrial': '🏭',
+                'Tierras Nuevas': '🌾',
+                'Transporte': '🚇',
+                'Atracciones Turísticas': '🎡',
               }
               
               const continentColors: Record<string, string> = {
@@ -1430,6 +1451,13 @@ export default function GamePage() {
                 'África': 'from-yellow-500 to-yellow-600',
                 'Oceanía': 'from-green-500 to-green-600',
                 'Especial': 'from-purple-500 to-purple-600',
+                // Monopolios del tablero Nuevo León
+                'Capital Regia': 'from-blue-500 to-blue-600',
+                'Ruta Citrícola': 'from-orange-500 to-orange-600',
+                'Corredor Industrial': 'from-pink-500 to-pink-600',
+                'Tierras Nuevas': 'from-yellow-500 to-yellow-600',
+                'Transporte': 'from-purple-500 to-purple-600',
+                'Atracciones Turísticas': 'from-green-500 to-green-600',
               }
               
               return monopolies.length > 0 ? (
@@ -1645,6 +1673,13 @@ export default function GamePage() {
                 'green': 'Oceanía',
                 'purple': 'Especial',
                 'america': 'América',
+                // Monopolios del tablero Nuevo León
+                'Capital Regia': 'Capital Regia',
+                'Ruta Citrícola': 'Ruta Citrícola',
+                'Corredor Industrial': 'Corredor Industrial',
+                'Tierras Nuevas': 'Tierras Nuevas',
+                'Transporte': 'Transporte',
+                'Atracciones Turísticas': 'Atracciones Turísticas',
                 'europa': 'Europa',
                 'asia': 'Asia',
                 'africa': 'África',

@@ -48,23 +48,24 @@ INSERT INTO countries (board_id, name, continent, price, base_rent, house_price,
 (v_board_id, 'Sultanes', 'yellow', 200, 0, 0, 0, 19, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
 ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group;
 
--- Casilla 20: Estacionamiento Gratuito / Casilla especial
-INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
-(v_board_id, 'Estacionamiento Gratuito', 'special', 0, 0, 0, 0, 20, 'special', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
-ON CONFLICT (board_id, position) DO NOTHING;
+-- Casilla 20: Aeropuerto Internacional (Transporte)
+INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, monopoly_group, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
+(v_board_id, 'Aeropuerto Internacional', 'purple', 200, 25, 0, 0, 20, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
+ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group, property_type = EXCLUDED.property_type, name = EXCLUDED.name;
 
 -- Lado superior (posiciones 21-29): Atracciones Turísticas
-INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
-(v_board_id, 'Parque Fundidora', 'green', 220, 18, 0, 0, 21, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Pueblo Mágico Santiago', 'green', 220, 18, 0, 0, 22, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Barrio Antiguo', 'green', 240, 20, 0, 0, 23, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Obispado Asta Bandera', 'green', 240, 20, 0, 0, 24, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Macroplaza', 'green', 260, 22, 0, 0, 25, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Museo de Historia', 'green', 260, 22, 0, 0, 26, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Milarca', 'green', 280, 24, 0, 0, 27, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Torre Rise', 'green', 280, 24, 0, 0, 28, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Torre BBVA', 'green', 300, 26, 0, 0, 29, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
-ON CONFLICT (board_id, position) DO NOTHING;
+-- Grupo: Atracciones Turísticas
+INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, monopoly_group, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
+(v_board_id, 'Parque Fundidora', 'green', 220, 18, 0, 0, 21, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Pueblo Mágico Santiago', 'green', 220, 18, 0, 0, 22, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Barrio Antiguo', 'green', 240, 20, 0, 0, 23, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Obispado Asta Bandera', 'green', 240, 20, 0, 0, 24, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Macroplaza', 'green', 260, 22, 0, 0, 25, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Museo de Historia', 'green', 260, 22, 0, 0, 26, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Milarca', 'green', 280, 24, 0, 0, 27, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Torre Rise', 'green', 280, 24, 0, 0, 28, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Torre BBVA', 'green', 300, 26, 0, 0, 29, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
+ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group;
 
 -- Casilla 30: Ir a Cárcel (especial)
 INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
@@ -72,17 +73,22 @@ INSERT INTO countries (board_id, name, continent, price, base_rent, house_price,
 ON CONFLICT (board_id, position) DO NOTHING;
 
 -- Lado derecho (posiciones 31-39): Más atracciones, transporte y servicios
-INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
-(v_board_id, 'Arena Monterrey', 'green', 300, 26, 0, 0, 31, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Presa de la Boca', 'green', 320, 28, 0, 0, 32, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Auditorio Pabellón M', 'green', 320, 28, 0, 0, 33, 'attraction', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Fuerza Regia', 'yellow', 200, 0, 0, 0, 34, 'stadium', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Cuauhtémoc', 'purple', 200, 25, 0, 0, 35, 'transport', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Y Griega', 'purple', 200, 25, 0, 0, 36, 'transport', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Alameda', 'purple', 200, 25, 0, 0, 37, 'transport', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'AyD', 'cyan', 150, 0, 0, 0, 38, 'service', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'CFE', 'cyan', 150, 0, 0, 0, 39, 'service', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
-ON CONFLICT (board_id, position) DO NOTHING;
+-- Grupo: Atracciones Turísticas (continuación)
+-- Grupo: Transporte
+INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, monopoly_group, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
+(v_board_id, 'Arena Monterrey', 'green', 300, 26, 0, 0, 31, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Presa de la Boca', 'green', 320, 28, 0, 0, 32, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Auditorio Pabellón M', 'green', 320, 28, 0, 0, 33, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Fuerza Regia', 'yellow', 200, 0, 0, 0, 34, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Cuauhtémoc', 'purple', 200, 25, 0, 0, 35, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Y Griega', 'purple', 200, 25, 0, 0, 36, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Alameda', 'purple', 200, 25, 0, 0, 37, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Exposición', 'purple', 200, 25, 0, 0, 38, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'San Bernabé', 'purple', 200, 25, 0, 0, 39, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
+ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group;
+
+-- Servicios (AyD y CFE) - Se pueden agregar después si se necesitan
+-- Por ahora no están en el tablero principal de 40 casillas
 
 END $$;
 
