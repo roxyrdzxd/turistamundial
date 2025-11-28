@@ -1264,11 +1264,11 @@ export default function GamePage() {
                       </p>
                     ) : (
                       <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-                        {continentProgress.map(({ continent, continentName, properties, ownedCount, totalCount, hasMonopoly }) => (
-                          <div key={continent} className="bg-white/10 hover:bg-white/20 rounded p-1.5 transition-colors">
+                        {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
+                          <div key={groupKey} className="bg-white/10 hover:bg-white/20 rounded p-1.5 transition-colors">
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-xs">🌍 {continentName}</span>
+                                <span className="font-bold text-xs">🌍 {groupName}</span>
                                 {hasMonopoly && (
                                   <span className="bg-green-500/30 text-green-200 px-1 py-0.5 rounded text-xs font-semibold">
                                     ✅
@@ -1343,21 +1343,37 @@ export default function GamePage() {
               }
               
               // Calcular monopolios de todos los jugadores
-              const monopolies: Array<{ playerId: string; playerName: string; playerColor: string; continents: string[] }> = []
+              const monopolies: Array<{ playerId: string; playerName: string; playerColor: string; groups: string[] }> = []
               
               if (session && countries.length > 0 && playerCountries.length > 0) {
-                // Obtener todos los continentes únicos (colores)
-                const allContinents = [...new Set(countries.map(c => c.continent))]
+                // Obtener todos los grupos únicos (monopoly_group o continent)
+                const allGroups = new Set<string>()
+                countries.forEach(c => {
+                  if (c.monopoly_group && c.property_type === 'city') {
+                    allGroups.add(c.monopoly_group)
+                  } else {
+                    allGroups.add(c.continent)
+                  }
+                })
                 
-                // Para cada jugador, verificar qué continentes tiene en monopolio
+                // Para cada jugador, verificar qué grupos tiene en monopolio
                 session.players.forEach(player => {
                   const playerMonopolies: string[] = []
                   
-                  allContinents.forEach(continentColor => {
-                    if (hasMonopoly(continentColor, player.id, countries, playerCountries)) {
-                      // Convertir el color a nombre de continente
-                      const continentName = continentNames[continentColor] || continentColor
-                      playerMonopolies.push(continentName)
+                  allGroups.forEach(groupKey => {
+                    // Determinar si es un monopoly_group o un continent
+                    const sampleCountry = countries.find(c => 
+                      (c.monopoly_group === groupKey && c.property_type === 'city') || 
+                      (c.continent === groupKey && !c.monopoly_group)
+                    )
+                    const isMonopolyGroup = sampleCountry?.monopoly_group === groupKey
+                    
+                    if (hasMonopoly(groupKey, player.id, countries, playerCountries, isMonopolyGroup)) {
+                      // Obtener nombre del grupo
+                      const groupName = isMonopolyGroup 
+                        ? groupKey // Usar el nombre del monopolio directamente
+                        : (continentNames[groupKey] || groupKey)
+                      playerMonopolies.push(groupName)
                     }
                   })
                   
@@ -1366,7 +1382,7 @@ export default function GamePage() {
                       playerId: player.id,
                       playerName: player.profile.username,
                       playerColor: player.color,
-                      continents: playerMonopolies
+                      groups: playerMonopolies
                     })
                   }
                 })
@@ -1416,13 +1432,13 @@ export default function GamePage() {
                           <p className="font-semibold text-gray-900">{monopoly.playerName}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {monopoly.continents.map((continent) => (
+                          {monopoly.groups.map((group) => (
                             <div
-                              key={continent}
-                              className={`bg-gradient-to-r ${continentColors[continent] || 'from-gray-500 to-gray-600'} text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-md`}
+                              key={group}
+                              className={`bg-gradient-to-r ${continentColors[group] || 'from-gray-500 to-gray-600'} text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-md`}
                             >
-                              <span>{continentIcons[continent] || '🌍'}</span>
-                              <span>{continent}</span>
+                              <span>{continentIcons[group] || '🌍'}</span>
+                              <span>{group}</span>
                             </div>
                           ))}
                         </div>
@@ -1628,40 +1644,64 @@ export default function GamePage() {
                 )
               }
 
-              // Agrupar propiedades por continente
-              const propertiesByContinent = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
-                const continent = prop.country.continent
-                if (!acc[continent]) {
-                  acc[continent] = []
+              // Agrupar propiedades por monopoly_group (si existe) o por continente
+              const propertiesByGroup = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
+                // Si tiene monopoly_group, usar ese; si no, usar continent
+                const groupKey = prop.country.monopoly_group || prop.country.continent
+                if (!acc[groupKey]) {
+                  acc[groupKey] = []
                 }
-                acc[continent].push(prop)
+                acc[groupKey].push(prop)
                 return acc
               }, {})
 
-              // Calcular progreso de monopolio para cada continente
-              const continentProgress = Object.keys(propertiesByContinent).map(continent => {
-                const continentCountries = countries.filter(c => c.continent === continent)
-                const ownedCount = propertiesByContinent[continent].length
-                const totalCount = continentCountries.length
-                const hasMonopolyStatus = hasMonopoly(continent, myPlayer.id, countries, playerCountries)
+              // Calcular progreso de monopolio para cada grupo
+              const groupProgress = Object.keys(propertiesByGroup).map(groupKey => {
+                // Determinar si es un monopoly_group o un continent
+                const firstProp = propertiesByGroup[groupKey][0]
+                const isMonopolyGroup = !!firstProp.country.monopoly_group
+                
+                // Obtener países del grupo
+                const groupCountries = countries.filter(c => {
+                  if (isMonopolyGroup) {
+                    return c.monopoly_group === groupKey && c.property_type === 'city'
+                  } else {
+                    return c.continent === groupKey
+                  }
+                })
+                
+                const ownedCount = propertiesByGroup[groupKey].length
+                const totalCount = groupCountries.length
+                
+                // Verificar monopolio usando el método correcto
+                const hasMonopolyStatus = isMonopolyGroup
+                  ? hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, true)
+                  : hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, false)
+                
+                // Obtener nombre del grupo
+                const groupName = isMonopolyGroup 
+                  ? groupKey // Usar el nombre del monopolio directamente
+                  : (continentNames[groupKey] || groupKey)
+                
                 return {
-                  continent,
-                  continentName: continentNames[continent] || continent,
-                  properties: propertiesByContinent[continent].sort((a, b) => a.country.position - b.country.position),
+                  groupKey,
+                  groupName,
+                  isMonopolyGroup,
+                  properties: propertiesByGroup[groupKey].sort((a, b) => a.country.position - b.country.position),
                   ownedCount,
                   totalCount,
                   hasMonopoly: hasMonopolyStatus,
                 }
-              }).sort((a, b) => a.continentName.localeCompare(b.continentName))
+              }).sort((a, b) => a.groupName.localeCompare(b.groupName))
 
               return (
                 <div className="space-y-6">
-                  {continentProgress.map(({ continent, continentName, properties, ownedCount, totalCount, hasMonopoly }) => (
-                    <div key={continent} className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow-md p-4 border-2 border-blue-200">
+                  {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
+                    <div key={groupKey} className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow-md p-4 border-2 border-blue-200">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-2xl">🌍</span>
-                          <h3 className="font-bold text-lg text-gray-800">{continentName}</h3>
+                          <h3 className="font-bold text-lg text-gray-800">{groupName}</h3>
                           {hasMonopoly && (
                             <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                               ✅ Monopolio

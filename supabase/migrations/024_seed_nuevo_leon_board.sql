@@ -13,18 +13,20 @@ INSERT INTO countries (board_id, name, continent, price, base_rent, house_price,
 ON CONFLICT (board_id, position) DO NOTHING;
 
 -- Lado inferior (posiciones 1-9): Ciudades Área Metropolitana
--- Monopolio 1: Monterrey, San Pedro, San Nicolas, Guadalupe
+-- Capital Regia: Monterrey, San Pedro, San Nicolas, Guadalupe
+-- Corredor Industrial: Escobedo, Apodaca, Santa Catarina
+-- Tierras Nuevas: Juarez, Cadereyta
 INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, monopoly_group, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
-(v_board_id, 'Monterrey', 'blue', 60, 2, 50, 200, 1, 'city', 'monopoly_1', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'San Nicolas', 'blue', 60, 4, 50, 200, 2, 'city', 'monopoly_1', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Escobedo', 'pink', 100, 6, 50, 200, 3, 'city', 'monopoly_3', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Apodaca', 'pink', 100, 6, 50, 200, 4, 'city', 'monopoly_3', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'San Pedro Garza García', 'blue', 60, 6, 50, 200, 5, 'city', 'monopoly_1', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Santa Catarina', 'pink', 120, 8, 50, 200, 6, 'city', 'monopoly_3', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Guadalupe', 'blue', 80, 6, 50, 200, 7, 'city', 'monopoly_1', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Juarez', 'orange', 140, 10, 100, 300, 8, 'city', 'monopoly_4', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Cadereyta', 'orange', 140, 10, 100, 300, 9, 'city', 'monopoly_4', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel')
-ON CONFLICT (board_id, position) DO NOTHING;
+(v_board_id, 'Monterrey', 'blue', 60, 2, 50, 200, 1, 'city', 'Capital Regia', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'San Nicolas', 'blue', 60, 4, 50, 200, 2, 'city', 'Capital Regia', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Escobedo', 'pink', 100, 6, 50, 200, 3, 'city', 'Corredor Industrial', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Apodaca', 'pink', 100, 6, 50, 200, 4, 'city', 'Corredor Industrial', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'San Pedro Garza García', 'blue', 60, 6, 50, 200, 5, 'city', 'Capital Regia', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Santa Catarina', 'pink', 120, 8, 50, 200, 6, 'city', 'Corredor Industrial', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Guadalupe', 'blue', 80, 6, 50, 200, 7, 'city', 'Capital Regia', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Juarez', 'orange', 140, 10, 100, 300, 8, 'city', 'Tierras Nuevas', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Cadereyta', 'orange', 140, 10, 100, 300, 9, 'city', 'Tierras Nuevas', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel')
+ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group;
 
 -- Casilla 10: Cárcel Topo Chico (especial)
 INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
@@ -32,17 +34,19 @@ INSERT INTO countries (board_id, name, continent, price, base_rent, house_price,
 ON CONFLICT (board_id, position) DO NOTHING;
 
 -- Lado izquierdo (posiciones 11-19): Más ciudades y estadios
+-- Tierras Nuevas: García, Pesquería
+-- Ruta Citrícola: Linares, Montemorelos, Santiago, Allende
 INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, monopoly_group, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
-(v_board_id, 'García', 'orange', 160, 12, 100, 300, 11, 'city', 'monopoly_4', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Pesquería', 'orange', 160, 12, 100, 300, 12, 'city', 'monopoly_4', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Linares', 'red', 180, 14, 100, 300, 13, 'city', 'monopoly_2', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Montemorelos', 'red', 180, 14, 100, 300, 14, 'city', 'monopoly_2', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Santiago', 'red', 200, 16, 100, 300, 15, 'city', 'monopoly_2', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Allende', 'red', 200, 16, 100, 300, 16, 'city', 'monopoly_2', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'García', 'orange', 160, 12, 100, 300, 11, 'city', 'Tierras Nuevas', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Pesquería', 'orange', 160, 12, 100, 300, 12, 'city', 'Tierras Nuevas', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Linares', 'red', 180, 14, 100, 300, 13, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Montemorelos', 'red', 180, 14, 100, 300, 14, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Santiago', 'red', 200, 16, 100, 300, 15, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
+(v_board_id, 'Allende', 'red', 200, 16, 100, 300, 16, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
 (v_board_id, 'Tigres', 'yellow', 150, 0, 0, 0, 17, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Rayados', 'yellow', 150, 0, 0, 0, 18, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Sultanes', 'yellow', 200, 0, 0, 0, 19, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
-ON CONFLICT (board_id, position) DO NOTHING;
+ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group;
 
 -- Casilla 20: Estacionamiento Gratuito / Casilla especial
 INSERT INTO countries (board_id, name, continent, price, base_rent, house_price, hotel_price, position, property_type, improvement_level_1_name, improvement_level_2_name, improvement_level_3_name, improvement_level_4_name, improvement_level_5_name) VALUES
