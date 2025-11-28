@@ -5,13 +5,71 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const referralCode = requestUrl.searchParams.get('ref')
+  const type = requestUrl.searchParams.get('type') // 'signup' o 'recovery'
   const next = requestUrl.searchParams.get('next') || '/dashboard'
 
   if (code) {
     const supabase = await createClient()
     const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    // Si hay referral_code y el usuario se autenticó exitosamente, procesarlo
+    if (error) {
+      // Si hay error, redirigir al login con mensaje
+      const url = new URL('/login', requestUrl.origin)
+      url.searchParams.set('error', 'invalid_token')
+      return NextResponse.redirect(url)
+    }
+
+    // Si es confirmación de registro (type === 'signup')
+    if (type === 'signup' && session?.user) {
+      // Esperar un momento para asegurar que el perfil se haya creado
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Procesar referidos si existe código
+      if (referralCode) {
+        // Verificar que el perfil existe antes de procesar el referido
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profile && !profileError) {
+          // Verificar si el usuario ya tiene un referido
+          const { data: existingReferral } = await supabase
+            .from('referrals')
+            .select('id')
+            .eq('referred_id', session.user.id)
+            .maybeSingle()
+          
+          // Solo procesar si no tiene referido previo
+          if (!existingReferral) {
+            try {
+              const { data: referralResult, error: referralError } = await supabase.rpc('process_referral', {
+                p_referred_user_id: session.user.id,
+                p_referral_code: referralCode
+              })
+              
+              if (referralError) {
+                console.error('[AuthCallback] Error procesando referido:', referralError)
+              } else if (referralResult && referralResult.success === false) {
+                console.error('[AuthCallback] Error en process_referral:', referralResult.error)
+              } else {
+                console.log('[AuthCallback] Referido procesado exitosamente para usuario:', session.user.id)
+              }
+            } catch (error) {
+              console.error('[AuthCallback] Excepción al procesar referido:', error)
+            }
+          }
+        }
+      }
+      
+      // Redirigir al dashboard con mensaje de bienvenida
+      const url = new URL('/dashboard', requestUrl.origin)
+      url.searchParams.set('verified', 'true')
+      return NextResponse.redirect(url)
+    }
+    
+    // Si hay referral_code y el usuario se autenticó exitosamente (OAuth), procesarlo
     if (referralCode && session?.user && !error) {
       // Esperar un momento para asegurar que el perfil se haya creado
       await new Promise(resolve => setTimeout(resolve, 1000))

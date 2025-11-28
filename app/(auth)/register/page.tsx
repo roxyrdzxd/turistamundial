@@ -56,6 +56,7 @@ export default function RegisterPage() {
             username: username || `Usuario${Math.random().toString(36).substr(2, 8)}`,
             referral_code: referralCode || null, // Pasar código si existe
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
       
@@ -69,11 +70,9 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        // Esperar un momento para que las cookies se establezcan
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // Forzar recarga de la página para asegurar que el middleware detecte la sesión
-        window.location.href = '/dashboard'
+        // Con confirmación de email activada, redirigir a página de verificación
+        // en lugar de al dashboard
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`)
       }
     } catch (error: any) {
       console.error('Error en registro:', error)
