@@ -56,6 +56,36 @@ export async function middleware(request: NextRequest) {
       url.pathname = '/login'
       return NextResponse.redirect(url)
     }
+
+    // Asegurar que el perfil existe antes de permitir acceso
+    // Esto previene errores cuando el usuario accede antes de que se cree el perfil
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (!profile && !profileError) {
+        // Perfil no existe, intentar crearlo usando la función SQL
+        console.log('[Middleware] Perfil no existe para usuario', user.id, '- Intentando crear...')
+        
+        const { error: createError } = await supabase.rpc('ensure_user_profile_safe', {
+          p_user_id: user.id
+        })
+
+        if (createError) {
+          console.error('[Middleware] Error creando perfil:', createError)
+          // No bloquear el acceso, pero loguear el error
+          // El fallback en las páginas individuales lo manejará
+        } else {
+          console.log('[Middleware] Perfil creado exitosamente para usuario', user.id)
+        }
+      }
+    } catch (error) {
+      // No bloquear el acceso si hay error, solo loguear
+      console.error('[Middleware] Error verificando/creando perfil:', error)
+    }
   }
 
   // Redirect authenticated users away from auth pages
