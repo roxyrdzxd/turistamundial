@@ -915,7 +915,9 @@ export default function GamePage() {
           {/* Tablero / Área Principal */}
           <div className="lg:col-span-2 order-1">
             <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-2 sm:p-3 mb-2 border border-white/20">
-              <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center text-white">Casilla Actual</h2>
+              <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center text-white">
+                Casilla Actual {myPlayer ? `- Casilla ${myPlayer.position}` : ''}
+              </h2>
               <div className="bg-gradient-to-br from-white/5 to-white/10 rounded-lg p-1 sm:p-2">
                 {countries.length > 0 && myPlayer ? (
                   <CountryCarousel

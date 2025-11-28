@@ -392,46 +392,6 @@ export default function CountryCarousel({
   return (
     <>
       <div className="w-full">
-      {/* Indicador de posición */}
-      <div className="mb-4 flex items-center justify-center gap-2">
-        <button
-          onClick={goToPrevious}
-          className="p-2 rounded-full bg-white shadow-lg hover:bg-gray-100 transition text-gray-700"
-          aria-label="Casilla anterior"
-        >
-          ←
-        </button>
-        <div className="flex-1 text-center">
-          <p className="text-sm text-gray-600">
-            {isOnSpecialSquare ? (
-              <>
-                Casilla {currentPosition} de 40
-                <span className="ml-2 text-xs">({SPECIAL_SQUARES[currentPosition].name})</span>
-              </>
-            ) : displayedCountry ? (
-              <>
-                Casilla {displayedCountry.position} de 40
-                {displayedCountry.position !== currentPosition && (
-                  <span className="ml-2 text-xs text-gray-500">(Estás en {currentPosition})</span>
-                )}
-              </>
-            ) : (
-              `Casilla ${currentPosition} de 40`
-            )}
-          </p>
-          {isCurrentPosition && (
-            <p className="text-xs text-blue-600 font-semibold mt-1">📍 Tu posición</p>
-          )}
-        </div>
-        <button
-          onClick={goToNext}
-          className="p-2 rounded-full bg-white shadow-lg hover:bg-gray-100 transition text-gray-700"
-          aria-label="Casilla siguiente"
-        >
-          →
-        </button>
-      </div>
-
       {/* Tarjeta de la casilla */}
       <div
         className="relative rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 transform hover:scale-[1.02]"
