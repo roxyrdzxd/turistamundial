@@ -8,6 +8,7 @@ interface Country {
   continent: string
   price: number
   position: number
+  property_type?: string
 }
 
 interface Player {
