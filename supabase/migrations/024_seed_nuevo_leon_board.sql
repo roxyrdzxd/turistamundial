@@ -43,9 +43,9 @@ INSERT INTO countries (board_id, name, continent, price, base_rent, house_price,
 (v_board_id, 'Montemorelos', 'red', 180, 14, 100, 300, 14, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
 (v_board_id, 'Santiago', 'red', 200, 16, 100, 300, 15, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
 (v_board_id, 'Allende', 'red', 200, 16, 100, 300, 16, 'city', 'Ruta Citrícola', 'Oxxo', 'Carnes Ramos', 'Piedrera', 'Cervecería', 'Hotel'),
-(v_board_id, 'Tigres', 'yellow', 150, 0, 0, 0, 17, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Rayados', 'yellow', 150, 0, 0, 0, 18, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Sultanes', 'yellow', 200, 0, 0, 0, 19, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
+(v_board_id, 'Tigres', 'yellow', 150, 0, 0, 0, 17, 'stadium', 'Atracciones deportivas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Rayados', 'yellow', 150, 0, 0, 0, 18, 'stadium', 'Atracciones deportivas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Sultanes', 'yellow', 200, 0, 0, 0, 19, 'stadium', 'Atracciones deportivas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel')
 ON CONFLICT (board_id, position) DO UPDATE SET monopoly_group = EXCLUDED.monopoly_group;
 
 -- Casilla 20: Aeropuerto Internacional (Transporte)
@@ -79,7 +79,7 @@ INSERT INTO countries (board_id, name, continent, price, base_rent, house_price,
 (v_board_id, 'Arena Monterrey', 'green', 300, 26, 0, 0, 31, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Presa de la Boca', 'green', 320, 28, 0, 0, 32, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Auditorio Pabellón M', 'green', 320, 28, 0, 0, 33, 'attraction', 'Atracciones Turísticas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
-(v_board_id, 'Fuerza Regia', 'yellow', 200, 0, 0, 0, 34, 'stadium', NULL, 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
+(v_board_id, 'Fuerza Regia', 'yellow', 200, 0, 0, 0, 34, 'stadium', 'Atracciones deportivas', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Cuauhtémoc', 'purple', 200, 25, 0, 0, 35, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Y Griega', 'purple', 200, 25, 0, 0, 36, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),
 (v_board_id, 'Alameda', 'purple', 200, 25, 0, 0, 37, 'transport', 'Transporte', 'Casa', 'Casa', 'Casa', 'Casa', 'Hotel'),

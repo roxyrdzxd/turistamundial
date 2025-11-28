@@ -1204,6 +1204,7 @@ export default function GamePage() {
                 'Tierras Nuevas': 'Tierras Nuevas',
                 'Transporte': 'Transporte',
                 'Atracciones Turísticas': 'Atracciones Turísticas',
+                'Atracciones deportivas': 'Atracciones deportivas',
                 'europa': 'Europa',
                 'asia': 'Asia',
                 'africa': 'África',
@@ -1240,7 +1241,9 @@ export default function GamePage() {
                 // Obtener países del grupo
                 const groupCountries = countries.filter(c => {
                   if (isMonopolyGroup) {
-                    return c.monopoly_group === groupKey && c.property_type === 'city'
+                    // Para grupos de monopolio, incluir todas las propiedades del grupo
+                    // (ciudades, estadios, transporte, atracciones, etc.)
+                    return c.monopoly_group === groupKey
                   } else {
                     return c.continent === groupKey
                   }
@@ -1378,6 +1381,7 @@ export default function GamePage() {
                 'Tierras Nuevas': 'Tierras Nuevas',
                 'Transporte': 'Transporte',
                 'Atracciones Turísticas': 'Atracciones Turísticas',
+                'Atracciones deportivas': 'Atracciones deportivas',
               }
               
               // Calcular monopolios de todos los jugadores
@@ -1441,6 +1445,7 @@ export default function GamePage() {
                 'Tierras Nuevas': '🌾',
                 'Transporte': '🚇',
                 'Atracciones Turísticas': '🎡',
+                'Atracciones deportivas': '⚽',
               }
               
               const continentColors: Record<string, string> = {
@@ -1458,6 +1463,7 @@ export default function GamePage() {
                 'Tierras Nuevas': 'from-yellow-500 to-yellow-600',
                 'Transporte': 'from-purple-500 to-purple-600',
                 'Atracciones Turísticas': 'from-green-500 to-green-600',
+                'Atracciones deportivas': 'from-yellow-500 to-yellow-600',
               }
               
               return monopolies.length > 0 ? (
@@ -1680,6 +1686,7 @@ export default function GamePage() {
                 'Tierras Nuevas': 'Tierras Nuevas',
                 'Transporte': 'Transporte',
                 'Atracciones Turísticas': 'Atracciones Turísticas',
+                'Atracciones deportivas': 'Atracciones deportivas',
                 'europa': 'Europa',
                 'asia': 'Asia',
                 'africa': 'África',
@@ -1723,7 +1730,9 @@ export default function GamePage() {
                 // Obtener países del grupo
                 const groupCountries = countries.filter(c => {
                   if (isMonopolyGroup) {
-                    return c.monopoly_group === groupKey && c.property_type === 'city'
+                    // Para grupos de monopolio, incluir todas las propiedades del grupo
+                    // (ciudades, estadios, transporte, atracciones, etc.)
+                    return c.monopoly_group === groupKey
                   } else {
                     return c.continent === groupKey
                   }
