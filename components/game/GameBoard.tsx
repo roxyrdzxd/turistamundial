@@ -57,6 +57,26 @@ const PLAYER_COLORS: Record<string, string> = {
   cyan: '#06b6d4',
 }
 
+// Función para obtener el icono según el tipo de propiedad
+const getPropertyIcon = (propertyType?: string): string => {
+  switch (propertyType) {
+    case 'city':
+      return '🏙️' // Ciudad
+    case 'stadium':
+      return '🏟️' // Estadio
+    case 'attraction':
+      return '🎡' // Atracción turística
+    case 'transport':
+      return '🚇' // Transporte
+    case 'service':
+      return '⚡' // Servicio (AyD, CFE)
+    case 'special':
+      return '⭐' // Casilla especial
+    default:
+      return '🌍' // Por defecto (para compatibilidad con tablero tradicional)
+  }
+}
+
 export default function GameBoard({ countries, players, currentTurn, playerCountries = [] }: GameBoardProps) {
   const [animatedPositions, setAnimatedPositions] = useState<Record<string, number>>({})
   const [boardSize, setBoardSize] = useState(300)
@@ -254,10 +274,13 @@ export default function GameBoard({ countries, players, currentTurn, playerCount
                 )}
                 {/* Contenido */}
                 <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mb-0.5 shadow-md"
-                    style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor ? ownerColor : continentColor }}
-                  />
+                  <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                    <span className="text-[8px] sm:text-[10px]">{getPropertyIcon(country.property_type)}</span>
+                    <div 
+                      className="w-2 h-2 rounded-full shadow-md"
+                      style={{ backgroundColor: ownedCountry && !ownedCountry.is_mortgaged && ownerColor ? ownerColor : continentColor }}
+                    />
+                  </div>
                   <span className="text-[8px] sm:text-[9px] leading-tight text-center text-gray-900 font-bold px-0.5">
                     {country.name.length > 8 ? country.name.substring(0, 8) + '...' : country.name}
                   </span>

@@ -90,6 +90,26 @@ const SPECIAL_SQUARES: Record<number, { name: string; emoji: string; description
   30: { name: 'Banco', emoji: '🏦', description: 'Recibes bono de $300', action: 'bank_bonus' },
 }
 
+// Función para obtener el icono según el tipo de propiedad
+const getPropertyIcon = (propertyType?: string): string => {
+  switch (propertyType) {
+    case 'city':
+      return '🏙️' // Ciudad
+    case 'stadium':
+      return '🏟️' // Estadio
+    case 'attraction':
+      return '🎡' // Atracción turística
+    case 'transport':
+      return '🚇' // Transporte
+    case 'service':
+      return '⚡' // Servicio (AyD, CFE)
+    case 'special':
+      return '⭐' // Casilla especial
+    default:
+      return '🌍' // Por defecto (para compatibilidad con tablero tradicional)
+  }
+}
+
 export default function CountryCarousel({
   countries,
   players,
@@ -455,7 +475,7 @@ export default function CountryCarousel({
             ) : (
               <>
                 <div className="w-12 h-12 mx-auto mb-2 rounded-full shadow-lg flex items-center justify-center bg-white/20">
-                  <span className="text-lg">🌍</span>
+                  <span className="text-lg">{getPropertyIcon(displayedCountry?.property_type)}</span>
                 </div>
                 <h2 className={`text-lg sm:text-xl font-bold mb-1 ${cardColors.textColor}`}>
                   {displayedCountry?.name || 'Cargando...'}
@@ -639,7 +659,10 @@ export default function CountryCarousel({
               ) : (
                 <div className="bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-lg p-2 shadow-lg">
                   <div className="text-center">
-                    <p className={`${cardColors.textColor} font-bold text-sm sm:text-base mb-1`}>🏛️ Disponible</p>
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-xl">{getPropertyIcon(displayedCountry?.property_type)}</span>
+                      <p className={`${cardColors.textColor} font-bold text-sm sm:text-base`}>Disponible</p>
+                    </div>
                     <p className={`text-lg sm:text-xl font-bold ${cardColors.textColor} mb-2`}>
                       ${displayedCountry.price.toLocaleString()}
                     </p>

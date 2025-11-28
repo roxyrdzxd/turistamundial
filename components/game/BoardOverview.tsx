@@ -72,6 +72,26 @@ const SPECIAL_SQUARES: Record<number, { name: string; emoji: string }> = {
   30: { name: 'Banco', emoji: '🏦' },
 }
 
+// Función para obtener el icono según el tipo de propiedad
+const getPropertyIcon = (propertyType?: string): string => {
+  switch (propertyType) {
+    case 'city':
+      return '🏙️' // Ciudad
+    case 'stadium':
+      return '🏟️' // Estadio
+    case 'attraction':
+      return '🎡' // Atracción turística
+    case 'transport':
+      return '🚇' // Transporte
+    case 'service':
+      return '⚡' // Servicio (AyD, CFE)
+    case 'special':
+      return '⭐' // Casilla especial
+    default:
+      return '🌍' // Por defecto (para compatibilidad con tablero tradicional)
+  }
+}
+
 export default function BoardOverview({
   countries,
   players,
@@ -236,8 +256,11 @@ export default function BoardOverview({
                     </>
                   ) : country ? (
                     <>
-                      <div className={`text-[9px] sm:text-xs font-bold ${continentColor.text} leading-tight mb-1 px-1 line-clamp-2`}>
-                        {country.name}
+                      <div className="flex items-center justify-center gap-1 mb-0.5">
+                        <span className="text-[10px] sm:text-sm">{getPropertyIcon(country.property_type)}</span>
+                        <div className={`text-[9px] sm:text-xs font-bold ${continentColor.text} leading-tight px-1 line-clamp-2`}>
+                          {country.name}
+                        </div>
                       </div>
                       <div className="text-[8px] sm:text-[10px] font-semibold text-gray-700 bg-white/60 rounded px-1.5 py-0.5">
                         ${country.price.toLocaleString()}
