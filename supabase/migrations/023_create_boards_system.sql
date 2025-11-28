@@ -24,9 +24,16 @@ ALTER TABLE countries
 ADD COLUMN IF NOT EXISTS board_id UUID REFERENCES boards(id) ON DELETE CASCADE;
 
 -- Crear constraint única para position por board
-CREATE UNIQUE INDEX IF NOT EXISTS idx_countries_board_position 
-ON countries(board_id, position) 
-WHERE board_id IS NOT NULL;
+-- Primero eliminar el índice si existe
+DROP INDEX IF EXISTS idx_countries_board_position;
+
+-- Crear constraint única (requerida para ON CONFLICT)
+ALTER TABLE countries
+DROP CONSTRAINT IF EXISTS countries_board_position_unique;
+
+ALTER TABLE countries
+ADD CONSTRAINT countries_board_position_unique 
+UNIQUE (board_id, position);
 
 -- Agregar campo type para diferenciar tipos de propiedades (city, stadium, attraction, transport, service, special)
 ALTER TABLE countries
