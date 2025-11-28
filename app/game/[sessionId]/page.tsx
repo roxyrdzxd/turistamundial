@@ -781,11 +781,11 @@ export default function GamePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-md border border-white/20">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Error</h1>
-          <p className="text-gray-600 mb-4">{error || 'Sesión no encontrada'}</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-400">Error</h1>
+          <p className="text-white/80 mb-4">{error || 'Sesión no encontrada'}</p>
           <Link
             href="/dashboard"
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            className="inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition"
           >
             Volver al Dashboard
           </Link>
@@ -798,15 +798,15 @@ export default function GamePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-md text-center border border-white/20">
-          <h1 className="text-2xl font-bold mb-4">Partida no iniciada</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold mb-4 text-white">Partida no iniciada</h1>
+          <p className="text-white/80 mb-6">
             {session.status === 'waiting' 
               ? 'La partida aún no ha comenzado'
               : 'La partida ha finalizado'}
           </p>
           <Link
             href={`/lobby/${sessionId}`}
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            className="inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition"
           >
             Volver al Lobby
           </Link>
@@ -975,9 +975,9 @@ export default function GamePage() {
                 )}
 
                 {diceResult && !showDiceAnimation && (
-                  <div className="text-center p-2 bg-blue-50 rounded-lg">
+                  <div className="text-center p-2 bg-cyan-500/20 rounded-lg border border-cyan-400/30">
                     <p className="text-3xl font-bold text-cyan-400 mb-1">{diceResult}</p>
-                    <p className="text-gray-600 text-xs">Resultado de los dados</p>
+                    <p className="text-white/70 text-xs">Resultado de los dados</p>
                   </div>
                 )}
 
@@ -1026,7 +1026,7 @@ export default function GamePage() {
                         </button>
                         <button
                           onClick={handleEndTurn}
-                          className="flex-1 bg-gray-300 text-gray-700 py-1.5 px-2 rounded-lg hover:bg-gray-400 transition font-semibold text-xs"
+                          className="flex-1 bg-white/10 hover:bg-white/20 text-white py-1.5 px-2 rounded-lg transition font-semibold text-xs border border-white/20"
                         >
                           ❌ Pasar
                         </button>
@@ -1165,15 +1165,15 @@ export default function GamePage() {
             {/* Historial de Transacciones - Solo visible cuando se hace clic en desktop */}
             {showHistory && (
               <div className="hidden md:block">
-                <div className="bg-white rounded-lg shadow-md p-3 mb-2">
+                <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-3 mb-2 border border-white/20">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-bold">Historial</h3>
+                    <h3 className="text-sm font-bold text-white">Historial</h3>
                     <button
                       onClick={() => {
                         setShowHistory(false)
                         setActiveDesktopTab(null)
                       }}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-white/60 hover:text-white"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1467,8 +1467,8 @@ export default function GamePage() {
               }
               
               return monopolies.length > 0 ? (
-                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 order-2">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2">
+                <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 order-2 border border-white/20">
+                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 flex items-center gap-2 text-white">
                     <span className="text-2xl">👑</span>
                     Monopolios de Continentes
                   </h3>
@@ -1479,7 +1479,7 @@ export default function GamePage() {
                         className="border-2 rounded-lg p-3"
                         style={{
                           borderColor: getColorHex(monopoly.playerColor),
-                          backgroundColor: `${getColorHex(monopoly.playerColor)}10`,
+                          backgroundColor: `${getColorHex(monopoly.playerColor)}20`,
                         }}
                       >
                         <div className="flex items-center gap-2 mb-2">
@@ -1487,7 +1487,7 @@ export default function GamePage() {
                             className="w-4 h-4 rounded-full"
                             style={{ backgroundColor: getColorHex(monopoly.playerColor) }}
                           />
-                          <p className="font-semibold text-gray-900">{monopoly.playerName}</p>
+                          <p className="font-semibold text-white">{monopoly.playerName}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {monopoly.groups.map((group) => (
@@ -1509,7 +1509,7 @@ export default function GamePage() {
 
             {/* Vista del Tablero - Solo visible en desktop */}
             <div className="lg:col-span-2 order-2 lg:order-3 hidden md:block">
-              <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 border border-white/20">
                 <BoardOverview
                   countries={countries}
                   players={session.players}
@@ -1655,13 +1655,13 @@ export default function GamePage() {
 
       {/* Modales móviles para propiedades e historial */}
       {showProperties && myPlayer && (
-        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 z-50 md:hidden overflow-y-auto pb-20">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Mis Propiedades</h2>
+              <h2 className="text-2xl font-bold text-white">Mis Propiedades</h2>
               <button
                 onClick={() => setShowProperties(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white/60 hover:text-white"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1705,7 +1705,7 @@ export default function GamePage() {
               if (myProperties.length === 0) {
                 return (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">No tienes propiedades aún</p>
+                    <p className="text-white/60">No tienes propiedades aún</p>
                   </div>
                 )
               }
@@ -1769,39 +1769,39 @@ export default function GamePage() {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className="text-2xl">🌍</span>
-                          <h3 className="font-bold text-lg text-gray-800">{groupName}</h3>
+                          <h3 className="font-bold text-lg text-white">{groupName}</h3>
                           {hasMonopoly && (
-                            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            <span className="bg-green-500/20 text-green-300 border border-green-400/30 px-3 py-1 rounded-full text-xs font-semibold">
                               ✅ Monopolio
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-semibold text-gray-700 bg-white/60 px-3 py-1 rounded-full">
+                        <span className="text-sm font-semibold text-white bg-white/20 px-3 py-1 rounded-full border border-white/30">
                           {ownedCount}/{totalCount}
                         </span>
                       </div>
                       {!hasMonopoly && (
-                        <div className="mb-3 p-2 bg-yellow-50 border border-yellow-300 rounded-lg">
-                          <p className="text-sm text-yellow-800 font-semibold">
+                        <div className="mb-3 p-2 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
+                          <p className="text-sm text-yellow-200 font-semibold">
                             ⚠️ Faltan {totalCount - ownedCount} {totalCount - ownedCount === 1 ? 'propiedad' : 'propiedades'} para el monopolio
                           </p>
                         </div>
                       )}
                       <div className="space-y-3">
                         {properties.map((prop: any) => (
-                          <div key={prop.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
-                            <h4 className="font-bold text-base mb-2">{prop.country.name}</h4>
-                            <div className="space-y-2 text-sm">
+                          <div key={prop.id} className="bg-white/10 backdrop-blur-sm rounded-lg shadow p-4 border border-white/20">
+                            <h4 className="font-bold text-base mb-2 text-white">{prop.country.name}</h4>
+                            <div className="space-y-2 text-sm text-white/80">
                               <p>📍 Casilla {prop.country.position}</p>
                               <p>💰 Renta base: ${prop.country.base_rent.toLocaleString()}</p>
                               {prop.houses > 0 && <p>🏠 Casas: {prop.houses}</p>}
                               {prop.hotels > 0 && <p>🏨 Hoteles: {prop.hotels}</p>}
-                              {prop.is_mortgaged && <p className="text-yellow-600">⚠️ Hipotecada</p>}
+                              {prop.is_mortgaged && <p className="text-yellow-300">⚠️ Hipotecada</p>}
                               {prop.is_for_sale && (
-                                <p className="text-purple-600">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
+                                <p className="text-purple-300">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
                               )}
                             </div>
-                            <div className="mt-3 pt-3 border-t border-gray-200 flex gap-2">
+                            <div className="mt-3 pt-3 border-t border-white/20 flex gap-2">
                               <BankModal
                                 property={{
                                   id: prop.id,
@@ -1850,13 +1850,13 @@ export default function GamePage() {
       )}
 
       {showHistory && (
-        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 z-50 md:hidden overflow-y-auto pb-20">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Historial</h2>
+              <h2 className="text-2xl font-bold text-white">Historial</h2>
               <button
                 onClick={() => setShowHistory(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white/60 hover:text-white"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1869,13 +1869,13 @@ export default function GamePage() {
       )}
 
       {showBoardOverview && (
-        <div className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto pb-20">
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 z-50 md:hidden overflow-y-auto pb-20">
           <div className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Vista del Tablero</h2>
+              <h2 className="text-2xl font-bold text-white">Vista del Tablero</h2>
               <button
                 onClick={() => setShowBoardOverview(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white/60 hover:text-white"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
