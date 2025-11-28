@@ -6,10 +6,27 @@ import { Analytics } from "@vercel/analytics/react";
 export const metadata: Metadata = {
   title: "Turix - Turista Mundial Virtual",
   description: "Juega Turix - Turista Mundial online con amigos",
+  manifest: "/manifest.json",
+  themeColor: "#0ea5e9",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Turix",
+  },
   icons: {
-    icon: "https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/avatars/turix.png",
+    icon: [
+      { url: "/icons/icon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icons/icon-72x72.png", sizes: "72x72", type: "image/png" },
+      { url: "/icons/icon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icons/icon-144x144.png", sizes: "144x144", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/avatars/turix.png",
-    apple: "https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/avatars/turix.png",
+    apple: [
+      { url: "/icons/icon-144x144.png", sizes: "144x144", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
   },
 };
 
@@ -20,6 +37,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0ea5e9" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Turix" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="Turix" />
+      </head>
       <body suppressHydrationWarning>
         <ToastProvider>
           {children}
