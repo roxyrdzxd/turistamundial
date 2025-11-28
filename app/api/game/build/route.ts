@@ -49,17 +49,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No es tu turno' }, { status: 403 })
     }
 
-    // Obtener sesión para board_id
-    const { data: session } = await supabase
-      .from('game_sessions')
-      .select('board_id')
-      .eq('id', sessionId)
-      .single()
-
-    if (!session) {
-      return NextResponse.json({ error: 'Sesión no encontrada' }, { status: 404 })
-    }
-
     // Obtener país (filtrar por board_id)
     const { data: country, error: countryError } = await supabase
       .from('countries')
