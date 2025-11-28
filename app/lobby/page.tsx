@@ -100,6 +100,45 @@ export default function LobbyPage() {
     }
   }
 
+  const handleFindOrCreateGame = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/game/find-or-create-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          boardId: '00000000-0000-0000-0000-000000000001', // Turista Mundial por defecto
+          maxPlayers: 8,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al buscar partida')
+      }
+
+      if (data.alreadyInSession) {
+        toast.showToast('Ya estás en esta partida', 'info')
+      } else if (data.isNewSession) {
+        toast.showToast('¡Nueva partida creada! Esperando jugadores...', 'success')
+      } else {
+        toast.showToast('¡Te has unido a una partida!', 'success')
+      }
+
+      // Redirigir a la sala
+      router.push(`/lobby/${data.session.id}`)
+    } catch (err: any) {
+      setError(err.message)
+      toast.showToast(err.message || 'Error al buscar partida', 'error')
+      setLoading(false)
+    }
+  }
+
   const handleJoin = async (sessionId: string) => {
     try {
       const response = await fetch('/api/game/join-session', {
@@ -186,17 +225,42 @@ export default function LobbyPage() {
             <span>Volver al Dashboard</span>
           </Link>
           <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/20">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Buscar Partidas</h1>
-                <p className="text-white/80">Únete a una partida existente o crea una nueva</p>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">Buscar Partidas</h1>
+                  <p className="text-white/80">Únete a una partida existente o crea una nueva</p>
+                </div>
+                <Link
+                  href="/lobby/create"
+                  className="hidden md:inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold shadow-lg"
+                >
+                  + Crear Partida
+                </Link>
               </div>
-              <Link
-                href="/lobby/create"
-                className="hidden md:inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold shadow-lg"
+              
+              {/* Botón de Matchmaking Automático */}
+              <button
+                onClick={handleFindOrCreateGame}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 px-6 rounded-xl font-bold text-lg shadow-2xl hover:shadow-pink-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300"
               >
-                + Crear Partida
-              </Link>
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>Buscando partida...</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <span>🎮</span>
+                    <span>Buscar Partida Rápida</span>
+                    <span>→</span>
+                  </span>
+                )}
+              </button>
+              <p className="text-white/60 text-sm text-center">
+                Te unirás automáticamente a una partida disponible o crearemos una nueva para ti
+              </p>
             </div>
           </div>
         </div>
