@@ -68,11 +68,12 @@ export async function POST(request: Request) {
     // NO avanzar el turno automáticamente - se avanzará después de completar acciones
     // El turno se mantiene hasta que el jugador complete todas sus acciones
 
-    // Obtener país en la nueva posición
+    // Obtener país en la nueva posición (filtrar por board_id de la sesión)
     const { data: countryAtPosition } = await supabase
       .from('countries')
       .select('*')
       .eq('position', newPosition)
+      .eq('board_id', session.board_id)
       .single()
 
     // Obtener países comprados para verificar acciones

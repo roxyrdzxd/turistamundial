@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-export async function POST() {
+export async function POST(request: Request) {
   const supabase = await createClient()
   
   const {
@@ -10,6 +10,22 @@ export async function POST() {
 
   if (!user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
+
+  // Obtener boardId del body, si no se proporciona usar el tablero mundial por defecto
+  const body = await request.json().catch(() => ({}))
+  const boardId = body.boardId || '00000000-0000-0000-0000-000000000001' // Turista Mundial por defecto
+  const maxPlayers = body.maxPlayers || 8
+
+  // Verificar que el tablero existe
+  const { data: board, error: boardError } = await supabase
+    .from('boards')
+    .select('id, name, is_active')
+    .eq('id', boardId)
+    .single()
+
+  if (boardError || !board || !board.is_active) {
+    return NextResponse.json({ error: 'Tablero no encontrado o no disponible' }, { status: 400 })
   }
 
   // Asegurar que el perfil existe antes de crear la sesión
@@ -54,8 +70,9 @@ export async function POST() {
     .from('game_sessions')
     .insert({
       host_id: user.id,
+      board_id: boardId,
       status: 'waiting',
-      max_players: 8,
+      max_players: maxPlayers,
       current_players: 1,
       current_turn: 0,
     })

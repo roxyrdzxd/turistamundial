@@ -4,22 +4,59 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
+interface Board {
+  id: string
+  name: string
+  description: string | null
+}
+
 function CreateLobbyContent() {
   const [maxPlayers, setMaxPlayers] = useState(8)
+  const [selectedBoardId, setSelectedBoardId] = useState<string>('')
+  const [boards, setBoards] = useState<Board[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadingBoards, setLoadingBoards] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const addNPCs = searchParams.get('npcs') === 'true'
+
+  useEffect(() => {
+    fetchBoards()
+  }, [])
+
+  const fetchBoards = async () => {
+    try {
+      const response = await fetch('/api/game/boards')
+      const data = await response.json()
+      if (data.boards && data.boards.length > 0) {
+        setBoards(data.boards)
+        // Seleccionar el primer tablero por defecto
+        setSelectedBoardId(data.boards[0].id)
+      }
+    } catch (err) {
+      console.error('Error obteniendo tableros:', err)
+    } finally {
+      setLoadingBoards(false)
+    }
+  }
 
   const handleCreateWithNPCs = async () => {
     setLoading(true)
     setError(null)
 
     try {
+      if (!selectedBoardId) {
+        throw new Error('Por favor selecciona un tablero')
+      }
+
       // Crear sesión
       const response = await fetch('/api/game/create-session', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ boardId: selectedBoardId, maxPlayers }),
       })
 
       const data = await response.json()
@@ -64,8 +101,16 @@ function CreateLobbyContent() {
     setError(null)
 
     try {
+      if (!selectedBoardId) {
+        throw new Error('Por favor selecciona un tablero')
+      }
+
       const response = await fetch('/api/game/create-session', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ boardId: selectedBoardId, maxPlayers }),
       })
 
       const data = await response.json()
@@ -107,6 +152,37 @@ function CreateLobbyContent() {
           )}
 
           <div className="space-y-6 mb-8">
+            {loadingBoards ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Cargando tableros...</p>
+              </div>
+            ) : (
+              <div>
+                <label htmlFor="board" className="block text-sm font-medium text-gray-700 mb-3">
+                  Seleccionar Tablero
+                </label>
+                <select
+                  id="board"
+                  value={selectedBoardId}
+                  onChange={(e) => setSelectedBoardId(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 bg-white"
+                  required
+                >
+                  {boards.map((board) => (
+                    <option key={board.id} value={board.id}>
+                      {board.name} {board.description && `- ${board.description}`}
+                    </option>
+                  ))}
+                </select>
+                {selectedBoardId && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    {boards.find(b => b.id === selectedBoardId)?.description || ''}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div>
               <label htmlFor="maxPlayers" className="block text-sm font-medium text-gray-700 mb-3">
                 Número máximo de jugadores: <span className="text-blue-600 font-bold text-lg">{maxPlayers}</span>

@@ -98,6 +98,7 @@ export async function POST(request: Request) {
     const { data: countries } = await supabase
       .from('countries')
       .select('*')
+      .eq('board_id', session.board_id)
 
     const { data: playerCountries } = await supabase
       .from('player_countries')

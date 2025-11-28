@@ -45,11 +45,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No es tu turno' }, { status: 403 })
     }
 
-    // Obtener país en la posición actual
+    // Obtener país en la posición actual (filtrar por board_id de la sesión)
     const { data: countries } = await supabase
       .from('countries')
       .select('*')
       .eq('position', currentPlayer.position)
+      .eq('board_id', session.board_id)
 
     if (!countries || countries.length === 0) {
       return NextResponse.json({ error: 'No hay país en esta posición' }, { status: 400 })

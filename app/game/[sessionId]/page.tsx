@@ -89,7 +89,7 @@ export default function GamePage() {
   // Declarar funciones antes de usarlas en useEffect
   const fetchCountries = async () => {
     try {
-      const response = await fetch('/api/game/countries')
+      const response = await fetch(`/api/game/countries?sessionId=${sessionId}`)
       const data = await response.json()
       if (data.countries) {
         setCountries(data.countries)

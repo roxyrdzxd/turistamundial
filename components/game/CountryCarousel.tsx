@@ -11,6 +11,12 @@ interface Country {
   house_price: number
   hotel_price: number
   position: number
+  property_type?: string
+  improvement_level_1_name?: string
+  improvement_level_2_name?: string
+  improvement_level_3_name?: string
+  improvement_level_4_name?: string
+  improvement_level_5_name?: string
 }
 
 interface PlayerCountry {
@@ -563,12 +569,16 @@ export default function CountryCarousel({
                   <div className="space-y-1">
                     {ownedCountry.hotels > 0 ? (
                       <div className="flex items-center justify-between bg-white/20 rounded-lg p-1.5 border border-white/30">
-                        <span className={`${cardColors.textColor} font-semibold text-xs`}>🏨 Hoteles: {ownedCountry.hotels}</span>
+                        <span className={`${cardColors.textColor} font-semibold text-xs`}>
+                          🏨 {displayedCountry?.improvement_level_5_name || 'Hoteles'}: {ownedCountry.hotels}
+                        </span>
                         <span className={`${cardColors.textColor} opacity-90 text-xs`}>Renta: ${currentRent.toLocaleString()}</span>
                       </div>
                     ) : ownedCountry.houses > 0 ? (
                       <div className="flex items-center justify-between bg-white/20 rounded-lg p-1.5 border border-white/30">
-                        <span className={`${cardColors.textColor} font-semibold text-xs`}>🏠 Casas: {ownedCountry.houses}</span>
+                        <span className={`${cardColors.textColor} font-semibold text-xs`}>
+                          🏠 {displayedCountry?.improvement_level_1_name || 'Casas'}: {ownedCountry.houses}
+                        </span>
                         <span className={`${cardColors.textColor} opacity-90 text-xs`}>Renta: ${currentRent.toLocaleString()}</span>
                       </div>
                     ) : (
@@ -635,8 +645,12 @@ export default function CountryCarousel({
                     </p>
                     <div className="space-y-1 text-xs mb-2">
                       <p className={cardColors.textColor + ' opacity-90'}>💰 Renta: ${displayedCountry.base_rent.toLocaleString()}</p>
-                      <p className={cardColors.textColor + ' opacity-90'}>🏠 Casa: ${displayedCountry.house_price.toLocaleString()}</p>
-                      <p className={cardColors.textColor + ' opacity-90'}>🏨 Hotel: ${displayedCountry.hotel_price.toLocaleString()}</p>
+                      <p className={cardColors.textColor + ' opacity-90'}>
+                        🏠 {displayedCountry.improvement_level_1_name || 'Casa'}: ${displayedCountry.house_price.toLocaleString()}
+                      </p>
+                      <p className={cardColors.textColor + ' opacity-90'}>
+                        🏨 {displayedCountry.improvement_level_5_name || 'Hotel'}: ${displayedCountry.hotel_price.toLocaleString()}
+                      </p>
                     </div>
                     
                     {/* Botones de acción si es tu turno, la casilla está disponible y tienes dinero */}

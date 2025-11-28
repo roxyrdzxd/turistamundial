@@ -9,6 +9,8 @@ export interface Country {
   house_price: number
   hotel_price: number
   position: number
+  property_type?: string // 'city', 'stadium', 'attraction', 'transport', 'service', 'special'
+  monopoly_group?: string // Para agrupar propiedades en monopolios
 }
 
 export interface PlayerCountry {
@@ -63,30 +65,42 @@ export function calculateRent(
 }
 
 /**
- * Verifica si un jugador tiene todos los países de un continente
+ * Verifica si un jugador tiene todos los países de un continente o grupo de monopolio
  */
 export function hasMonopoly(
-  continent: string,
+  continentOrGroup: string,
   playerId: string,
   countries: Country[],
-  playerCountries: PlayerCountry[]
+  playerCountries: PlayerCountry[],
+  useMonopolyGroup: boolean = false
 ): boolean {
-  const continentCountries = countries.filter(c => c.continent === continent)
+  // Si useMonopolyGroup es true, usar monopoly_group; si no, usar continent
+  const filterKey = useMonopolyGroup ? 'monopoly_group' : 'continent'
+  const filterValue = continentOrGroup
+  
+  const groupCountries = countries.filter(c => {
+    if (useMonopolyGroup) {
+      return c.monopoly_group === filterValue && c.property_type === 'city'
+    } else {
+      return c.continent === filterValue && c.property_type === 'city'
+    }
+  })
+  
   const playerOwnedCountries = playerCountries.filter(
     pc => pc.player_id === playerId && !pc.is_mortgaged
   )
 
   const ownedCountryIds = new Set(playerOwnedCountries.map(pc => pc.country_id))
-  const continentCountryIds = new Set(continentCountries.map(c => c.id))
+  const groupCountryIds = new Set(groupCountries.map(c => c.id))
 
-  // Verificar que el jugador posee todos los países del continente
-  for (const countryId of continentCountryIds) {
+  // Verificar que el jugador posee todos los países del grupo
+  for (const countryId of groupCountryIds) {
     if (!ownedCountryIds.has(countryId)) {
       return false
     }
   }
 
-  return continentCountries.length > 0
+  return groupCountries.length > 0
 }
 
 /**
@@ -109,9 +123,12 @@ export function canBuild(
     return { canBuild: false, reason: 'El país está hipotecado' }
   }
 
-  // Verificar monopolio
-  if (!hasMonopoly(country.continent, playerId, gameState.countries, gameState.playerCountries)) {
-    return { canBuild: false, reason: 'Necesitas tener todos los países del continente' }
+  // Verificar monopolio (usar monopoly_group si existe, si no usar continent)
+  const monopolyGroup = country.monopoly_group || country.continent
+  const useMonopolyGroup = !!country.monopoly_group
+  
+  if (!hasMonopoly(monopolyGroup, playerId, gameState.countries, gameState.playerCountries, useMonopolyGroup)) {
+    return { canBuild: false, reason: 'Necesitas tener todos los países del grupo de monopolio' }
   }
 
   // Verificar límites de construcción
@@ -192,18 +209,78 @@ export function calculateToll(
     return null
   }
 
-  const rent = calculateRent(country, playerCountry)
-  
-  // Si tiene monopolio, duplicar la renta base
-  if (hasMonopoly(country.continent, ownerId, gameState.countries, gameState.playerCountries)) {
+  const propertyType = country.property_type || 'city'
+
+  // Lógica especial para transporte
+  if (propertyType === 'transport') {
+    // Contar cuántas propiedades de transporte tiene el dueño
+    const ownerTransportProperties = gameState.playerCountries.filter(
+      pc => {
+        const c = gameState.countries.find(ct => ct.id === pc.country_id)
+        return pc.player_id === ownerId && 
+               !pc.is_mortgaged && 
+               c?.property_type === 'transport'
+      }
+    )
+    
+    const transportCount = Math.min(ownerTransportProperties.length, 4) // Máximo x4
+    const multiplier = transportCount > 0 ? transportCount : 1
+    
     return {
-      amount: rent * 2,
+      amount: country.base_rent * multiplier,
       ownerId: ownerId
     }
   }
 
+  // Lógica especial para atracciones turísticas
+  if (propertyType === 'attraction') {
+    // Contar cuántas propiedades de atracciones tiene el dueño
+    const ownerAttractionProperties = gameState.playerCountries.filter(
+      pc => {
+        const c = gameState.countries.find(ct => ct.id === pc.country_id)
+        return pc.player_id === ownerId && 
+               !pc.is_mortgaged && 
+               c?.property_type === 'attraction'
+      }
+    )
+    
+    const attractionCount = Math.min(ownerAttractionProperties.length, 4) // Máximo x4
+    const multiplier = attractionCount > 0 ? attractionCount : 1
+    
+    return {
+      amount: country.base_rent * multiplier,
+      ownerId: ownerId
+    }
+  }
+
+  // Lógica para ciudades (con monopolios)
+  if (propertyType === 'city') {
+    const rent = calculateRent(country, playerCountry)
+    
+    // Verificar monopolio usando monopoly_group si existe, si no usar continent
+    const hasMonopolyGroup = country.monopoly_group && 
+      hasMonopoly(country.monopoly_group, ownerId, gameState.countries, gameState.playerCountries, true)
+    
+    const hasContinentMonopoly = !country.monopoly_group && 
+      hasMonopoly(country.continent, ownerId, gameState.countries, gameState.playerCountries, false)
+    
+    // Si tiene monopolio, duplicar la renta
+    if (hasMonopolyGroup || hasContinentMonopoly) {
+      return {
+        amount: rent * 2,
+        ownerId: ownerId
+      }
+    }
+
+    return {
+      amount: rent,
+      ownerId: ownerId
+    }
+  }
+
+  // Para otros tipos (stadium, service, special), usar renta base
   return {
-    amount: rent,
+    amount: country.base_rent || 0,
     ownerId: ownerId
   }
 }

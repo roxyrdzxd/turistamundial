@@ -45,11 +45,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No es tu turno' }, { status: 403 })
     }
 
-    // Obtener país
+    // Obtener sesión para board_id
+    const { data: session } = await supabase
+      .from('game_sessions')
+      .select('board_id')
+      .eq('id', sessionId)
+      .single()
+
+    if (!session) {
+      return NextResponse.json({ error: 'Sesión no encontrada' }, { status: 404 })
+    }
+
+    // Obtener país (filtrar por board_id)
     const { data: country, error: countryError } = await supabase
       .from('countries')
       .select('*')
       .eq('id', countryId)
+      .eq('board_id', session.board_id)
       .single()
 
     if (countryError || !country) {
@@ -135,10 +147,11 @@ export async function POST(request: Request) {
     }
 
     // Verificar si ahora tiene monopolio en el continente del país comprado
-    // Obtener todos los países para verificar monopolio
+    // Obtener todos los países del tablero para verificar monopolio
     const { data: allCountries } = await supabase
       .from('countries')
       .select('*')
+      .eq('board_id', session.board_id)
 
     // Obtener países del jugador después de la compra
     const { data: updatedPlayerCountries } = await supabase

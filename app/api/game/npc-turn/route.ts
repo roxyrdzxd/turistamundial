@@ -64,11 +64,12 @@ export async function POST(request: Request) {
       .update({ position: newPosition })
       .eq('id', currentPlayer.id)
 
-    // Obtener país en la nueva posición
+    // Obtener país en la nueva posición (filtrar por board_id de la sesión)
     const { data: countryAtPosition } = await supabase
       .from('countries')
       .select('*')
       .eq('position', newPosition)
+      .eq('board_id', session.board_id)
       .single()
 
     // Obtener países comprados
