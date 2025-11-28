@@ -1145,16 +1145,16 @@ export default function GamePage() {
             {myPlayer && (
               <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
                 <h3 className="text-xs sm:text-sm font-bold mb-1 sm:mb-2">Tu Información</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-1 gap-1.5 sm:space-y-1.5">
-                  <div>
+                <div className="flex flex-row sm:flex-col gap-2 sm:gap-1.5 sm:space-y-1.5">
+                  <div className="flex-1 sm:flex-none">
                     <p className="text-xs opacity-90">Jugador</p>
                     <p className="text-xs sm:text-sm font-semibold truncate">{myPlayer.profile.username}</p>
                   </div>
-                  <div>
+                  <div className="flex-1 sm:flex-none">
                     <p className="text-xs opacity-90">Dinero</p>
                     <p className="text-sm sm:text-base font-bold">${myPlayer.money.toLocaleString()}</p>
                   </div>
-                  <div className="col-span-2 sm:col-span-1">
+                  <div className="flex-1 sm:flex-none">
                     <p className="text-xs opacity-90">Posición</p>
                     <p className="text-xs sm:text-sm font-semibold">Casilla {myPlayer.position}</p>
                   </div>
