@@ -85,6 +85,7 @@ export default function GamePage() {
   const [showChat, setShowChat] = useState(false)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [activeDesktopTab, setActiveDesktopTab] = useState<string | null>(null)
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
   // Declarar funciones antes de usarlas en useEffect
   const fetchCountries = async () => {
@@ -822,13 +823,14 @@ export default function GamePage() {
   const myPlayer = session.players.find(p => p.user_id === currentUserId)
   const isHost = session.host_id === currentUserId
 
-  const handleClose = async () => {
+  const handleCloseClick = () => {
     if (!isHost) return
+    setShowCloseConfirm(true)
+  }
 
-    if (!confirm('¿Estás seguro de que quieres cerrar esta partida? Esta acción no se puede deshacer.')) {
-      return
-    }
-
+  const handleCloseConfirm = async () => {
+    setShowCloseConfirm(false)
+    
     try {
       const response = await fetch('/api/game/close-session', {
         method: 'POST',
@@ -897,7 +899,7 @@ export default function GamePage() {
                 </div>
                 {isHost && (
                   <button
-                    onClick={handleClose}
+                    onClick={handleCloseClick}
                     className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold text-xs shadow-md"
                     title="Cerrar partida"
                   >
@@ -1891,6 +1893,32 @@ export default function GamePage() {
                 playerCountries={playerCountries}
               />
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para cerrar partida */}
+      {showCloseConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowCloseConfirm(false)}>
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-2xl p-6 max-w-md w-full border border-white/20" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-white mb-4">¿Cerrar partida?</h2>
+            <p className="text-white/80 mb-6">
+              ¿Estás seguro de que quieres cerrar esta partida? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseConfirm}
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-2.5 px-4 rounded-lg hover:from-red-700 hover:to-red-800 transition font-semibold shadow-lg"
+              >
+                Aceptar
+              </button>
+              <button
+                onClick={() => setShowCloseConfirm(false)}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2.5 px-4 rounded-lg transition font-semibold border border-white/20"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
