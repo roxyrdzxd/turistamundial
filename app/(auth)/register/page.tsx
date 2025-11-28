@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { validateUsername } from '@/lib/utils/contentFilter'
 
 export default function RegisterPage() {
@@ -130,44 +131,52 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 overflow-hidden relative">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className={`w-full max-w-md transform transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           {/* Logo and Title */}
           <div className="text-center mb-8">
-            <div className="inline-block mb-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full blur-2xl opacity-50 animate-pulse"></div>
-              <div className="relative text-6xl animate-bounce-slow">
-                🌍
+            <div className="inline-block mb-4 relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-400 to-pink-400 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 mx-auto drop-shadow-2xl">
+                <Image
+                  src="https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/avatars/turix.png"
+                  alt="Turix Logo"
+                  width={112}
+                  height={112}
+                  className="w-full h-full object-contain animate-pulse-slow"
+                  priority
+                />
               </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold mb-2">
-              <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                Crear Cuenta
-              </span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold mb-2 text-white">
+              Crear Cuenta
             </h1>
-            <p className="text-gray-600">Únete a Turista Mundial y comienza tu aventura</p>
+            <p className="text-white/80 mb-1">Únete a</p>
+            <p className="text-lg sm:text-xl text-white/90 font-semibold uppercase tracking-wider">
+              Turix - TURISTA MUNDIAL
+            </p>
           </div>
 
           {/* Form Card */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20">
             <form onSubmit={handleRegister} className="space-y-6">
               {error && (
-                <div className={`bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-lg transform transition-all duration-300 ${error ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+                <div className={`bg-red-500/20 border-l-4 border-red-400 text-red-200 px-4 py-3 rounded-lg transform transition-all duration-300 ${error ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
                   <p className="font-semibold">Error</p>
                   <p className="text-sm">{error}</p>
                 </div>
               )}
 
               <div>
-                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="username" className="block text-sm font-semibold text-white mb-2">
                   Nombre de usuario
                 </label>
                 <input
@@ -175,14 +184,14 @@ export default function RegisterPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border-2 border-white/20 rounded-xl focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-400/30 transition-all duration-300 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/50"
                   placeholder="Tu nombre de usuario"
                 />
-                <p className="mt-1 text-xs text-gray-500">Opcional. Si no lo ingresas, se generará uno automáticamente.</p>
+                <p className="mt-1 text-xs text-white/60">Opcional. Si no lo ingresas, se generará uno automáticamente.</p>
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-semibold text-white mb-2">
                   Email
                 </label>
                 <input
@@ -191,13 +200,13 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border-2 border-white/20 rounded-xl focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-400/30 transition-all duration-300 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/50"
                   placeholder="tu@email.com"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-semibold text-white mb-2">
                   Contraseña
                 </label>
                 <input
@@ -207,16 +216,16 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border-2 border-white/20 rounded-xl focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-400/30 transition-all duration-300 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/50"
                   placeholder="Mínimo 6 caracteres"
                 />
-                <p className="mt-1 text-xs text-gray-500">La contraseña debe tener al menos 6 caracteres.</p>
+                <p className="mt-1 text-xs text-white/60">La contraseña debe tener al menos 6 caracteres.</p>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-bold shadow-lg hover:shadow-green-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 overflow-hidden"
+                className="group relative w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-bold shadow-lg hover:shadow-pink-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {loading ? (
@@ -231,17 +240,17 @@ export default function RegisterPage() {
                     </>
                   )}
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
             </form>
 
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t border-white/20"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white/80 text-gray-500">O continúa con</span>
+                <span className="px-2 bg-white/10 text-white/70">O continúa con</span>
               </div>
             </div>
 
@@ -249,7 +258,7 @@ export default function RegisterPage() {
             <button
               onClick={handleGoogleRegister}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg hover:border-gray-400 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300"
+              className="w-full flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-white py-3 px-6 rounded-xl font-semibold shadow-md hover:shadow-lg hover:border-white/30 hover:bg-white/15 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -273,11 +282,11 @@ export default function RegisterPage() {
             </button>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white/80">
                 ¿Ya tienes cuenta?{' '}
                 <Link 
                   href="/login" 
-                  className="font-semibold text-green-600 hover:text-green-700 hover:underline transition-colors"
+                  className="font-semibold text-pink-400 hover:text-pink-300 hover:underline transition-colors"
                 >
                   Inicia sesión aquí
                 </Link>
@@ -287,7 +296,7 @@ export default function RegisterPage() {
             <div className="mt-6 text-center">
               <Link 
                 href="/" 
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors inline-flex items-center gap-1"
+                className="text-sm text-white/60 hover:text-white/80 transition-colors inline-flex items-center gap-1"
               >
                 <span>←</span>
                 <span>Volver al inicio</span>
