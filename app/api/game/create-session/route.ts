@@ -37,8 +37,8 @@ export async function POST(request: Request) {
     .single()
 
   if (!existingProfile) {
-    // Si el perfil no existe, intentar crearlo usando la función SQL
-    const { error: profileError } = await supabase.rpc('ensure_user_profile', {
+    // Si el perfil no existe, intentar crearlo usando la función SQL más robusta
+    const { error: profileError } = await supabase.rpc('ensure_user_profile_safe', {
       p_user_id: user.id
     })
 

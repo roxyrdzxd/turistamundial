@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       .single()
 
     if (!existingProfile) {
-      const { error: profileError } = await supabase.rpc('ensure_user_profile', {
+      const { error: profileError } = await supabase.rpc('ensure_user_profile_safe', {
         p_user_id: user.id
       })
       if (profileError) {

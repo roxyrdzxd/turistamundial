@@ -70,10 +70,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Si el perfil no existe, crearlo primero usando ensure_user_profile
+    // Si el perfil no existe, crearlo primero usando ensure_user_profile_safe
     if (!existingProfile) {
       console.log('Profile does not exist, creating it for user:', user.id)
-      const { error: createError } = await supabase.rpc('ensure_user_profile', {
+      const { error: createError } = await supabase.rpc('ensure_user_profile_safe', {
         p_user_id: user.id
       })
 

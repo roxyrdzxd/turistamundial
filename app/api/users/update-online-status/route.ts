@@ -10,6 +10,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
+    // Asegurar que el perfil existe antes de actualizar el estado online
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (!profile) {
+      // Intentar crear el perfil si no existe
+      const { error: createError } = await supabase.rpc('ensure_user_profile_safe', {
+        p_user_id: user.id
+      })
+
+      if (createError) {
+        // Si no se puede crear, esperar un momento y reintentar
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        const { data: retryProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (!retryProfile) {
+          console.warn('[UpdateOnlineStatus] Perfil no encontrado para usuario', user.id, 'después de intentar crearlo')
+          // No retornar error, solo loguear - el perfil se creará en otro momento
+        }
+      }
+    }
+
     // Actualizar o crear estado online del usuario
     const { error: upsertError } = await supabase
       .from('user_online_status')
