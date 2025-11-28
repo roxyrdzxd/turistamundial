@@ -1767,43 +1767,43 @@ export default function GamePage() {
               return (
                 <div className="space-y-6">
                   {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
-                    <div key={groupKey} className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow-md p-4 border-2 border-blue-200">
+                    <div key={groupKey} className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-4 border-2 border-white/20">
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">🌍</span>
-                          <h3 className="font-bold text-lg text-white">{groupName}</h3>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-2xl flex-shrink-0">🌍</span>
+                          <h3 className="font-bold text-lg text-white truncate">{groupName}</h3>
                           {hasMonopoly && (
-                            <span className="bg-green-500/20 text-green-300 border border-green-400/30 px-3 py-1 rounded-full text-xs font-semibold">
+                            <span className="bg-green-500/30 text-green-100 border border-green-400/50 px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0">
                               ✅ Monopolio
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-semibold text-white bg-white/20 px-3 py-1 rounded-full border border-white/30">
+                        <span className="text-sm font-semibold text-white bg-cyan-500/30 px-3 py-1 rounded-full border border-cyan-400/50 flex-shrink-0 ml-2">
                           {ownedCount}/{totalCount}
                         </span>
                       </div>
                       {!hasMonopoly && (
-                        <div className="mb-3 p-2 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
-                          <p className="text-sm text-yellow-200 font-semibold">
+                        <div className="mb-3 p-3 bg-yellow-500/30 border border-yellow-400/50 rounded-lg">
+                          <p className="text-sm text-yellow-100 font-semibold">
                             ⚠️ Faltan {totalCount - ownedCount} {totalCount - ownedCount === 1 ? 'propiedad' : 'propiedades'} para el monopolio
                           </p>
                         </div>
                       )}
                       <div className="space-y-3">
                         {properties.map((prop: any) => (
-                          <div key={prop.id} className="bg-white/10 backdrop-blur-sm rounded-lg shadow p-4 border border-white/20">
+                          <div key={prop.id} className="bg-white/15 backdrop-blur-sm rounded-lg shadow p-4 border border-white/30">
                             <h4 className="font-bold text-base mb-2 text-white">{prop.country.name}</h4>
-                            <div className="space-y-2 text-sm text-white/80">
-                              <p>📍 Casilla {prop.country.position}</p>
-                              <p>💰 Renta base: ${prop.country.base_rent.toLocaleString()}</p>
-                              {prop.houses > 0 && <p>🏠 Casas: {prop.houses}</p>}
-                              {prop.hotels > 0 && <p>🏨 Hoteles: {prop.hotels}</p>}
-                              {prop.is_mortgaged && <p className="text-yellow-300">⚠️ Hipotecada</p>}
+                            <div className="space-y-2 text-sm">
+                              <p className="text-white/90">📍 Casilla {prop.country.position}</p>
+                              <p className="text-white/90">💰 Renta base: ${prop.country.base_rent.toLocaleString()}</p>
+                              {prop.houses > 0 && <p className="text-white/90">🏠 Casas: {prop.houses}</p>}
+                              {prop.hotels > 0 && <p className="text-white/90">🏨 Hoteles: {prop.hotels}</p>}
+                              {prop.is_mortgaged && <p className="text-yellow-200 font-semibold">⚠️ Hipotecada</p>}
                               {prop.is_for_sale && (
-                                <p className="text-purple-300">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
+                                <p className="text-purple-200 font-semibold">🏪 En venta: ${prop.sale_price?.toLocaleString()}</p>
                               )}
                             </div>
-                            <div className="mt-3 pt-3 border-t border-white/20 flex gap-2">
+                            <div className="mt-3 pt-3 border-t border-white/30 flex gap-2">
                               <BankModal
                                 property={{
                                   id: prop.id,
@@ -1828,7 +1828,7 @@ export default function GamePage() {
                               />
                               {!prop.is_mortgaged && (
                                 prop.is_for_sale ? (
-                                  <button className="flex-1 bg-red-500 text-white text-sm py-2 px-3 rounded">
+                                  <button className="flex-1 bg-red-500/80 hover:bg-red-500 text-white text-sm py-2 px-3 rounded-lg transition font-semibold">
                                     Retirar de venta
                                   </button>
                                 ) : (
