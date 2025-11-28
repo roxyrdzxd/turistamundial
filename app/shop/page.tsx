@@ -163,34 +163,34 @@ export default function ShopPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+          <p className="text-white/80">Cargando...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-20 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-6">
           <Link
             href="/wallet"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition text-sm sm:text-base"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 transition text-sm sm:text-base"
           >
             <span>←</span>
             <span>Volver a Wallet</span>
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Tienda</h1>
-              <p className="text-gray-600">Compra items con TuristaCoins</p>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Tienda</h1>
+              <p className="text-white/80">Compra items con TuristaCoins</p>
             </div>
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg">
-              <p className="text-xs text-blue-100 mb-1">Tu Balance</p>
+            <div className="bg-gradient-to-r from-cyan-600 to-pink-600 text-white px-4 py-2 rounded-lg border border-white/20">
+              <p className="text-xs text-white/80 mb-1">Tu Balance</p>
               <p className="text-2xl font-bold">{wallet?.coins.toLocaleString() || '0'} TC</p>
             </div>
           </div>
@@ -200,10 +200,10 @@ export default function ShopPage() {
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
+            className={`px-4 py-2 rounded-lg font-semibold transition border ${
               selectedCategory === null
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400/30'
+                : 'bg-white/10 text-white hover:bg-white/20 border-white/20'
             }`}
           >
             Todas
@@ -212,10 +212,10 @@ export default function ShopPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 border ${
                 selectedCategory === category
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border-cyan-400/30'
+                  : 'bg-white/10 text-white hover:bg-white/20 border-white/20'
               }`}
             >
               <span>{getCategoryIcon(category)}</span>
@@ -226,11 +226,11 @@ export default function ShopPage() {
 
         {/* Grid de items */}
         {filteredItems.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 text-center border border-white/20">
+            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-white/20">
               <span className="text-3xl">🛒</span>
             </div>
-            <p className="text-gray-600 mb-2">No hay items disponibles en esta categoría</p>
+            <p className="text-white/80 mb-2">No hay items disponibles en esta categoría</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -240,7 +240,7 @@ export default function ShopPage() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
+                  className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition border border-white/20"
                 >
                   {item.image_url ? (
                     <img
@@ -249,32 +249,32 @@ export default function ShopPage() {
                       className="w-full h-48 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                    <div className="w-full h-48 bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center border-b border-white/20">
                       <span className="text-6xl">{getCategoryIcon(item.category)}</span>
                     </div>
                   )}
                   
                   <div className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                      <h3 className="font-semibold text-white">{item.name}</h3>
+                      <span className="text-xs px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded border border-cyan-400/30">
                         {getCategoryLabel(item.category)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+                    <p className="text-sm text-white/80 mb-4">{item.description}</p>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-gray-500">Precio</p>
-                        <p className="text-xl font-bold text-green-600">{item.price_coins.toLocaleString()} TC</p>
+                        <p className="text-xs text-white/60">Precio</p>
+                        <p className="text-xl font-bold text-green-400">{item.price_coins.toLocaleString()} TC</p>
                       </div>
                       <button
                         onClick={() => purchaseItem(item)}
                         disabled={!canAfford}
                         className={`px-4 py-2 rounded-lg font-semibold transition ${
                           canAfford
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700'
+                            : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
                         }`}
                       >
                         {canAfford ? 'Comprar' : 'Insuficiente'}

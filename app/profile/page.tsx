@@ -247,19 +247,19 @@ export default function ProfilePage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 overflow-hidden relative">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-12">
@@ -268,24 +268,22 @@ export default function ProfilePage() {
           <div className="mb-8">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
+              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 transition"
             >
               <span>←</span>
               <span>Volver al Dashboard</span>
             </Link>
-            <h1 className="text-4xl sm:text-5xl font-extrabold mb-2">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Mi Perfil
-              </span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold mb-2 text-white">
+              Mi Perfil
             </h1>
-            <p className="text-gray-600">Gestiona tu información personal y avatar</p>
+            <p className="text-white/80">Gestiona tu información personal y avatar</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Avatar Section */}
             <div className="lg:col-span-1">
-              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
-                <h2 className="text-xl font-bold mb-6 text-gray-800">Avatar</h2>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
+                <h2 className="text-xl font-bold mb-6 text-white">Avatar</h2>
                 
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
@@ -320,12 +318,12 @@ export default function ProfilePage() {
                   <button
                     onClick={handleAvatarClick}
                     disabled={uploading}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-pink-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                   >
                     {uploading ? 'Subiendo...' : 'Cambiar Avatar'}
                   </button>
 
-                  <p className="mt-4 text-xs text-gray-500 text-center">
+                  <p className="mt-4 text-xs text-white/60 text-center">
                     Formatos: JPG, PNG, GIF<br />
                     Tamaño máximo: 5MB
                   </p>
@@ -335,12 +333,12 @@ export default function ProfilePage() {
 
             {/* Profile Info Section */}
             <div className="lg:col-span-2">
-              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
-                <h2 className="text-xl font-bold mb-6 text-gray-800">Información Personal</h2>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
+                <h2 className="text-xl font-bold mb-6 text-white">Información Personal</h2>
 
                 <form onSubmit={handleUpdateUsername} className="space-y-6">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-semibold text-white mb-2">
                       Email
                     </label>
                     <input
@@ -348,13 +346,13 @@ export default function ProfilePage() {
                       type="email"
                       value={user?.email || ''}
                       disabled
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+                      className="w-full px-4 py-3 border-2 border-white/20 rounded-xl bg-white/5 text-white/50 cursor-not-allowed"
                     />
-                    <p className="mt-1 text-xs text-gray-500">El email no se puede cambiar</p>
+                    <p className="mt-1 text-xs text-white/60">El email no se puede cambiar</p>
                   </div>
 
                   <div>
-                    <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="username" className="block text-sm font-semibold text-white mb-2">
                       Nombre de Usuario
                     </label>
                     <input
@@ -365,10 +363,10 @@ export default function ProfilePage() {
                       required
                       minLength={3}
                       maxLength={20}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                      className="w-full px-4 py-3 border-2 border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all duration-300 bg-white/10 backdrop-blur-sm text-white placeholder:text-white/50"
                       placeholder="Tu nombre de usuario"
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-white/60">
                       {username.length}/20 caracteres
                     </p>
                   </div>
@@ -376,7 +374,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={loading || !username.trim()}
-                    className="group relative w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 px-6 rounded-xl font-bold shadow-lg hover:shadow-blue-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 overflow-hidden"
+                    className="group relative w-full bg-gradient-to-r from-cyan-500 to-pink-600 text-white py-3 px-6 rounded-xl font-bold shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 overflow-hidden"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       {loading ? (
@@ -391,14 +389,14 @@ export default function ProfilePage() {
                         </>
                       )}
                     </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-cyan-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   </button>
                 </form>
 
                 {/* Account Info */}
-                <div className="mt-8 pt-8 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">Información de la Cuenta</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
+                <div className="mt-8 pt-8 border-t border-white/20">
+                  <h3 className="text-lg font-semibold mb-4 text-white">Información de la Cuenta</h3>
+                  <div className="space-y-2 text-sm text-white/80">
                     <p>
                       <span className="font-semibold">ID de Usuario:</span>{' '}
                       <span className="font-mono text-xs">{user?.id}</span>
@@ -416,12 +414,12 @@ export default function ProfilePage() {
           {/* Purchased Avatars Section */}
           {purchasedAvatars.length > 0 && (
             <div className="mt-8">
-              <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-800">Avatares Comprados</h2>
+                  <h2 className="text-xl font-bold text-white">Avatares Comprados</h2>
                   <Link
                     href="/shop"
-                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
+                    className="text-sm text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
                   >
                     Ver Tienda →
                   </Link>
@@ -431,10 +429,10 @@ export default function ProfilePage() {
                   {purchasedAvatars.map((avatar) => (
                     <div
                       key={avatar.id}
-                      className={`bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 ${
+                      className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 ${
                         avatar.is_equipped
-                          ? 'border-green-500 shadow-lg'
-                          : 'border-gray-200'
+                          ? 'border-green-400 shadow-lg bg-green-500/10'
+                          : 'border-white/20'
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-3">
@@ -450,16 +448,16 @@ export default function ProfilePage() {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-900 text-sm">{avatar.item.name}</h3>
+                          <h3 className="font-bold text-white text-sm">{avatar.item.name}</h3>
                           {avatar.is_equipped && (
-                            <span className="inline-block mt-1 px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded">
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-semibold rounded border border-green-400/30">
                               Equipado
                             </span>
                           )}
                         </div>
                       </div>
                       
-                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                      <p className="text-xs text-white/70 mb-3 line-clamp-2">
                         {avatar.item.description}
                       </p>
                       
@@ -468,10 +466,10 @@ export default function ProfilePage() {
                         disabled={avatar.is_equipped || equipping === avatar.item.id}
                         className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition ${
                           avatar.is_equipped
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
                             : equipping === avatar.item.id
-                            ? 'bg-blue-300 text-blue-700 cursor-wait'
-                            : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-md'
+                            ? 'bg-cyan-500/20 text-cyan-300 cursor-wait border border-cyan-400/30'
+                            : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 shadow-md'
                         }`}
                       >
                         {equipping === avatar.item.id

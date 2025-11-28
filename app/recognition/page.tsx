@@ -156,14 +156,14 @@ export default function RecognitionPage() {
     type: string
     icon: string
   }) => (
-    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+    <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 border border-white/20">
       <div className="flex items-center gap-3 mb-4">
         <span className="text-3xl">{icon}</span>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-white">{title}</h2>
       </div>
 
       {entries.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-white/60">
           <p>No hay datos disponibles aún</p>
         </div>
       ) : (
@@ -171,7 +171,7 @@ export default function RecognitionPage() {
           {entries.map((entry) => (
             <div
               key={`${type}-${entry.userId}`}
-              className={`flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r ${getRankColor(entry.rank)} text-white transition transform hover:scale-105`}
+              className={`flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r ${getRankColor(entry.rank)} text-white transition transform hover:scale-105 border border-white/20`}
             >
               <div className="text-xl font-bold w-10 text-center">
                 {getRankIcon(entry.rank)}
@@ -208,33 +208,33 @@ export default function RecognitionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando rankings...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+          <p className="text-white/80">Cargando rankings...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-20 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 pb-20 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition text-sm sm:text-base"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 transition text-sm sm:text-base"
           >
             <span>←</span>
             <span>Volver al Dashboard</span>
           </Link>
           <div className="text-center mb-6">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2">
               🏆 Salón de la Fama
             </h1>
-            <p className="text-gray-600 text-lg">
-              Reconocemos a los mejores jugadores de Turista Mundial
+            <p className="text-white/80 text-lg">
+              Reconocemos a los mejores jugadores de Turix
             </p>
           </div>
         </div>

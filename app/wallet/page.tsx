@@ -90,17 +90,17 @@ export default function WalletPage() {
         <div className="mb-6">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition text-sm sm:text-base"
+            className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-4 transition text-sm sm:text-base"
           >
             <span>←</span>
             <span>Volver al Dashboard</span>
           </Link>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Mi Wallet</h1>
-          <p className="text-gray-600">Gestiona tus TuristaCoins</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Mi Wallet</h1>
+          <p className="text-white/80">Gestiona tus TuristaCoins</p>
         </div>
 
         {/* Balance Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-2xl p-6 sm:p-8 mb-6 text-white">
+        <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-pink-600 rounded-xl shadow-2xl p-6 sm:p-8 mb-6 text-white">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-blue-100 text-sm sm:text-base mb-2">Balance Actual</p>
@@ -127,59 +127,59 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Link
             href="/missions"
-            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-transparent hover:border-blue-300"
+            className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-white/20 hover:border-cyan-400"
           >
             <div className="text-4xl mb-2">🎯</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Misiones</h3>
-            <p className="text-sm text-gray-600">Gana coins</p>
+            <h3 className="font-semibold text-white mb-1">Misiones</h3>
+            <p className="text-sm text-white/70">Gana coins</p>
           </Link>
           <Link
             href="/shop"
-            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-transparent hover:border-purple-300"
+            className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-white/20 hover:border-pink-400"
           >
             <div className="text-4xl mb-2">🛒</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Tienda</h3>
-            <p className="text-sm text-gray-600">Gasta coins</p>
+            <h3 className="font-semibold text-white mb-1">Tienda</h3>
+            <p className="text-sm text-white/70">Gasta coins</p>
           </Link>
           <Link
             href="/recognition"
-            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-transparent hover:border-yellow-300"
+            className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-white/20 hover:border-yellow-400"
           >
             <div className="text-4xl mb-2">🏆</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Rankings</h3>
-            <p className="text-sm text-gray-600">Salón de la Fama</p>
+            <h3 className="font-semibold text-white mb-1">Rankings</h3>
+            <p className="text-sm text-white/70">Salón de la Fama</p>
           </Link>
           <Link
             href="/referrals"
-            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-transparent hover:border-green-300"
+            className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition text-center border-2 border-white/20 hover:border-green-400"
           >
             <div className="text-4xl mb-2">👥</div>
-            <h3 className="font-semibold text-gray-900 mb-1">Referidos</h3>
-            <p className="text-sm text-gray-600">Invita amigos</p>
+            <h3 className="font-semibold text-white mb-1">Referidos</h3>
+            <p className="text-sm text-white/70">Invita amigos</p>
           </Link>
         </div>
 
         {/* Historial de Transacciones */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Historial de Transacciones</h2>
+        <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 border border-white/20">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-white">Historial de Transacciones</h2>
           {transactions.length === 0 ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-white/20">
                 <span className="text-3xl">📝</span>
               </div>
-              <p className="text-gray-600 mb-2">No hay transacciones aún</p>
-              <p className="text-sm text-gray-500">Completa misiones para empezar a ganar TuristaCoins</p>
+              <p className="text-white/80 mb-2">No hay transacciones aún</p>
+              <p className="text-sm text-white/60">Completa misiones para empezar a ganar TuristaCoins</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {transactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition border border-white/10"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{transaction.description}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-white truncate">{transaction.description}</p>
+                    <p className="text-xs text-white/60">
                       {new Date(transaction.created_at).toLocaleString('es-ES', {
                         year: 'numeric',
                         month: 'short',
@@ -190,15 +190,15 @@ export default function WalletPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-lg font-bold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`text-lg font-bold ${transaction.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {transaction.amount > 0 ? '+' : ''}{transaction.amount.toLocaleString()} TC
                     </span>
                     <span className={`text-xs px-2 py-1 rounded ${
-                      transaction.type === 'mission' ? 'bg-blue-100 text-blue-700' :
-                      transaction.type === 'achievement' ? 'bg-purple-100 text-purple-700' :
-                      transaction.type === 'referral' ? 'bg-green-100 text-green-700' :
-                      transaction.type === 'purchase_item' ? 'bg-orange-100 text-orange-700' :
-                      'bg-gray-100 text-gray-700'
+                      transaction.type === 'mission' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30' :
+                      transaction.type === 'achievement' ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' :
+                      transaction.type === 'referral' ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
+                      transaction.type === 'purchase_item' ? 'bg-orange-500/20 text-orange-300 border border-orange-400/30' :
+                      'bg-white/10 text-white/70 border border-white/20'
                     }`}>
                       {transaction.type}
                     </span>
