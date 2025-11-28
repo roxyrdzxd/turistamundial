@@ -46,10 +46,10 @@ export default function DiceAnimation({ onComplete, result, die1, die2 }: DiceAn
       }
     }, 2500)
 
-    // Cerrar automáticamente después de 4 segundos totales (1.5 segundos mostrando el resultado)
+    // Cerrar automáticamente después de 8 segundos totales (5.5 segundos mostrando el resultado)
     const completeTimer = setTimeout(() => {
       handleClose()
-    }, 4000)
+    }, 8000)
 
     return () => {
       clearTimeout(showResultTimer)
@@ -84,28 +84,28 @@ export default function DiceAnimation({ onComplete, result, die1, die2 }: DiceAn
         {/* Resultado de los dados - overlay pequeño */}
         {showResult && result && (
           <div className="absolute inset-0 flex items-center justify-center animate-scaleIn" onClick={handleResultClick}>
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg p-3 shadow-2xl border-2 border-white cursor-pointer hover:scale-105 transition-transform scale-90">
+            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg p-2 shadow-2xl border-2 border-white cursor-pointer hover:scale-105 transition-transform scale-75">
               <div className="text-center">
                 {die1 && die2 ? (
-                  <div className="flex items-center justify-center gap-1.5 mb-1.5">
-                    <div className="bg-white rounded-lg w-9 h-9 flex items-center justify-center shadow-md">
-                      <span className="text-xl font-bold text-blue-600">{die1}</span>
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <div className="bg-white rounded-lg w-7 h-7 flex items-center justify-center shadow-md">
+                      <span className="text-base font-bold text-blue-600">{die1}</span>
                     </div>
-                    <span className="text-white text-lg font-bold">+</span>
-                    <div className="bg-white rounded-lg w-9 h-9 flex items-center justify-center shadow-md">
-                      <span className="text-xl font-bold text-blue-600">{die2}</span>
+                    <span className="text-white text-sm font-bold">+</span>
+                    <div className="bg-white rounded-lg w-7 h-7 flex items-center justify-center shadow-md">
+                      <span className="text-base font-bold text-blue-600">{die2}</span>
                     </div>
-                    <span className="text-white text-lg font-bold">=</span>
-                    <div className="bg-yellow-400 rounded-lg w-10 h-10 flex items-center justify-center shadow-md border-2 border-white">
-                      <span className="text-2xl font-bold text-gray-900">{result}</span>
+                    <span className="text-white text-sm font-bold">=</span>
+                    <div className="bg-yellow-400 rounded-lg w-8 h-8 flex items-center justify-center shadow-md border-2 border-white">
+                      <span className="text-lg font-bold text-gray-900">{result}</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-yellow-400 rounded-lg w-12 h-12 flex items-center justify-center shadow-md border-2 border-white mx-auto mb-1.5">
-                    <span className="text-3xl font-bold text-gray-900">{result}</span>
+                  <div className="bg-yellow-400 rounded-lg w-9 h-9 flex items-center justify-center shadow-md border-2 border-white mx-auto mb-1">
+                    <span className="text-xl font-bold text-gray-900">{result}</span>
                   </div>
                 )}
-                <p className="text-white text-xs font-semibold">
+                <p className="text-white text-[10px] font-semibold">
                   {result} espacios
                 </p>
               </div>
