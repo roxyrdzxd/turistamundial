@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/contexts/ToastContext'
 import Link from 'next/link'
+import ShopItemImage from '@/components/shop/ShopItemImage'
 
 interface ShopItem {
   id: string
@@ -242,17 +243,11 @@ export default function ShopPage() {
                   key={item.id}
                   className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition border border-white/20"
                 >
-                  {item.image_url ? (
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center border-b border-white/20">
-                      <span className="text-6xl">{getCategoryIcon(item.category)}</span>
-                    </div>
-                  )}
+                  <ShopItemImage
+                    imageUrl={item.image_url}
+                    category={item.category}
+                    fallbackIcon={getCategoryIcon(item.category)}
+                  />
                   
                   <div className="p-4">
                     <div className="flex items-start justify-between mb-2">
