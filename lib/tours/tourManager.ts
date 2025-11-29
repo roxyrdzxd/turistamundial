@@ -23,7 +23,8 @@ export class TourManager {
     this.driver = driver({
       showProgress: true,
       allowClose: true,
-      overlayOpacity: 0.75,
+      overlayOpacity: 0.6,
+      smoothScroll: false,
       steps: steps.map((step, index) => ({
         element: step.element,
         popover: {

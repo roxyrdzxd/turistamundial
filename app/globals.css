@@ -236,13 +236,14 @@ body {
   transform: scale(0.95) !important;
 }
 
-/* Overlay del tour - Más oscuro para destacar mejor */
+/* Overlay del tour - Sin blur para que el elemento se vea nítido */
 .driver-overlay {
-  background: rgba(0, 0, 0, 0.85) !important;
-  backdrop-filter: blur(4px) !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-/* Highlight del elemento - MUY VISIBLE */
+/* Highlight del elemento - NÍTIDO Y MUY VISIBLE */
 .driver-highlighted-element {
   border: 8px solid #06b6d4 !important;
   box-shadow: 
@@ -260,6 +261,14 @@ body {
   transition: all 0.3s ease !important;
   background: rgba(6, 182, 212, 0.15) !important;
   animation: highlight-pulse 2s ease-in-out infinite !important;
+  /* Asegurar que no haya blur ni filtros */
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* Asegurar que el contenido sea nítido */
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
 }
 
 .driver-highlighted-element::before {
