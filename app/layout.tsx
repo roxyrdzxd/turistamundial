@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Analytics } from "@vercel/analytics/react";
+import PWAInstallButton from "@/components/PWAInstallButton";
 
 export const metadata: Metadata = {
   title: "Turix - Turista Mundial Virtual",
@@ -66,6 +67,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ToastProvider>
           {children}
+          <PWAInstallButton />
         </ToastProvider>
         <Analytics />
       </body>
