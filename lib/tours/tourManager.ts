@@ -24,7 +24,7 @@ export class TourManager {
       showProgress: true,
       allowClose: true,
       overlayOpacity: 0.75,
-      steps: steps.map(step => ({
+      steps: steps.map((step, index) => ({
         element: step.element,
         popover: {
           title: step.popover.title,
@@ -34,11 +34,22 @@ export class TourManager {
           className: 'turix-tour-popover',
           closeBtnText: '✕',
           showButtons: ['next', 'previous'],
+          nextBtnText: index === steps.length - 1 ? 'Done' : 'Next →',
+          prevBtnText: '← Previous',
           onNextClick: () => {
-            this.driver.moveNext()
+            if (index === steps.length - 1) {
+              // Último paso: cerrar el tour
+              this.driver.destroy()
+            } else {
+              this.driver.moveNext()
+            }
           },
           onPrevClick: () => {
             this.driver.movePrevious()
+          },
+          onCloseClick: () => {
+            // Cerrar el tour cuando se hace clic en la X
+            this.driver.destroy()
           },
         },
       })),
