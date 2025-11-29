@@ -131,7 +131,7 @@ class PushManager {
         const applicationServerKey = this.urlBase64ToUint8Array(vapidPublicKey)
         subscription = await this.registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: applicationServerKey
+          applicationServerKey: applicationServerKey as BufferSource
         })
       }
 
