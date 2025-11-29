@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/contexts/ToastContext'
+import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 
 interface PurchasedAvatar {
   id: string
@@ -328,23 +329,16 @@ export default function ProfilePage() {
                 
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 p-1">
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center text-4xl">
-                          {username ? username.charAt(0).toUpperCase() : '👤'}
-                        </div>
-                      )}
-                    </div>
-                    {uploading && (
-                      <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                    {uploading ? (
+                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                       </div>
+                    ) : (
+                      <AvatarDisplay 
+                        avatarUrl={avatarUrl} 
+                        username={username}
+                        size="md"
+                      />
                     )}
                   </div>
 
@@ -477,17 +471,12 @@ export default function ProfilePage() {
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center overflow-hidden">
-                          {avatar.item.image_url ? (
-                            <img
-                              src={avatar.item.image_url}
-                              alt={avatar.item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-2xl">⭐</span>
-                          )}
-                        </div>
+                        <AvatarDisplay
+                          avatarUrl={avatar.item.image_url}
+                          username={avatar.item.name}
+                          size="sm"
+                          className="flex-shrink-0"
+                        />
                         <div className="flex-1">
                           <h3 className="font-bold text-white text-sm">{avatar.item.name}</h3>
                           {avatar.is_equipped && (
