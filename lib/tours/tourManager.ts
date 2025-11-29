@@ -67,7 +67,7 @@ export class TourManager {
 
   static isTourCompleted(tourId: string): boolean {
     if (typeof window === 'undefined') return false
-    const completedTours = this.getCompletedTours()
+    const completedTours = TourManager.getCompletedTours()
     return completedTours.includes(tourId)
   }
 
@@ -83,7 +83,7 @@ export class TourManager {
 
   static resetTour(tourId: string) {
     if (typeof window === 'undefined') return
-    const completedTours = this.getCompletedTours()
+    const completedTours = TourManager.getCompletedTours()
     const filtered = completedTours.filter(id => id !== tourId)
     localStorage.setItem('turix_completed_tours', JSON.stringify(filtered))
   }
