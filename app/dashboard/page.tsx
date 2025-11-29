@@ -6,6 +6,8 @@ import LogoutButton from '@/components/auth/LogoutButton'
 import DashboardSocial from '@/components/dashboard/DashboardSocial'
 import FloatingCreateButton from '@/components/dashboard/FloatingCreateButton'
 import NotificationPrompt from '@/components/notifications/NotificationPrompt'
+import DashboardTour from '@/components/tours/DashboardTour'
+import TourButton from '@/components/tours/TourButton'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -52,8 +54,55 @@ export default async function DashboardPage() {
 
             {/* Acciones del usuario */}
             <div className="flex items-center gap-2 sm:gap-3">
+              <TourButton
+                tourId="dashboard"
+                steps={[
+                  {
+                    element: '[data-tour="welcome"]',
+                    popover: {
+                      title: '👋 ¡Bienvenido a Turix!',
+                      description: 'Este es tu panel principal. Desde aquí podrás crear partidas, buscar juegos disponibles y gestionar tu cuenta.',
+                    },
+                  },
+                  {
+                    element: '[data-tour="create-game"]',
+                    popover: {
+                      title: '➕ Crear Partida',
+                      description: 'Haz clic aquí para crear una nueva partida. Podrás elegir el tablero, número de jugadores y agregar NPCs si lo deseas.',
+                      side: 'right',
+                    },
+                  },
+                  {
+                    element: '[data-tour="find-game"]',
+                    popover: {
+                      title: '🔍 Buscar Partidas',
+                      description: 'Encuentra partidas disponibles creadas por otros jugadores y únete rápidamente.',
+                      side: 'right',
+                    },
+                  },
+                  {
+                    element: '[data-tour="wallet"]',
+                    popover: {
+                      title: '💰 Tu Wallet',
+                      description: 'Gestiona tus TuristaCoins, compra avatares y personaliza tu experiencia.',
+                    },
+                  },
+                  {
+                    element: '[data-tour="profile"]',
+                    popover: {
+                      title: '👤 Tu Perfil',
+                      description: 'Personaliza tu nombre de usuario, avatar y revisa tus estadísticas.',
+                    },
+                  },
+                ]}
+                className="p-2 sm:px-3 sm:py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md border border-cyan-400/30"
+              >
+                <span className="hidden sm:inline">📖 Guía</span>
+                <span className="sm:hidden">📖</span>
+              </TourButton>
               <Link
                 href="/wallet"
+                data-tour="wallet"
                 className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Mi Wallet"
               >
@@ -78,6 +127,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/profile"
+                data-tour="profile"
                 className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Mi Perfil"
               >
@@ -94,7 +144,10 @@ export default async function DashboardPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Card */}
-        <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-pink-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
+        <div 
+          data-tour="welcome"
+          className="bg-gradient-to-r from-cyan-600 via-blue-600 to-pink-600 rounded-2xl shadow-xl p-8 mb-8 text-white"
+        >
           <h2 className="text-3xl font-bold mb-2">
             ¡Bienvenido, {profile?.username || 'Usuario'}! 👋
           </h2>
@@ -112,6 +165,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Link
             href="/lobby/create"
+            data-tour="create-game"
             className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-cyan-400"
           >
             <div className="flex items-center gap-4 mb-4">
@@ -130,6 +184,7 @@ export default async function DashboardPage() {
 
           <Link
             href="/lobby"
+            data-tour="find-game"
             className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-pink-400"
           >
             <div className="flex items-center gap-4 mb-4">
@@ -233,6 +288,9 @@ export default async function DashboardPage() {
 
       {/* Botón flotante para crear partida (solo móvil) */}
       <FloatingCreateButton />
+
+      {/* Tour del Dashboard */}
+      <DashboardTour />
     </div>
   )
 }
