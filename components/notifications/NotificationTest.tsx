@@ -22,15 +22,22 @@ export default function NotificationTest() {
       }
 
       setDiagnostics(data)
+      console.log('[NotificationTest] Diagnóstico completo:', data)
       
-      if (data.testResult && data.testResult.success > 0) {
-        toast.showToast('✅ Notificación de prueba enviada. Revisa tu dispositivo.', 'success')
+      if (data.testResult) {
+        if (data.testResult.sent > 0) {
+          toast.showToast('✅ Notificación enviada. Si no la ves, minimiza la ventana o revisa permisos del navegador.', 'success')
+        } else if (data.testResult.failed > 0) {
+          toast.showToast('⚠️ Error al enviar notificación. Revisa los logs del servidor.', 'error')
+        } else {
+          toast.showToast('ℹ️ Notificación procesada. Revisa la consola del Service Worker.', 'info')
+        }
       } else if (data.subscriptionCount === 0) {
         toast.showToast('⚠️ No tienes suscripciones activas. Activa las notificaciones primero.', 'warning')
       } else if (!data.configured) {
         toast.showToast('⚠️ Las claves VAPID no están configuradas en el servidor.', 'warning')
       } else {
-        toast.showToast('⚠️ La notificación no se pudo enviar. Revisa los detalles.', 'warning')
+        toast.showToast('⚠️ No se pudo enviar la notificación. Revisa los detalles.', 'warning')
       }
     } catch (error: any) {
       console.error('[NotificationTest] Error:', error)

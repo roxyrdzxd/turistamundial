@@ -26,6 +26,8 @@ export async function POST(request: Request) {
     // Enviar notificación de prueba
     let testResult = null
     if (isConfigured && subscriptions.length > 0) {
+      console.log('[Test] Enviando notificación de prueba a usuario:', user.id)
+      console.log('[Test] Suscripciones encontradas:', subscriptions.length)
       testResult = await notificationService.sendToUser(user.id, {
         title: '🧪 Notificación de Prueba',
         body: 'Si ves esto, las notificaciones están funcionando correctamente.',
@@ -33,6 +35,9 @@ export async function POST(request: Request) {
         tag: 'test-notification',
         requireInteraction: false,
       })
+      console.log('[Test] Resultado del envío:', testResult)
+    } else {
+      console.log('[Test] No se puede enviar - Configurado:', isConfigured, 'Suscripciones:', subscriptions.length)
     }
 
     return NextResponse.json({
