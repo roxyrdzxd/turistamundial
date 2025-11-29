@@ -59,7 +59,7 @@ export class TourManager {
 
   private markAsCompleted() {
     if (typeof window !== 'undefined') {
-      const completedTours = this.getCompletedTours()
+      const completedTours = TourManager.getCompletedTours()
       completedTours.push(this.tourId)
       localStorage.setItem('turix_completed_tours', JSON.stringify(completedTours))
     }
