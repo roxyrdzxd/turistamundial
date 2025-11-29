@@ -177,12 +177,22 @@ body {
   cursor: pointer !important;
   transition: all 0.3s ease !important;
   font-size: 0.9rem !important;
+  min-width: 80px !important;
 }
 
 .turix-tour-popover .driver-popover-footer button:hover {
   background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%) !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4) !important;
+}
+
+.turix-tour-popover .driver-popover-footer button:active {
+  transform: translateY(0) !important;
+}
+
+.turix-tour-popover .driver-popover-footer button.driver-popover-next-btn.driver-popover-btn-disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
 }
 
 .turix-tour-popover .driver-popover-footer button.driver-popover-prev-btn {
@@ -200,14 +210,30 @@ body {
 }
 
 .turix-tour-popover .driver-popover-close-btn {
-  color: rgba(255, 255, 255, 0.8) !important;
-  font-size: 1.5rem !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 1.8rem !important;
   top: 12px !important;
   right: 12px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  z-index: 10001 !important;
 }
 
 .turix-tour-popover .driver-popover-close-btn:hover {
   color: white !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.1) !important;
+}
+
+.turix-tour-popover .driver-popover-close-btn:active {
+  transform: scale(0.95) !important;
 }
 
 /* Overlay del tour */
@@ -216,10 +242,44 @@ body {
   backdrop-filter: blur(2px) !important;
 }
 
-/* Highlight del elemento */
+/* Highlight del elemento - Más visible */
 .driver-highlighted-element {
-  border: 3px solid #06b6d4 !important;
-  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.3), 0 0 30px rgba(6, 182, 212, 0.5) !important;
-  border-radius: 12px !important;
+  border: 5px solid #06b6d4 !important;
+  box-shadow: 
+    0 0 0 6px rgba(6, 182, 212, 0.4),
+    0 0 0 12px rgba(6, 182, 212, 0.2),
+    0 0 40px rgba(6, 182, 212, 0.8),
+    0 0 80px rgba(6, 182, 212, 0.4),
+    inset 0 0 20px rgba(6, 182, 212, 0.3) !important;
+  border-radius: 16px !important;
+  position: relative !important;
+  z-index: 10000 !important;
+  transform: scale(1.02) !important;
+  transition: all 0.3s ease !important;
+  background: rgba(6, 182, 212, 0.05) !important;
+}
+
+.driver-highlighted-element::before {
+  content: '' !important;
+  position: absolute !important;
+  top: -8px !important;
+  left: -8px !important;
+  right: -8px !important;
+  bottom: -8px !important;
+  border: 2px solid rgba(6, 182, 212, 0.6) !important;
+  border-radius: 20px !important;
+  animation: pulse-border 2s ease-in-out infinite !important;
+  pointer-events: none !important;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
 }
 

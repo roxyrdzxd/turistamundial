@@ -22,6 +22,8 @@ export class TourManager {
 
     this.driver = driver({
       showProgress: true,
+      allowClose: true,
+      overlayOpacity: 0.75,
       steps: steps.map(step => ({
         element: step.element,
         popover: {
@@ -30,9 +32,24 @@ export class TourManager {
           side: step.popover.side || 'bottom',
           align: step.popover.align || 'start',
           className: 'turix-tour-popover',
+          closeBtnText: '✕',
+          showButtons: ['next', 'previous'],
+          onNextClick: () => {
+            this.driver.moveNext()
+          },
+          onPrevClick: () => {
+            this.driver.movePrevious()
+          },
         },
       })),
       onDestroyStarted: () => {
+        this.markAsCompleted()
+        if (this.onComplete) {
+          this.onComplete()
+        }
+      },
+      onDestroyed: () => {
+        // Asegurar que el tour se cierre completamente
         this.markAsCompleted()
         if (this.onComplete) {
           this.onComplete()
