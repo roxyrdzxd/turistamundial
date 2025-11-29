@@ -6,6 +6,7 @@ import LogoutButton from '@/components/auth/LogoutButton'
 import DashboardSocial from '@/components/dashboard/DashboardSocial'
 import FloatingCreateButton from '@/components/dashboard/FloatingCreateButton'
 import NotificationPrompt from '@/components/notifications/NotificationPrompt'
+import NotificationTest from '@/components/notifications/NotificationTest'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -106,6 +107,11 @@ export default async function DashboardPage() {
         {/* Notification Prompt */}
         <div className="mb-8">
           <NotificationPrompt />
+        </div>
+
+        {/* Notification Test */}
+        <div className="mb-8">
+          <NotificationTest />
         </div>
 
         {/* Action Cards */}
