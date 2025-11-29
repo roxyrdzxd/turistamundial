@@ -236,50 +236,103 @@ body {
   transform: scale(0.95) !important;
 }
 
-/* Overlay del tour */
+/* Overlay del tour - Más oscuro para destacar mejor */
 .driver-overlay {
-  background: rgba(0, 0, 0, 0.75) !important;
-  backdrop-filter: blur(2px) !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
-/* Highlight del elemento - Más visible */
+/* Highlight del elemento - MUY VISIBLE */
 .driver-highlighted-element {
-  border: 5px solid #06b6d4 !important;
+  border: 8px solid #06b6d4 !important;
   box-shadow: 
-    0 0 0 6px rgba(6, 182, 212, 0.4),
-    0 0 0 12px rgba(6, 182, 212, 0.2),
-    0 0 40px rgba(6, 182, 212, 0.8),
-    0 0 80px rgba(6, 182, 212, 0.4),
-    inset 0 0 20px rgba(6, 182, 212, 0.3) !important;
-  border-radius: 16px !important;
+    0 0 0 8px rgba(6, 182, 212, 0.6),
+    0 0 0 16px rgba(6, 182, 212, 0.4),
+    0 0 0 24px rgba(6, 182, 212, 0.2),
+    0 0 60px rgba(6, 182, 212, 1),
+    0 0 120px rgba(6, 182, 212, 0.8),
+    0 0 180px rgba(6, 182, 212, 0.4),
+    inset 0 0 30px rgba(6, 182, 212, 0.5) !important;
+  border-radius: 20px !important;
   position: relative !important;
   z-index: 10000 !important;
-  transform: scale(1.02) !important;
+  transform: scale(1.05) !important;
   transition: all 0.3s ease !important;
-  background: rgba(6, 182, 212, 0.05) !important;
+  background: rgba(6, 182, 212, 0.15) !important;
+  animation: highlight-pulse 2s ease-in-out infinite !important;
 }
 
 .driver-highlighted-element::before {
   content: '' !important;
   position: absolute !important;
-  top: -8px !important;
-  left: -8px !important;
-  right: -8px !important;
-  bottom: -8px !important;
-  border: 2px solid rgba(6, 182, 212, 0.6) !important;
-  border-radius: 20px !important;
-  animation: pulse-border 2s ease-in-out infinite !important;
+  top: -12px !important;
+  left: -12px !important;
+  right: -12px !important;
+  bottom: -12px !important;
+  border: 4px solid rgba(6, 182, 212, 0.8) !important;
+  border-radius: 24px !important;
+  animation: pulse-border 1.5s ease-in-out infinite !important;
   pointer-events: none !important;
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.6) !important;
+}
+
+.driver-highlighted-element::after {
+  content: '' !important;
+  position: absolute !important;
+  top: -20px !important;
+  left: -20px !important;
+  right: -20px !important;
+  bottom: -20px !important;
+  border: 2px solid rgba(6, 182, 212, 0.4) !important;
+  border-radius: 28px !important;
+  animation: pulse-outer 2s ease-in-out infinite !important;
+  pointer-events: none !important;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 8px rgba(6, 182, 212, 0.6),
+      0 0 0 16px rgba(6, 182, 212, 0.4),
+      0 0 0 24px rgba(6, 182, 212, 0.2),
+      0 0 60px rgba(6, 182, 212, 1),
+      0 0 120px rgba(6, 182, 212, 0.8),
+      0 0 180px rgba(6, 182, 212, 0.4),
+      inset 0 0 30px rgba(6, 182, 212, 0.5) !important;
+  }
+  50% {
+    box-shadow: 
+      0 0 0 10px rgba(6, 182, 212, 0.8),
+      0 0 0 20px rgba(6, 182, 212, 0.6),
+      0 0 0 30px rgba(6, 182, 212, 0.4),
+      0 0 80px rgba(6, 182, 212, 1.2),
+      0 0 150px rgba(6, 182, 212, 1),
+      0 0 220px rgba(6, 182, 212, 0.6),
+      inset 0 0 40px rgba(6, 182, 212, 0.7) !important;
+  }
 }
 
 @keyframes pulse-border {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.6) !important;
   }
   50% {
-    opacity: 0.5;
-    transform: scale(1.05);
+    opacity: 0.7;
+    transform: scale(1.08);
+    box-shadow: 0 0 60px rgba(6, 182, 212, 0.9) !important;
+  }
+}
+
+@keyframes pulse-outer {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.12);
   }
 }
 
