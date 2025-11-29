@@ -45,6 +45,23 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Turix" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="Turix" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                      console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                      console.log('SW registration failed: ', registrationError);
+                    });
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body suppressHydrationWarning>
         <ToastProvider>
