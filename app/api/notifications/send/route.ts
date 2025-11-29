@@ -6,8 +6,8 @@ export async function POST(request: Request) {
     // Este endpoint es para uso interno, podría requerir autenticación especial
     // Por ahora, lo dejamos abierto pero solo se debe llamar desde el servidor
 
-    const body = await request.json()
-    const { userId, userIds, title, body, icon, badge, tag, url, requireInteraction, data } = body
+    const requestBody = await request.json()
+    const { userId, userIds, title, body, icon, badge, tag, url, requireInteraction, data } = requestBody
 
     if (!title || !body) {
       return NextResponse.json(
