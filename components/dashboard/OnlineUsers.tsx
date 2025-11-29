@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import FriendRequestButton from './FriendRequestButton'
 import ReportUserButton from '../game/ReportUserButton'
+import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 
 interface OnlineUser {
   id: string
@@ -78,18 +79,13 @@ export default function OnlineUsers() {
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
-                  {user.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt={user.username}
-                      className="w-12 h-12 rounded-full border-2 border-blue-500 object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-500">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                  <AvatarDisplay
+                    avatarUrl={user.avatar_url || null}
+                    username={user.username}
+                    size="sm"
+                    className="border-2 border-blue-500"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white z-10"></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 truncate">{user.username}</p>

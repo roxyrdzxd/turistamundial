@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import ReportUserButton from './ReportUserButton'
+import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 
 interface ChatMessageRow {
   id: string
@@ -244,17 +245,11 @@ export default function Chat({ sessionId, currentUserId, onUnreadCountChange, fo
                   >
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      {msg.profile.avatar_url ? (
-                        <img
-                          src={msg.profile.avatar_url}
-                          alt={msg.profile.username}
-                          className="w-8 h-8 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-xs font-bold">
-                          {msg.profile.username.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <AvatarDisplay
+                        avatarUrl={msg.profile.avatar_url}
+                        username={msg.profile.username}
+                        size="sm"
+                      />
                     </div>
 
                     {/* Mensaje */}
@@ -365,17 +360,11 @@ export default function Chat({ sessionId, currentUserId, onUnreadCountChange, fo
                   >
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      {msg.profile.avatar_url ? (
-                        <img
-                          src={msg.profile.avatar_url}
-                          alt={msg.profile.username}
-                          className="w-10 h-10 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white text-sm font-bold">
-                          {msg.profile.username.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <AvatarDisplay
+                        avatarUrl={msg.profile.avatar_url}
+                        username={msg.profile.username}
+                        size="sm"
+                      />
                     </div>
 
                     {/* Mensaje */}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/contexts/ToastContext'
 import Link from 'next/link'
+import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 
 interface ReferralStats {
   total: number
@@ -247,17 +248,12 @@ export default function ReferralsPage() {
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="relative flex-shrink-0">
-                      {referral.referred_user?.avatar_url ? (
-                        <img
-                          src={referral.referred_user.avatar_url}
-                          alt={referral.referred_user.username}
-                          className="w-10 h-10 rounded-full border-2 border-white/30 object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
-                          {referral.referred_user?.username?.charAt(0).toUpperCase() || '?'}
-                        </div>
-                      )}
+                      <AvatarDisplay
+                        avatarUrl={referral.referred_user?.avatar_url || null}
+                        username={referral.referred_user?.username || 'Usuario'}
+                        size="sm"
+                        className="border-2 border-white/30"
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white truncate">

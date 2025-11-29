@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/contexts/ToastContext'
 import Link from 'next/link'
+import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 
 interface LeaderboardEntry {
   rank: number
@@ -178,17 +179,12 @@ export default function RecognitionPage() {
               </div>
               
               <div className="flex-shrink-0">
-                {entry.avatarUrl ? (
-                  <img
-                    src={entry.avatarUrl}
-                    alt={entry.username}
-                    className="w-12 h-12 rounded-full border-2 border-white"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
-                    {entry.username.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <AvatarDisplay
+                  avatarUrl={entry.avatarUrl}
+                  username={entry.username}
+                  size="sm"
+                  className="border-2 border-white"
+                />
               </div>
 
               <div className="flex-1 min-w-0">

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useToast } from '@/contexts/ToastContext'
 import ReportUserButton from '../game/ReportUserButton'
+import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 
 interface Friend {
   id: string
@@ -114,17 +115,11 @@ export default function FriendsList() {
                     className="flex items-center justify-between p-2 bg-blue-50 rounded-lg"
                   >
                     <div className="flex items-center gap-2">
-                      {req.sender?.avatar_url ? (
-                        <img
-                          src={req.sender.avatar_url}
-                          alt={req.sender.username}
-                          className="w-8 h-8 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                          {req.sender?.username?.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <AvatarDisplay
+                        avatarUrl={req.sender?.avatar_url || null}
+                        username={req.sender?.username || 'Usuario'}
+                        size="sm"
+                      />
                       <span className="text-sm font-medium">{req.sender?.username}</span>
                     </div>
                     <div className="flex gap-2">
@@ -167,19 +162,14 @@ export default function FriendsList() {
             >
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <div className="relative flex-shrink-0">
-                  {friend.avatar_url ? (
-                    <img
-                      src={friend.avatar_url}
-                      alt={friend.username}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
-                      {friend.username.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <AvatarDisplay
+                    avatarUrl={friend.avatar_url || null}
+                    username={friend.username}
+                    size="sm"
+                    className="border-2 border-gray-300"
+                  />
                   <div
-                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
+                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white z-10 ${
                       friend.is_online ? 'bg-green-500' : 'bg-gray-400'
                     }`}
                   ></div>
