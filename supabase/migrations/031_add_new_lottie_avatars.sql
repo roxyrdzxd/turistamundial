@@ -12,5 +12,5 @@ INSERT INTO shop_items (name, description, category, price_coins, is_active, ima
 -- Osito Teddy
 ('Avatar Osito Teddy', 'Avatar exclusivo con animación de osito de peluche', 'avatar', 3000, true, 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/lotties/teddy-bear.json', '{"avatar_type": "teddy_bear", "rarity": "rare", "is_lottie": true}'::jsonb)
 
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
