@@ -19,15 +19,43 @@ interface Transaction {
   created_at: string
 }
 
+interface CoinPackage {
+  id: string
+  name: string
+  description: string
+  coins: number
+  price_mxn: number
+  bonus_coins: number
+}
+
 export default function WalletPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [packages, setPackages] = useState<CoinPackage[]>([])
   const [loading, setLoading] = useState(true)
+  const [purchasing, setPurchasing] = useState<string | null>(null)
   const toast = useToast()
   const supabase = createClient()
 
   useEffect(() => {
     fetchWalletData()
+    fetchPackages()
+    
+    // Verificar si hay parámetros de pago en la URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const paymentStatus = urlParams.get('payment')
+    if (paymentStatus === 'success') {
+      toast.showSuccess('¡Pago exitoso! Tus TuristaCoins han sido agregados')
+      fetchWalletData()
+      // Limpiar URL
+      window.history.replaceState({}, '', '/wallet')
+    } else if (paymentStatus === 'failure') {
+      toast.showError('El pago fue rechazado. Intenta nuevamente')
+      window.history.replaceState({}, '', '/wallet')
+    } else if (paymentStatus === 'pending') {
+      toast.showToast('Tu pago está pendiente. Se procesará cuando sea aprobado', 'info')
+      window.history.replaceState({}, '', '/wallet')
+    }
   }, [])
 
   const fetchWalletData = async () => {
@@ -69,6 +97,53 @@ export default function WalletPage() {
       toast.showError('Error al cargar datos del wallet')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchPackages = async () => {
+    try {
+      const response = await fetch('/api/payments/packages')
+      const data = await response.json()
+      
+      if (response.ok) {
+        setPackages(data.packages || [])
+      }
+    } catch (error) {
+      console.error('Error obteniendo paquetes:', error)
+    }
+  }
+
+  const handlePurchase = async (packageId: string) => {
+    try {
+      setPurchasing(packageId)
+      
+      const response = await fetch('/api/payments/create-preference', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ packageId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear preferencia de pago')
+      }
+
+      // Redirigir a Mercado Pago
+      if (data.init_point) {
+        window.location.href = data.init_point
+      } else if (data.sandbox_init_point) {
+        // En desarrollo, usar sandbox
+        window.location.href = data.sandbox_init_point
+      } else {
+        throw new Error('No se recibió URL de pago')
+      }
+    } catch (error: any) {
+      console.error('Error iniciando compra:', error)
+      toast.showError(error.message || 'Error al iniciar la compra')
+      setPurchasing(null)
     }
   }
 
@@ -122,6 +197,52 @@ export default function WalletPage() {
             </div>
           </div>
         </div>
+
+        {/* Comprar TuristaCoins */}
+        {packages.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 mb-6 border border-white/20">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-white flex items-center gap-2">
+              <span>💳</span>
+              Comprar TuristaCoins
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  className="bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-xl p-4 border-2 border-white/20 hover:border-cyan-400 transition-all"
+                >
+                  <div className="text-center mb-4">
+                    <div className="text-4xl mb-2">💰</div>
+                    <h3 className="font-bold text-white text-lg mb-1">{pkg.name}</h3>
+                    <p className="text-cyan-300 font-bold text-2xl mb-1">
+                      {pkg.coins.toLocaleString()} TC
+                    </p>
+                    {pkg.bonus_coins > 0 && (
+                      <p className="text-green-400 text-sm font-semibold">
+                        +{pkg.bonus_coins.toLocaleString()} TC Bonus
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-center mb-4">
+                    <p className="text-white/80 text-sm mb-1">Precio</p>
+                    <p className="text-white font-bold text-xl">${pkg.price_mxn.toFixed(2)} MXN</p>
+                  </div>
+                  <button
+                    onClick={() => handlePurchase(pkg.id)}
+                    disabled={purchasing === pkg.id}
+                    className={`w-full py-2.5 px-4 rounded-lg font-semibold transition ${
+                      purchasing === pkg.id
+                        ? 'bg-white/10 text-white/50 cursor-wait'
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-lg hover:shadow-xl'
+                    }`}
+                  >
+                    {purchasing === pkg.id ? 'Procesando...' : 'Comprar'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
