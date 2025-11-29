@@ -61,12 +61,6 @@ export default function PWAInstallButton() {
     // Esperar a que el usuario responda
     const { outcome } = await deferredPrompt.userChoice
 
-    if (outcome === 'accepted') {
-      console.log('Usuario aceptó instalar la PWA')
-    } else {
-      console.log('Usuario rechazó instalar la PWA')
-    }
-
     // Limpiar el prompt
     setDeferredPrompt(null)
     setShowButton(false)
