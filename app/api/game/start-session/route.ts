@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { notifyGameReady } from '@/lib/notifications/helpers'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -73,6 +74,17 @@ export async function POST(request: Request) {
         }
       }
     }
+  }
+
+  // Enviar notificaciones a todos los jugadores (excepto NPCs) de forma asíncrona
+  if (players) {
+    players.forEach(player => {
+      if (player.user_id && !player.user_id.startsWith('npc-')) {
+        notifyGameReady(player.user_id, sessionId).catch(err => {
+          console.error('[Start Session] Error enviando notificación:', err)
+        })
+      }
+    })
   }
 
   return NextResponse.json({ success: true, message: 'Partida iniciada' })

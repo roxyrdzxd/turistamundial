@@ -5,6 +5,7 @@ import Image from 'next/image'
 import LogoutButton from '@/components/auth/LogoutButton'
 import DashboardSocial from '@/components/dashboard/DashboardSocial'
 import FloatingCreateButton from '@/components/dashboard/FloatingCreateButton'
+import NotificationPrompt from '@/components/notifications/NotificationPrompt'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -100,6 +101,11 @@ export default async function DashboardPage() {
           <p className="text-white/90 text-lg">
             Conquista el mundo comprando países y construyendo tu imperio turístico
           </p>
+        </div>
+
+        {/* Notification Prompt */}
+        <div className="mb-8">
+          <NotificationPrompt />
         </div>
 
         {/* Action Cards */}

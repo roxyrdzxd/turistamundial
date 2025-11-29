@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { notifyFriendRequest } from '@/lib/notifications/helpers'
 
 export async function POST(request: Request) {
   try {
@@ -73,6 +74,20 @@ export async function POST(request: Request) {
 
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
+
+    // Obtener username del usuario que envía
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single()
+
+    // Enviar notificación al receptor de forma asíncrona
+    if (senderProfile) {
+      notifyFriendRequest(receiverId, senderProfile.username).catch(err => {
+        console.error('[Send Request] Error enviando notificación:', err)
+      })
     }
 
     return NextResponse.json({

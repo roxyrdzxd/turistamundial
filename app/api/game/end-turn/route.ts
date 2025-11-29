@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { getNextPlayer, isGameOver } from '@/lib/game/gameEngine'
+import { notifyPlayerTurn } from '@/lib/notifications/helpers'
 
 export async function POST(request: Request) {
   try {
@@ -150,6 +151,17 @@ export async function POST(request: Request) {
 
     if (turnError) {
       return NextResponse.json({ error: turnError.message }, { status: 500 })
+    }
+
+    // Enviar notificación al siguiente jugador (si no es NPC y el juego no terminó)
+    if (!gameOver.isOver) {
+      const nextPlayer = players?.find(p => p.turn_order === nextTurn)
+      if (nextPlayer && nextPlayer.user_id && !nextPlayer.user_id.startsWith('npc-')) {
+        // Enviar notificación de forma asíncrona (no bloquear la respuesta)
+        notifyPlayerTurn(nextPlayer.user_id, sessionId).catch(err => {
+          console.error('[End Turn] Error enviando notificación:', err)
+        })
+      }
     }
 
     return NextResponse.json({

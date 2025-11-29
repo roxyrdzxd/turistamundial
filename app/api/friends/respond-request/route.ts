@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { notifyFriendAccepted } from '@/lib/notifications/helpers'
 
 export async function POST(request: Request) {
   try {
@@ -62,6 +63,20 @@ export async function POST(request: Request) {
             p_session_id: null
           })
         ])
+
+        // Obtener username del usuario que aceptó
+        const { data: accepterProfile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single()
+
+        // Enviar notificación al que envió la solicitud
+        if (accepterProfile) {
+          notifyFriendAccepted(friendRequest.sender_id, accepterProfile.username).catch(err => {
+            console.error('[Respond Request] Error enviando notificación:', err)
+          })
+        }
       } catch (missionError) {
         console.error('Error actualizando misión de amigo:', missionError)
       }
