@@ -29,12 +29,13 @@ self.addEventListener('fetch', (event) => {
 // Escuchar eventos push (cuando llega una notificación)
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push recibido:', event);
+  console.log('[Service Worker] Event data:', event.data);
 
   let notificationData = {
     title: 'Turix',
     body: 'Tienes una nueva notificación',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/icons/icon-192x192.png',
+    badge: 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/icons/icon-72x72.png',
     tag: 'turix-notification',
     requireInteraction: false,
     data: {
@@ -45,47 +46,72 @@ self.addEventListener('push', (event) => {
   // Si el evento tiene datos, usarlos
   if (event.data) {
     try {
-      const data = event.data.json();
-      notificationData = {
-        title: data.title || notificationData.title,
-        body: data.body || notificationData.body,
-        icon: data.icon || notificationData.icon,
-        badge: data.badge || notificationData.badge,
-        tag: data.tag || notificationData.tag,
-        requireInteraction: data.requireInteraction || false,
-        data: {
-          url: data.url || notificationData.data.url,
-          ...data.data
+      // Intentar parsear como JSON
+      let data;
+      try {
+        data = event.data.json();
+        console.log('[Service Worker] Datos parseados:', data);
+      } catch (jsonError) {
+        // Si no es JSON, intentar como texto
+        const text = event.data.text();
+        console.log('[Service Worker] Datos como texto:', text);
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error('[Service Worker] Error parseando datos:', parseError);
+          // Usar datos por defecto
+          data = null;
         }
-      };
+      }
+
+      if (data) {
+        notificationData = {
+          title: data.title || notificationData.title,
+          body: data.body || notificationData.body,
+          icon: data.icon || notificationData.icon,
+          badge: data.badge || notificationData.badge,
+          tag: data.tag || notificationData.tag,
+          requireInteraction: data.requireInteraction !== undefined ? data.requireInteraction : notificationData.requireInteraction,
+          data: {
+            url: data.url || notificationData.data.url,
+            ...(data.data || {})
+          }
+        };
+      }
     } catch (e) {
-      console.error('[Service Worker] Error parseando datos push:', e);
+      console.error('[Service Worker] Error procesando datos push:', e);
     }
   }
 
-  // Mostrar la notificación
-  event.waitUntil(
-    self.registration.showNotification(notificationData.title, {
-      body: notificationData.body,
-      icon: notificationData.icon,
-      badge: notificationData.badge,
-      tag: notificationData.tag,
-      requireInteraction: notificationData.requireInteraction,
-      data: notificationData.data,
-      vibrate: [200, 100, 200],
-      actions: [
-        {
-          action: 'open',
-          title: 'Abrir',
-          icon: '/icons/icon-72x72.png'
-        },
-        {
-          action: 'close',
-          title: 'Cerrar'
-        }
-      ]
-    })
-  );
+  console.log('[Service Worker] Mostrando notificación:', notificationData);
+
+  // Mostrar la notificación con manejo de errores
+  const notificationPromise = self.registration.showNotification(notificationData.title, {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    tag: notificationData.tag,
+    requireInteraction: notificationData.requireInteraction,
+    data: notificationData.data,
+    vibrate: [200, 100, 200],
+    actions: [
+      {
+        action: 'open',
+        title: 'Abrir',
+        icon: 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/icons/icon-72x72.png'
+      },
+      {
+        action: 'close',
+        title: 'Cerrar'
+      }
+    ]
+  }).then(() => {
+    console.log('[Service Worker] ✅ Notificación mostrada exitosamente');
+  }).catch((error) => {
+    console.error('[Service Worker] ❌ Error mostrando notificación:', error);
+  });
+
+  event.waitUntil(notificationPromise);
 });
 
 // Manejar clics en notificaciones

@@ -100,18 +100,25 @@ class NotificationService {
     const notificationPayload = JSON.stringify({
       title: payload.title,
       body: payload.body,
-      icon: payload.icon || '/icons/icon-192x192.png',
-      badge: payload.badge || '/icons/icon-72x72.png',
+      icon: payload.icon || 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/icons/icon-192x192.png',
+      badge: payload.badge || 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/icons/icon-72x72.png',
       tag: payload.tag || 'turix-notification',
       url: payload.url || '/dashboard',
       requireInteraction: payload.requireInteraction || false,
       data: payload.data || {}
     })
 
+    console.log('[NotificationService] Enviando notificación:', {
+      userId,
+      subscriptionCount: subscriptions.length,
+      payload: notificationPayload
+    })
+
     // Enviar a todas las suscripciones del usuario
     const promises = subscriptions.map(async (subscription) => {
       try {
-        await webpush.sendNotification(
+        console.log('[NotificationService] Enviando a endpoint:', subscription.endpoint.substring(0, 50) + '...')
+        const result = await webpush.sendNotification(
           {
             endpoint: subscription.endpoint,
             keys: {
@@ -121,12 +128,19 @@ class NotificationService {
           },
           notificationPayload
         )
+        console.log('[NotificationService] ✅ Notificación enviada exitosamente:', result)
         success++
       } catch (error: any) {
-        console.error('[NotificationService] Error enviando notificación:', error)
+        console.error('[NotificationService] ❌ Error enviando notificación:', {
+          statusCode: error.statusCode,
+          message: error.message,
+          body: error.body,
+          endpoint: subscription.endpoint.substring(0, 50) + '...'
+        })
 
         // Si la suscripción es inválida (410), eliminarla
         if (error.statusCode === 410) {
+          console.log('[NotificationService] Eliminando suscripción inválida (410)')
           await this.removeSubscription(subscription.endpoint)
         }
 
