@@ -52,8 +52,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      success: true,
-      ...result,
+      success: result.success > 0,
+      sent: result.success,
+      failed: result.failed,
     })
   } catch (error: any) {
     console.error('[Send Notification] Error:', error)
