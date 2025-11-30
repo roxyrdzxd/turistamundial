@@ -302,6 +302,30 @@ export default function GamePage() {
     }
   }, [sessionId, currentUserId, session?.status])
 
+  // Fallback: Polling ligero cada 5 segundos solo si no hay suscripción activa
+  // Esto asegura que si las suscripciones fallan, aún se actualice el estado
+  useEffect(() => {
+    if (!sessionId || !session) return
+
+    const pollingInterval = setInterval(() => {
+      // Solo hacer polling si la sesión está activa y no es nuestro turno
+      // Esto evita polling innecesario cuando ya sabemos que es nuestro turno
+      const currentPlayer = session.players.find(
+        p => p.turn_order === session.current_turn
+      )
+      const isMyTurn = currentPlayer?.user_id === currentUserId
+      
+      // Solo hacer polling si no es nuestro turno (para detectar cuando cambia)
+      if (!isMyTurn) {
+        fetchSession()
+      }
+    }, 5000) // Cada 5 segundos
+
+    return () => {
+      clearInterval(pollingInterval)
+    }
+  }, [sessionId, session, currentUserId, fetchSession])
+
   // Detectar turnos de NPCs y jugadores desconectados, hacerlos jugar automáticamente
   const npcProcessingRef = useRef(false)
   
