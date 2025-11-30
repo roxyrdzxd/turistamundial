@@ -29,12 +29,38 @@ export async function POST(request: Request) {
 
       const paymentData = await payment.get({ id: paymentId })
 
-      // Buscar transacción por preference_id o payment_id
-      const { data: transaction } = await supabase
+      // Buscar transacción por payment_id primero, luego por external_reference (user_id)
+      let transaction = null
+      
+      // Intentar buscar por payment_id
+      const { data: transactionByPaymentId } = await supabase
         .from('payment_transactions')
         .select('*')
-        .or(`mercadopago_preference_id.eq.${paymentData.preference_id},mercadopago_payment_id.eq.${paymentId}`)
-        .single()
+        .eq('mercadopago_payment_id', paymentId)
+        .maybeSingle()
+      
+      if (transactionByPaymentId) {
+        transaction = transactionByPaymentId
+      } else {
+        // Si no se encuentra, buscar por external_reference (user_id) y estado pending
+        // El external_reference es el user_id que enviamos en la preferencia
+        const externalReference = (paymentData as any).external_reference || (paymentData as any).metadata?.user_id
+        
+        if (externalReference) {
+          const { data: transactionByUser } = await supabase
+            .from('payment_transactions')
+            .select('*')
+            .eq('user_id', externalReference)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          
+          if (transactionByUser) {
+            transaction = transactionByUser
+          }
+        }
+      }
 
       if (!transaction) {
         console.error('[Webhook] Transacción no encontrada para payment_id:', paymentId)
