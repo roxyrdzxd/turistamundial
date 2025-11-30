@@ -376,9 +376,9 @@ export function getNextPlayer(
 
   while (attempts < players.length) {
     const nextPlayer = players.find(p => p.turn_order === nextTurn)
-    if (nextPlayer && 
-        !nextPlayer.is_bankrupt && 
-        (nextPlayer.is_online !== false)) { // Salta desconectados
+    // Incluir NPCs en la rotación (NPCs tienen is_online === false pero siguen siendo jugadores activos)
+    // Solo excluir jugadores en bancarrota
+    if (nextPlayer && !nextPlayer.is_bankrupt) {
       return nextTurn
     }
     nextTurn = (nextTurn + 1) % players.length
