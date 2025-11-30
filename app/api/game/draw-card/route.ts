@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { isGameOver } from '@/lib/game/gameEngine'
 
 export async function POST(request: Request) {
   try {
@@ -84,7 +85,74 @@ export async function POST(request: Request) {
             .from('session_players')
             .update({ is_bankrupt: true, money: 0 })
             .eq('id', currentPlayer.id)
-          result.message = `${randomCard.description}. Has quedado en bancarrota`
+
+          // Verificar si el juego terminó
+          const { data: allPlayersAfterBankruptcy } = await supabase
+            .from('session_players')
+            .select('*')
+            .eq('session_id', sessionId)
+            .order('turn_order')
+
+          const { data: session } = await supabase
+            .from('game_sessions')
+            .select('board_id')
+            .eq('id', sessionId)
+            .single()
+
+          const { data: allCountries } = await supabase
+            .from('countries')
+            .select('*')
+            .eq('board_id', session?.board_id)
+
+          const { data: allPlayerCountries } = await supabase
+            .from('player_countries')
+            .select('*')
+            .eq('session_id', sessionId)
+
+          const gameState = {
+            sessionId,
+            players: allPlayersAfterBankruptcy || [],
+            playerCountries: allPlayerCountries || [],
+            countries: allCountries || [],
+            currentTurn: 0, // No es crítico para esta verificación
+          }
+
+          const gameOver = isGameOver(gameState)
+
+          if (gameOver.isOver && gameOver.winner) {
+            const winnerPlayer = allPlayersAfterBankruptcy?.find(p => p.id === gameOver.winner?.id)
+            if (winnerPlayer && winnerPlayer.user_id) {
+              try {
+                await supabase.rpc('update_mission_progress', {
+                  p_user_id: winnerPlayer.user_id,
+                  p_action: 'win_game',
+                  p_count: 1,
+                  p_session_id: sessionId
+                })
+              } catch (missionError) {
+                console.error('Error actualizando misión de victoria:', missionError)
+              }
+
+              await supabase
+                .from('game_sessions')
+                .update({
+                  status: 'finished',
+                  finished_at: new Date().toISOString(),
+                })
+                .eq('id', sessionId)
+
+              result.message = `${randomCard.description}. Has quedado en bancarrota. La partida ha terminado.`
+              result.gameOver = true
+              result.winner = {
+                id: winnerPlayer.id,
+                username: winnerPlayer.user_id, // Se puede mejorar obteniendo el perfil
+              }
+            } else {
+              result.message = `${randomCard.description}. Has quedado en bancarrota`
+            }
+          } else {
+            result.message = `${randomCard.description}. Has quedado en bancarrota`
+          }
         }
         break
 

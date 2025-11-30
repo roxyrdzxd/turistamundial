@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { isGameOver } from '@/lib/game/gameEngine'
 
 export async function POST(request: Request) {
   try {
@@ -154,7 +155,63 @@ export async function POST(request: Request) {
               .from('session_players')
               .update({ is_bankrupt: true, money: 0 })
               .eq('id', currentPlayer.id)
-            actionRequired = 'bankrupt'
+
+            // Verificar si el juego terminó
+            const { data: allPlayersAfterBankruptcy } = await supabase
+              .from('session_players')
+              .select('*')
+              .eq('session_id', sessionId)
+              .order('turn_order')
+
+            const { data: allCountries } = await supabase
+              .from('countries')
+              .select('*')
+              .eq('board_id', session.board_id)
+
+            const { data: allPlayerCountries } = await supabase
+              .from('player_countries')
+              .select('*')
+              .eq('session_id', sessionId)
+
+            const gameState = {
+              sessionId,
+              players: allPlayersAfterBankruptcy || [],
+              playerCountries: allPlayerCountries || [],
+              countries: allCountries || [],
+              currentTurn: session.current_turn,
+            }
+
+            const gameOver = isGameOver(gameState)
+
+            if (gameOver.isOver && gameOver.winner) {
+              const winnerPlayer = allPlayersAfterBankruptcy?.find(p => p.id === gameOver.winner?.id)
+              if (winnerPlayer && winnerPlayer.user_id) {
+                try {
+                  await supabase.rpc('update_mission_progress', {
+                    p_user_id: winnerPlayer.user_id,
+                    p_action: 'win_game',
+                    p_count: 1,
+                    p_session_id: sessionId
+                  })
+                } catch (missionError) {
+                  console.error('Error actualizando misión de victoria:', missionError)
+                }
+
+                await supabase
+                  .from('game_sessions')
+                  .update({
+                    status: 'finished',
+                    finished_at: new Date().toISOString(),
+                  })
+                  .eq('id', sessionId)
+
+                actionRequired = 'game_over'
+              } else {
+                actionRequired = 'bankrupt'
+              }
+            } else {
+              actionRequired = 'bankrupt'
+            }
           }
         } else if (newPosition === 20) {
           // Aeropuerto - dar turno extra
