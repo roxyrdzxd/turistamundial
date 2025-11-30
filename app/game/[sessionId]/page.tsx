@@ -1354,41 +1354,80 @@ export default function GamePage() {
                               </p>
                             )}
                             <div className="space-y-1">
-                              {properties.map((prop: any) => (
-                                <div
-                                  key={prop.id}
-                                  className="bg-white/5 hover:bg-white/10 rounded p-1 transition-colors"
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-semibold text-xs truncate">
-                                        {prop.country.name}
-                                      </p>
-                                      <div className="flex items-center gap-1 mt-0.5 text-xs opacity-90 flex-wrap">
-                                        <span>📍 {prop.country.position}</span>
-                                        {prop.is_mortgaged && (
-                                          <span className="bg-yellow-500/30 text-yellow-200 px-1 py-0.5 rounded text-xs">
-                                            ⚠️
-                                          </span>
-                                        )}
+                              {properties.map((prop: any) => {
+                                // Verificar si puede construir
+                                const gameState = {
+                                  sessionId,
+                                  players: session.players,
+                                  playerCountries,
+                                  countries,
+                                  currentTurn: session.current_turn,
+                                }
+                                const buildCheck = canBuild(prop.country, myPlayer.id, gameState)
+                                
+                                return (
+                                  <div
+                                    key={prop.id}
+                                    className="bg-white/5 hover:bg-white/10 rounded p-1 transition-colors"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-xs truncate">
+                                          {prop.country.name}
+                                        </p>
+                                        <div className="flex items-center gap-1 mt-0.5 text-xs opacity-90 flex-wrap">
+                                          <span>📍 {prop.country.position}</span>
+                                          {prop.is_mortgaged && (
+                                            <span className="bg-yellow-500/30 text-yellow-200 px-1 py-0.5 rounded text-xs">
+                                              ⚠️
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col items-end gap-0.5 ml-1">
+                                        {prop.hotels > 0 ? (
+                                          <div className="flex items-center gap-0.5">
+                                            <span className="text-sm">🏨</span>
+                                            <span className="text-xs font-semibold">{prop.hotels}</span>
+                                          </div>
+                                        ) : prop.houses > 0 ? (
+                                          <div className="flex items-center gap-0.5">
+                                            <span className="text-xs">🏠</span>
+                                            <span className="text-xs font-semibold">{prop.houses}</span>
+                                          </div>
+                                        ) : null}
                                       </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-0.5 ml-1">
-                                      {prop.hotels > 0 ? (
-                                        <div className="flex items-center gap-0.5">
-                                          <span className="text-sm">🏨</span>
-                                          <span className="text-xs font-semibold">{prop.hotels}</span>
-                                        </div>
-                                      ) : prop.houses > 0 ? (
-                                        <div className="flex items-center gap-0.5">
-                                          <span className="text-xs">🏠</span>
-                                          <span className="text-xs font-semibold">{prop.houses}</span>
-                                        </div>
-                                      ) : null}
+                                    <div className="mt-2 pt-2 border-t border-white/20">
+                                      <BankModal
+                                        property={{
+                                          id: prop.id,
+                                          country: prop.country,
+                                          houses: prop.houses || 0,
+                                          hotels: prop.hotels || 0,
+                                          is_mortgaged: prop.is_mortgaged || false,
+                                        }}
+                                        playerMoney={myPlayer.money}
+                                        canBuild={buildCheck.canBuild || false}
+                                        maxHouses={buildCheck.maxHouses || 0}
+                                        maxHotels={buildCheck.maxHotels || 0}
+                                        onMortgage={() => {
+                                          handleMortgage(prop.id)
+                                        }}
+                                        onUnmortgage={() => {
+                                          handleUnmortgage(prop.id)
+                                        }}
+                                        onBuild={(houses, hotels) => {
+                                          handleBuild(prop.country.id, houses, hotels)
+                                        }}
+                                        onSellBuild={(houses, hotels) => {
+                                          handleSellBuild(prop.id, houses, hotels)
+                                        }}
+                                      />
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                )
+                              })}
                             </div>
                           </div>
                         ))}
