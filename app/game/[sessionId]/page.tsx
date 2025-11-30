@@ -2109,6 +2109,118 @@ export default function GamePage() {
                       </div>
                     </div>
                   ))}
+                  </div>
+
+                  {/* Propiedades de Otros Jugadores */}
+                  {otherPlayersProperties.length > 0 && (
+                    <div className="mt-8 pt-8 border-t border-white/20">
+                      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <span>👥</span>
+                        <span>Propiedades de Otros Jugadores</span>
+                      </h3>
+                      <div className="space-y-6">
+                        {otherPlayersProperties.map(({ player, propertiesByGroup, totalProperties }) => {
+                          const playerProfile = player.profile || { username: 'Jugador' }
+                          const playerColor = player.color || 'gray'
+                          
+                          // Mapear colores a clases de Tailwind
+                          const colorClasses: Record<string, string> = {
+                            'red': 'bg-red-500/20 border-red-400/50',
+                            'blue': 'bg-blue-500/20 border-blue-400/50',
+                            'green': 'bg-green-500/20 border-green-400/50',
+                            'yellow': 'bg-yellow-500/20 border-yellow-400/50',
+                            'purple': 'bg-purple-500/20 border-purple-400/50',
+                            'orange': 'bg-orange-500/20 border-orange-400/50',
+                            'pink': 'bg-pink-500/20 border-pink-400/50',
+                            'cyan': 'bg-cyan-500/20 border-cyan-400/50',
+                          }
+                          
+                          const bgClass = colorClasses[playerColor] || 'bg-gray-500/20 border-gray-400/50'
+
+                          return (
+                            <div key={player.id} className={`${bgClass} backdrop-blur-md rounded-lg shadow-md p-4 border-2`}>
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div 
+                                    className="w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center font-bold text-white text-sm"
+                                    style={{ backgroundColor: getColorHex(playerColor) }}
+                                  />
+                                  <div>
+                                    <h4 className="font-bold text-lg text-white">{playerProfile.username}</h4>
+                                    <p className="text-sm text-white/70">💰 ${player.money.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-semibold text-white bg-white/20 px-3 py-1 rounded-full">
+                                  {totalProperties} {totalProperties === 1 ? 'propiedad' : 'propiedades'}
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                {Object.entries(propertiesByGroup).map(([groupKey, props]: [string, any[]]) => {
+                                  const firstProp = props[0]
+                                  const isMonopolyGroup = !!firstProp.country.monopoly_group
+                                  
+                                  // Obtener países del grupo
+                                  const groupCountries = countries.filter(c => {
+                                    if (isMonopolyGroup) {
+                                      return c.monopoly_group === groupKey
+                                    } else {
+                                      return c.continent === groupKey
+                                    }
+                                  })
+                                  
+                                  const ownedCount = props.length
+                                  const totalCount = groupCountries.length
+                                  
+                                  // Verificar monopolio
+                                  const hasMonopoly = isMonopolyGroup
+                                    ? hasMonopoly(groupKey, player.id, countries, playerCountries, true)
+                                    : hasMonopoly(groupKey, player.id, countries, playerCountries, false)
+                                  
+                                  const groupName = isMonopolyGroup 
+                                    ? groupKey 
+                                    : (continentNames[groupKey] || groupKey)
+
+                                  return (
+                                    <div key={groupKey} className="bg-white/10 rounded-lg p-3 border border-white/20">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-white">🌍 {groupName}</span>
+                                          {hasMonopoly && (
+                                            <span className="bg-green-500/30 text-green-200 px-2 py-0.5 rounded text-xs font-semibold">
+                                              ✅ Monopolio
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span className="text-xs text-white/80">
+                                          {ownedCount}/{totalCount}
+                                        </span>
+                                      </div>
+                                      <div className="space-y-1">
+                                        {props.sort((a, b) => a.country.position - b.country.position).map((prop: any) => (
+                                          <div key={prop.id} className="text-xs text-white/90 bg-white/5 rounded p-2">
+                                            <div className="flex items-center justify-between">
+                                              <span className="font-semibold">{prop.country.name}</span>
+                                              <div className="flex items-center gap-2">
+                                                {prop.houses > 0 && <span>🏠 {prop.houses}</span>}
+                                                {prop.hotels > 0 && <span>🏨 {prop.hotels}</span>}
+                                                {prop.is_mortgaged && <span className="text-yellow-300">⚠️</span>}
+                                              </div>
+                                            </div>
+                                            <p className="text-white/70 mt-1">📍 Casilla {prop.country.position} • 💰 ${prop.country.base_rent.toLocaleString()}</p>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })()}
