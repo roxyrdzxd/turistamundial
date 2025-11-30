@@ -273,10 +273,23 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-8 px-4 sm:px-6 lg:px-8 bg-slate-900/80 backdrop-blur-sm text-white text-center border-t border-white/10">
-        <p className="text-white/60">
-          © 2024 Turix - Turista Mundial. Todos los derechos reservados.
-        </p>
+      <footer className="relative py-8 px-4 sm:px-6 lg:px-8 bg-slate-900/80 backdrop-blur-sm text-white border-t border-white/10">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-white/60 text-sm">
+              © 2024 Turix - Turista Mundial. Todos los derechos reservados.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center text-sm">
+              <Link href="/privacidad" className="text-white/70 hover:text-cyan-400 transition">
+                Aviso de Privacidad
+              </Link>
+              <span className="text-white/30">•</span>
+              <Link href="/terminos" className="text-white/70 hover:text-cyan-400 transition">
+                Términos y Condiciones
+              </Link>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   )
