@@ -147,7 +147,7 @@ export default function GamePage() {
     fetchUser()
     fetchSession()
     fetchCountries()
-  }, [sessionId]) // Solo ejecutar cuando cambie sessionId
+  }, [sessionId, fetchUser, fetchSession]) // Incluir funciones memoizadas en dependencias // Solo ejecutar cuando cambie sessionId
 
   // Suscripciones de tiempo real (separadas para mejor control)
   useEffect(() => {
