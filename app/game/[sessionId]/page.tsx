@@ -19,6 +19,7 @@ import FloatingActions from '@/components/game/FloatingActions'
 import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly, canBuild } from '@/lib/game/gameEngine'
 import { soundManager } from '@/lib/audio/soundManager'
+import { createClient } from '@/lib/supabase/client'
 
 interface Player {
   id: string
