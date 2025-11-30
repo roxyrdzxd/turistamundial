@@ -93,18 +93,28 @@ export async function POST(request: Request) {
           const tollAmount = countryAtPosition.base_rent
           
           if (currentPlayer.money >= tollAmount) {
-            // Pagar peaje
-            await supabase
+            // Obtener el dinero actualizado del dueño antes de actualizar
+            const { data: updatedOwner } = await supabase
               .from('session_players')
-              .update({ money: currentPlayer.money - tollAmount })
-              .eq('id', currentPlayer.id)
-
-            await supabase
-              .from('session_players')
-              .update({ money: owner.money + tollAmount })
+              .select('money')
               .eq('id', owner.id)
+              .single()
 
-            actionTaken = 'paid_toll'
+            if (updatedOwner) {
+              // Pagar peaje (descontar del NPC)
+              await supabase
+                .from('session_players')
+                .update({ money: currentPlayer.money - tollAmount })
+                .eq('id', currentPlayer.id)
+
+              // Recibir pago el dueño (usar el dinero actualizado)
+              await supabase
+                .from('session_players')
+                .update({ money: updatedOwner.money + tollAmount })
+                .eq('id', owner.id)
+
+              actionTaken = 'paid_toll'
+            }
           } else {
             // Bancarrota
             await supabase
