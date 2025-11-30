@@ -134,7 +134,18 @@ export async function POST(request: Request) {
       })
     }
 
-    // Pagar peaje
+    // Obtener el dinero actualizado del dueño antes de actualizar (evita condiciones de carrera)
+    const { data: updatedOwner, error: ownerFetchError } = await supabase
+      .from('session_players')
+      .select('money')
+      .eq('id', owner.id)
+      .single()
+
+    if (ownerFetchError || !updatedOwner) {
+      return NextResponse.json({ error: 'Error al obtener datos del dueño' }, { status: 500 })
+    }
+
+    // Pagar peaje (descontar del jugador actual)
     const { error: payError } = await supabase
       .from('session_players')
       .update({ money: currentPlayer.money - toll.amount })
@@ -144,13 +155,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: payError.message }, { status: 500 })
     }
 
-    // Recibir pago el dueño
+    // Recibir pago el dueño (usar el dinero actualizado de la base de datos)
     const { error: receiveError } = await supabase
       .from('session_players')
-      .update({ money: owner.money + toll.amount })
+      .update({ money: updatedOwner.money + toll.amount })
       .eq('id', owner.id)
 
     if (receiveError) {
+      // Si falla recibir el pago, revertir el descuento del jugador
+      await supabase
+        .from('session_players')
+        .update({ money: currentPlayer.money })
+        .eq('id', currentPlayer.id)
+      
       return NextResponse.json({ error: receiveError.message }, { status: 500 })
     }
 
