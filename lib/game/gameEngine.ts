@@ -360,18 +360,17 @@ export function getNextPlayer(
   currentTurn: number,
   players: Player[]
 ): number {
-  // Filtrar jugadores activos (no en bancarrota y online)
-  const activePlayers = players.filter(p => 
-    !p.is_bankrupt && 
-    (p.is_online !== false) // Considerar online si no está definido (compatibilidad)
-  )
+  // Filtrar jugadores activos (no en bancarrota)
+  // NPCs pueden tener is_online === false, pero siguen siendo jugadores activos
+  const activePlayers = players.filter(p => !p.is_bankrupt)
   
   if (activePlayers.length === 0) return currentTurn
 
   const currentPlayer = players.find(p => p.turn_order === currentTurn)
   if (!currentPlayer) return currentTurn
 
-  // Encontrar el siguiente jugador activo (no en bancarrota y online)
+  // Encontrar el siguiente jugador activo (no en bancarrota)
+  // Incluir NPCs en la rotación de turnos
   let nextTurn = (currentTurn + 1) % players.length
   let attempts = 0
 
