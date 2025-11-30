@@ -105,9 +105,12 @@ export default function SessionPage() {
       return () => {
         clearInterval(interval)
         supabase.removeChannel(channel)
+        if (autoNpcTimer) {
+          clearTimeout(autoNpcTimer)
+        }
       }
     }
-  }, [sessionId, isHost, router])
+  }, [sessionId, isHost, router, autoNpcTimer])
 
   // Auto-agregar NPCs después de 10 segundos si no hay suficientes jugadores
   useEffect(() => {
@@ -164,10 +167,13 @@ export default function SessionPage() {
       setAutoNpcTimer(timer)
 
       return () => {
-        if (timer) clearTimeout(timer)
+        if (timer) {
+          clearTimeout(timer)
+          setAutoNpcTimer(null)
+        }
       }
     }
-  }, [session, isHost, sessionId, autoNpcTriggered, toast])
+  }, [session, isHost, sessionId, autoNpcTriggered, toast, fetchSession])
 
   const fetchSession = async () => {
     try {
