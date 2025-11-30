@@ -247,7 +247,7 @@ export default function GamePage() {
           debouncedFetchSession()
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
           console.log('[Realtime] ✅ Suscrito a cambios de la partida')
         } else if (status === 'CHANNEL_ERROR') {
