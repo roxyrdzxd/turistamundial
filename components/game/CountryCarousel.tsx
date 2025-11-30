@@ -12,6 +12,7 @@ interface Country {
   hotel_price: number
   position: number
   property_type?: string
+  monopoly_group?: string
   improvement_level_1_name?: string
   improvement_level_2_name?: string
   improvement_level_3_name?: string
@@ -440,9 +441,18 @@ export default function CountryCarousel({
                 <h2 className={`text-lg sm:text-xl font-bold mb-1 ${cardColors.textColor}`}>
                   {displayedCountry?.name || 'Cargando...'}
                 </h2>
-                <p className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm`}>
-                  {displayedCountry ? CONTINENT_NAMES[displayedCountry.continent] : ''}
-                </p>
+                <div className="space-y-1">
+                  {displayedCountry?.monopoly_group && (
+                    <p className={`${cardColors.textColor} opacity-90 text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full inline-block`}>
+                      🏛️ {displayedCountry.monopoly_group}
+                    </p>
+                  )}
+                  {!displayedCountry?.monopoly_group && (
+                    <p className={`${cardColors.textColor} opacity-90 text-xs sm:text-sm`}>
+                      {displayedCountry ? CONTINENT_NAMES[displayedCountry.continent] : ''}
+                    </p>
+                  )}
+                </div>
               </>
             )}
           </div>
@@ -628,9 +638,20 @@ export default function CountryCarousel({
                     </p>
                     <div className="space-y-1 text-xs mb-2">
                       <p className={cardColors.textColor + ' opacity-90'}>💰 Renta: ${displayedCountry.base_rent.toLocaleString()}</p>
-                      <p className={cardColors.textColor + ' opacity-90'}>
-                        🏠 {displayedCountry.improvement_level_1_name || 'Casa'}: ${displayedCountry.house_price.toLocaleString()}
-                      </p>
+                      <div className="grid grid-cols-2 gap-1">
+                        <p className={cardColors.textColor + ' opacity-90'}>
+                          🏠 {displayedCountry.improvement_level_1_name || 'Casa'}: ${displayedCountry.house_price.toLocaleString()}
+                        </p>
+                        <p className={cardColors.textColor + ' opacity-90'}>
+                          🏠 {displayedCountry.improvement_level_2_name || 'Casa'}: ${displayedCountry.house_price.toLocaleString()}
+                        </p>
+                        <p className={cardColors.textColor + ' opacity-90'}>
+                          🏠 {displayedCountry.improvement_level_3_name || 'Casa'}: ${displayedCountry.house_price.toLocaleString()}
+                        </p>
+                        <p className={cardColors.textColor + ' opacity-90'}>
+                          🏠 {displayedCountry.improvement_level_4_name || 'Casa'}: ${displayedCountry.house_price.toLocaleString()}
+                        </p>
+                      </div>
                       <p className={cardColors.textColor + ' opacity-90'}>
                         🏨 {displayedCountry.improvement_level_5_name || 'Hotel'}: ${displayedCountry.hotel_price.toLocaleString()}
                       </p>
