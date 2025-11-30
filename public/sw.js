@@ -15,11 +15,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-// Fetch - NO cachear nada, siempre ir a la red
+// Fetch - NO interceptar peticiones, dejar que pasen directamente
+// El Service Worker solo está aquí para notificaciones push, no para cachear
 self.addEventListener('fetch', (event) => {
-  // No interceptar ninguna petición, dejar que pase directamente
-  // Esto asegura que no haya problemas con autenticación o APIs
-  event.respondWith(fetch(event.request));
+  // No interceptar ninguna petición
+  // Esto evita problemas con APIs, autenticación y navegación
+  // Dejar que todas las peticiones pasen directamente sin interceptar
+  return;
 });
 
 // ============================================
