@@ -2191,17 +2191,3 @@ export default function GamePage() {
   )
 }
 
-function getColorHex(color: string): string {
-  const colors: Record<string, string> = {
-    red: '#ef4444',
-    blue: '#3b82f6',
-    green: '#10b981',
-    yellow: '#eab308',
-    purple: '#a855f7',
-    orange: '#f97316',
-    pink: '#ec4899',
-    cyan: '#06b6d4',
-  }
-  return colors[color] || '#gray'
-}
-
