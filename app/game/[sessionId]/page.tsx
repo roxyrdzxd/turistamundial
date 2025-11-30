@@ -102,7 +102,12 @@ export default function GamePage() {
     }
   }
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
+    // Solo obtener el usuario si no lo tenemos ya
+    if (currentUserId) {
+      return
+    }
+    
     try {
       const response = await fetch('/api/auth/user')
       const data = await response.json()
@@ -112,7 +117,7 @@ export default function GamePage() {
     } catch (err) {
       console.error('Error obteniendo usuario:', err)
     }
-  }
+  }, [currentUserId])
 
   const fetchSession = useCallback(async () => {
     try {
