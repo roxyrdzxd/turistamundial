@@ -71,48 +71,51 @@ export default function SessionPage() {
   }, [])
 
   useEffect(() => {
-    if (sessionId) {
-      fetchSession()
-      // Refrescar cada 2 segundos
-      const interval = setInterval(fetchSession, 2000)
-      
-      // Escuchar cambios en tiempo real del estado de la sesión
-      const supabase = createClient()
-      const channel = supabase
-        .channel(`session:${sessionId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'game_sessions',
-            filter: `id=eq.${sessionId}`,
-          },
-          (payload: RealtimePostgresChangesPayload<any>) => {
-            const updatedSession = payload.new as any
-            // Si la sesión cambió a 'active', redirigir a los jugadores (excepto el host)
-            if (updatedSession.status === 'active' && !isHost) {
-              router.push(`/game/${sessionId}`)
-            } else if (updatedSession.status === 'active' && isHost) {
-              // El host también se redirige después de iniciar
-              // Esto se maneja en handleStart, pero por si acaso
-              fetchSession()
-            }
+    if (!sessionId) return
+
+    // Cargar sesión inicial
+    fetchSession()
+    
+    // Escuchar cambios en tiempo real del estado de la sesión
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`session:${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'game_sessions',
+          filter: `id=eq.${sessionId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<any>) => {
+          const updatedSession = payload.new as any
+          // Si la sesión cambió a 'active', redirigir a los jugadores (excepto el host)
+          if (updatedSession.status === 'active' && !isHost) {
+            router.push(`/game/${sessionId}`)
+          } else if (updatedSession.status === 'active' && isHost) {
+            // El host también se redirige después de iniciar
+            // Esto se maneja en handleStart, pero por si acaso
+            fetchSession()
+          } else {
+            // Solo actualizar el estado sin hacer fetch completo
+            setSession(updatedSession)
           }
-        )
-        .subscribe()
-      
-      return () => {
-        clearInterval(interval)
-        supabase.removeChannel(channel)
-        if (autoNpcTimer) {
-          clearTimeout(autoNpcTimer)
         }
+      )
+      .subscribe()
+    
+    return () => {
+      supabase.removeChannel(channel)
+      if (autoNpcTimer) {
+        clearTimeout(autoNpcTimer)
       }
     }
-  }, [sessionId, isHost, router, autoNpcTimer])
+  }, [sessionId, isHost, router, fetchSession])
 
-  const fetchSession = async () => {
+  const fetchSession = useCallback(async () => {
+    if (!sessionId) return
+    
     try {
       const response = await fetch(`/api/game/session/${sessionId}`)
       const data = await response.json()
@@ -136,7 +139,7 @@ export default function SessionPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sessionId])
 
   // Auto-agregar NPCs después de 10 segundos si no hay suficientes jugadores
   useEffect(() => {
@@ -199,7 +202,7 @@ export default function SessionPage() {
         }
       }
     }
-  }, [session, isHost, sessionId, autoNpcTriggered, toast, fetchSession])
+  }, [session, isHost, sessionId, autoNpcTriggered, toast])
 
   const handleAddNPCs = async () => {
     if (!isHost) return
