@@ -246,6 +246,16 @@ export default function GamePage() {
     // Verificar si el jugador está desconectado (solo para jugadores reales)
     const isDisconnected = currentPlayer.is_online === false && !isNPC
 
+    console.log('[NPC Detection]', {
+      currentTurn: session.current_turn,
+      currentPlayer: currentPlayer.profile?.username || currentPlayer.user_id,
+      is_online: currentPlayer.is_online,
+      isNPC,
+      isDisconnected,
+      isProcessing: npcProcessingRef.current,
+      isCurrentUser: currentPlayer.user_id === currentUserId
+    })
+
     // Si es un NPC o está desconectado, y no es el usuario actual, hacer que se salte el turno
     if ((isNPC || isDisconnected) && currentPlayer.user_id !== currentUserId && !npcProcessingRef.current) {
       npcProcessingRef.current = true // Marcar que estamos procesando

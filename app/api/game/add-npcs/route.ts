@@ -161,6 +161,7 @@ export async function POST(request: Request) {
               color: color,
               turn_order: session.current_players + i,
               is_bankrupt: false,
+              is_online: false, // NPCs nunca están online
             })
             .select()
             .single()
@@ -199,6 +200,7 @@ export async function POST(request: Request) {
           color: color,
           turn_order: session.current_players + i,
           is_bankrupt: false,
+          is_online: false, // NPCs nunca están online
         })
         .select()
         .single()
