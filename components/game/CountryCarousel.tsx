@@ -53,6 +53,9 @@ interface CountryCarouselProps {
   onBuyPropertyFromPlayer?: (playerCountryId: string) => void
   onEndTurn?: () => void
   actionRequired?: string | null
+  needsToPayToll?: boolean
+  tollAmount?: number
+  onPayToll?: () => void
 }
 
 const CONTINENT_COLORS: Record<string, string> = {
@@ -122,6 +125,9 @@ export default function CountryCarousel({
   onBuyPropertyFromPlayer,
   onEndTurn,
   actionRequired = null,
+  needsToPayToll = false,
+  tollAmount = 0,
+  onPayToll,
 }: CountryCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [touchStart, setTouchStart] = useState(0)
@@ -622,9 +628,19 @@ export default function CountryCarousel({
                           )}
                         </div>
                       ) : (
-                        <p className={`${cardColors.textColor} font-semibold text-center text-xs sm:text-sm`}>
-                          💰 Debes pagar ${currentRent.toLocaleString()}
-                        </p>
+                        <div className="space-y-2">
+                          <p className={`${cardColors.textColor} font-semibold text-center text-xs sm:text-sm`}>
+                            💰 Debes pagar ${needsToPayToll && tollAmount > 0 ? tollAmount.toLocaleString() : currentRent.toLocaleString()}
+                          </p>
+                          {isMyTurn && needsToPayToll && onPayToll && (
+                            <button
+                              onClick={onPayToll}
+                              className="w-full bg-white text-red-600 py-1.5 px-3 rounded-lg hover:bg-red-50 active:bg-red-100 transition font-semibold shadow-md border-2 border-white text-xs sm:text-sm"
+                            >
+                              💵 Pagar Peaje
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}

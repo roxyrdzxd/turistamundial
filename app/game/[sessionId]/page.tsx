@@ -1028,17 +1028,20 @@ export default function GamePage() {
               </h2>
               <div className="bg-gradient-to-br from-white/5 to-white/10 rounded-lg p-1 sm:p-2">
                 {countries.length > 0 && myPlayer ? (
-                  <CountryCarousel
-                    countries={countries}
-                    players={session.players}
-                    currentPlayer={myPlayer}
-                    playerCountries={playerCountries}
-                    isMyTurn={isMyTurn}
-                    onBuyCountry={handleBuyCountry}
-                    onBuyPropertyFromPlayer={handleBuyPropertyFromPlayer}
-                    onEndTurn={handleEndTurn}
-                    actionRequired={actionRequired}
-                  />
+                    <CountryCarousel
+                      countries={countries}
+                      players={session.players}
+                      currentPlayer={myPlayer}
+                      playerCountries={playerCountries}
+                      isMyTurn={isMyTurn}
+                      onBuyCountry={handleBuyCountry}
+                      onBuyPropertyFromPlayer={handleBuyPropertyFromPlayer}
+                      onEndTurn={handleEndTurn}
+                      actionRequired={actionRequired}
+                      needsToPayToll={needsToPayToll}
+                      tollAmount={tollAmount}
+                      onPayToll={handlePayToll}
+                    />
                 ) : (
                   <div className="min-h-[200px] flex items-center justify-center">
                     <div className="text-center">
