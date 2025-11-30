@@ -232,8 +232,9 @@ export default function GamePage() {
       return
     }
 
-    // Verificar si es un NPC (solo por user_id, no por nombre)
-    const isNPC = currentPlayer.user_id.startsWith('npc-')
+    // Verificar si es un NPC: los NPCs nunca están online
+    // Si el jugador no está online y no es el usuario actual, es un NPC
+    const isNPC = currentPlayer.is_online === false && currentPlayer.user_id !== currentUserId
 
     // Verificar si el jugador está desconectado
     const isDisconnected = currentPlayer.is_online === false

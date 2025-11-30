@@ -36,8 +36,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Jugador actual no encontrado' }, { status: 404 })
     }
 
-    // Verificar si es un NPC (solo por user_id, no por nombre)
-    const isNPC = currentPlayer.user_id.startsWith('npc-')
+    // Verificar si es un NPC: los NPCs no tienen entrada en auth.users
+    // Verificamos si el user_id existe en auth.users
+    const { data: authUser } = await supabase.auth.admin.getUserById(currentPlayer.user_id)
+    const isNPC = !authUser || !authUser.user
 
     if (!isNPC) {
       return NextResponse.json({ error: 'No es un NPC' }, { status: 400 })
