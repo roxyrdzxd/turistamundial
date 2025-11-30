@@ -1496,6 +1496,63 @@ export default function GamePage() {
                         ))}
                       </div>
                     )}
+
+                    {/* Propiedades de Otros Jugadores - Desktop */}
+                    {(() => {
+                      const otherPlayersProps = session.players
+                        .filter(p => p.user_id !== currentUserId && !p.is_bankrupt)
+                        .map(player => {
+                          const playerProps = playerCountries
+                            .filter(pc => pc.player_id === player.id)
+                            .map(pc => {
+                              const country = countries.find(c => c.id === pc.country_id)
+                              return country ? { ...pc, country } : null
+                            })
+                            .filter((item): item is any => item !== null)
+
+                          return {
+                            player,
+                            properties: playerProps,
+                            totalProperties: playerProps.length,
+                          }
+                        })
+                        .filter(p => p.totalProperties > 0)
+
+                      if (otherPlayersProps.length === 0) return null
+
+                      return (
+                        <div className="mt-4 pt-4 border-t border-white/20">
+                          <h4 className="text-xs sm:text-sm font-semibold text-white/90 mb-2 flex items-center gap-1.5">
+                            <span>👥</span>
+                            <span>Otros Jugadores</span>
+                          </h4>
+                          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                            {otherPlayersProps.map(({ player, properties, totalProperties }) => {
+                              const playerProfile = player.profile || { username: 'Jugador' }
+                              const playerColor = player.color || 'gray'
+                              
+                              return (
+                                <div key={player.id} className="bg-white/5 hover:bg-white/10 rounded p-1.5 transition-colors">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                      <div 
+                                        className="w-4 h-4 rounded-full border border-white/50 flex-shrink-0"
+                                        style={{ backgroundColor: playerColor === 'red' ? '#ef4444' : playerColor === 'blue' ? '#3b82f6' : playerColor === 'green' ? '#22c55e' : playerColor === 'yellow' ? '#eab308' : playerColor === 'purple' ? '#a855f7' : playerColor === 'orange' ? '#f97316' : playerColor === 'pink' ? '#ec4899' : playerColor === 'cyan' ? '#06b6d4' : '#6b7280' }}
+                                      />
+                                      <span className="text-xs font-semibold text-white truncate">{playerProfile.username}</span>
+                                    </div>
+                                    <span className="text-xs opacity-80 text-white">{totalProperties}</span>
+                                  </div>
+                                  <div className="text-xs text-white/70">
+                                    💰 ${player.money.toLocaleString()}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })()}
                 </div>
               )
             })()}
