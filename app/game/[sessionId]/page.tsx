@@ -907,10 +907,10 @@ export default function GamePage() {
           const isWinner = data.winner.id === myPlayer?.id
           if (isWinner) {
             toast.showSuccess(`🎉 ¡Felicidades! Has ganado la partida, ${data.winner.username}!`)
-            soundManager?.play('success')
+            soundManager?.play('buy_property')
           } else {
             toast.showInfo(`La partida ha terminado. Ganador: ${data.winner.username}`)
-            soundManager?.play('info')
+            soundManager?.play('pay_toll')
           }
         } else {
           toast.showError('Has quedado en bancarrota')
