@@ -17,6 +17,22 @@ interface PurchasedAvatar {
     name: string
     description: string
     image_url: string | null
+    category: string
+    data: any
+  }
+}
+
+interface PurchasedColor {
+  id: string
+  item_id: string
+  is_equipped: boolean
+  purchased_at: string
+  item: {
+    id: string
+    name: string
+    description: string
+    image_url: string | null
+    category: string
     data: any
   }
 }
@@ -29,7 +45,9 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [purchasedAvatars, setPurchasedAvatars] = useState<PurchasedAvatar[]>([])
+  const [purchasedColors, setPurchasedColors] = useState<PurchasedColor[]>([])
   const [equipping, setEquipping] = useState<string | null>(null)
+  const [preferredColor, setPreferredColor] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const toast = useToast()
@@ -53,7 +71,7 @@ export default function ProfilePage() {
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('username, avatar_url')
+        .select('username, avatar_url, preferred_color')
         .eq('id', currentUser.id)
         .maybeSingle()
 
@@ -100,6 +118,7 @@ export default function ProfilePage() {
         if (newProfile) {
           setUsername(newProfile.username || '')
           setAvatarUrl(newProfile.avatar_url)
+          setPreferredColor(newProfile.preferred_color)
         } else if (fetchError) {
           console.error('Error fetching newly created profile:', fetchError)
           toast.showToast('Error al cargar el perfil', 'error')
@@ -107,6 +126,7 @@ export default function ProfilePage() {
       } else {
         setUsername(profile.username || '')
         setAvatarUrl(profile.avatar_url)
+        setPreferredColor(profile.preferred_color)
       }
     } catch (error: any) {
       console.error('Error:', error)
@@ -144,12 +164,18 @@ export default function ProfilePage() {
         return
       }
 
-      // Filtrar solo items de categoría avatar
+      // Filtrar items de categoría avatar
       const avatarItems = (inventoryItems || []).filter((item: any) => {
         return item.item && item.item.category === 'avatar'
       })
 
+      // Filtrar items de categoría color
+      const colorItems = (inventoryItems || []).filter((item: any) => {
+        return item.item && item.item.category === 'color'
+      })
+
       setPurchasedAvatars(avatarItems as PurchasedAvatar[])
+      setPurchasedColors(colorItems as PurchasedColor[])
     } catch (error) {
       console.error('Error obteniendo avatares comprados:', error)
     }
@@ -174,7 +200,12 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Error al equipar avatar')
       }
 
-      toast.showToast('Avatar equipado correctamente', 'success')
+      if (data.preferred_color) {
+        toast.showToast('Color equipado correctamente', 'success')
+        setPreferredColor(data.preferred_color)
+      } else {
+        toast.showToast('Avatar equipado correctamente', 'success')
+      }
       
       // Actualizar estado local
       await fetchPurchasedAvatars()
@@ -510,6 +541,115 @@ export default function ProfilePage() {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Purchased Colors Section */}
+          {purchasedColors.length > 0 && (
+            <div className="mt-8">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Colores Comprados</h2>
+                  <Link
+                    href="/shop"
+                    className="text-sm text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
+                  >
+                    Ver Tienda →
+                  </Link>
+                </div>
+                
+                {preferredColor && (
+                  <div className="mb-4 p-3 bg-cyan-500/20 border border-cyan-400/30 rounded-lg">
+                    <p className="text-sm text-cyan-200">
+                      <span className="font-semibold">Color actual:</span>{' '}
+                      <span className="inline-flex items-center gap-2">
+                        <span 
+                          className="w-4 h-4 rounded-full border-2 border-white/30"
+                          style={{
+                            backgroundColor: preferredColor === 'red' ? '#ef4444' :
+                                            preferredColor === 'blue' ? '#3b82f6' :
+                                            preferredColor === 'green' ? '#10b981' :
+                                            preferredColor === 'yellow' ? '#eab308' :
+                                            preferredColor === 'purple' ? '#a855f7' :
+                                            preferredColor === 'orange' ? '#f97316' :
+                                            preferredColor === 'pink' ? '#ec4899' :
+                                            preferredColor === 'cyan' ? '#06b6d4' : '#3b82f6'
+                          }}
+                        />
+                        {preferredColor.charAt(0).toUpperCase() + preferredColor.slice(1)}
+                      </span>
+                    </p>
+                    <p className="text-xs text-cyan-300/80 mt-1">
+                      Este color se usará en tus próximas partidas
+                    </p>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {purchasedColors.map((color) => {
+                    const colorData = color.item.data?.color || 'blue'
+                    const isEquipped = color.is_equipped
+                    const colorHex = colorData === 'rainbow' ? '#ec4899' : // pink para rainbow
+                                     colorData === 'neon' ? '#06b6d4' : // cyan para neon
+                                     colorData === 'red' ? '#ef4444' :
+                                     colorData === 'blue' ? '#3b82f6' :
+                                     colorData === 'green' ? '#10b981' :
+                                     colorData === 'yellow' ? '#eab308' :
+                                     colorData === 'purple' ? '#a855f7' :
+                                     colorData === 'orange' ? '#f97316' :
+                                     colorData === 'pink' ? '#ec4899' :
+                                     colorData === 'cyan' ? '#06b6d4' : '#3b82f6'
+                    
+                    return (
+                      <div
+                        key={color.id}
+                        className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 ${
+                          isEquipped
+                            ? 'border-green-400 shadow-lg bg-green-500/10'
+                            : 'border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div 
+                            className="w-12 h-12 rounded-full border-2 border-white/30 flex-shrink-0 shadow-lg"
+                            style={{ backgroundColor: colorHex }}
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-bold text-white text-sm">{color.item.name}</h3>
+                            {isEquipped && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-semibold rounded border border-green-400/30">
+                                Equipado
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <p className="text-xs text-white/70 mb-3 line-clamp-2">
+                          {color.item.description}
+                        </p>
+                        
+                        <button
+                          onClick={() => handleEquipAvatar(color.item.id)}
+                          disabled={isEquipped || equipping === color.item.id}
+                          className={`w-full py-2 px-4 rounded-lg font-semibold text-sm transition ${
+                            isEquipped
+                              ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/10'
+                              : equipping === color.item.id
+                              ? 'bg-cyan-500/20 text-cyan-300 cursor-wait border border-cyan-400/30'
+                              : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700 shadow-md'
+                          }`}
+                        >
+                          {equipping === color.item.id
+                            ? 'Equipando...'
+                            : isEquipped
+                            ? '✓ Equipado'
+                            : 'Equipar'}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>

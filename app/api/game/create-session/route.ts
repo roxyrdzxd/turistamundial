@@ -83,8 +83,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: sessionError.message }, { status: 500 })
   }
 
+  // Obtener color preferido del usuario si existe
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('preferred_color')
+    .eq('id', user.id)
+    .single()
+
   // Colores disponibles para jugadores
   const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
+  
+  // Usar el color preferido del usuario si existe y es válido, sino usar el primero disponible
+  let playerColor = colors[0]
+  if (profile?.preferred_color && colors.includes(profile.preferred_color)) {
+    playerColor = profile.preferred_color
+  }
   
   // Agregar el host como primer jugador
   const { data: player, error: playerError } = await supabase
@@ -94,7 +107,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       position: 0,
       money: 1500,
-      color: colors[0],
+      color: playerColor,
       turn_order: 0,
       is_bankrupt: false,
     })

@@ -31,73 +31,154 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Item no encontrado en tu inventario' }, { status: 404 })
     }
 
-    // Verificar que el item es un avatar
-    if (inventoryItem.item.category !== 'avatar') {
-      return NextResponse.json({ error: 'Solo se pueden equipar avatares' }, { status: 400 })
+    // Verificar que el item es un avatar o un color
+    if (inventoryItem.item.category !== 'avatar' && inventoryItem.item.category !== 'color') {
+      return NextResponse.json({ error: 'Solo se pueden equipar avatares o colores' }, { status: 400 })
     }
 
-    // Obtener todos los items de avatar equipados del usuario
-    // Primero obtener los IDs de items de categoría avatar
-    const { data: avatarShopItems } = await supabase
-      .from('shop_items')
-      .select('id')
-      .eq('category', 'avatar')
+    const itemCategory = inventoryItem.item.category
 
-    if (!avatarShopItems || avatarShopItems.length === 0) {
-      return NextResponse.json({ error: 'No hay avatares disponibles' }, { status: 404 })
-    }
+    if (itemCategory === 'avatar') {
+      // Lógica para equipar avatares
+      // Obtener todos los items de avatar equipados del usuario
+      const { data: avatarShopItems } = await supabase
+        .from('shop_items')
+        .select('id')
+        .eq('category', 'avatar')
 
-    const avatarItemIds = avatarShopItems.map(item => item.id)
+      if (!avatarShopItems || avatarShopItems.length === 0) {
+        return NextResponse.json({ error: 'No hay avatares disponibles' }, { status: 404 })
+      }
 
-    // Desequipar todos los avatares del usuario
-    await supabase
-      .from('user_inventory')
-      .update({ is_equipped: false })
-      .eq('user_id', user.id)
-      .eq('is_equipped', true)
-      .in('item_id', avatarItemIds)
+      const avatarItemIds = avatarShopItems.map(item => item.id)
 
-    // Equipar el nuevo avatar
-    const { error: equipError } = await supabase
-      .from('user_inventory')
-      .update({ is_equipped: true })
-      .eq('id', inventoryItem.id)
+      // Desequipar todos los avatares del usuario
+      await supabase
+        .from('user_inventory')
+        .update({ is_equipped: false })
+        .eq('user_id', user.id)
+        .eq('is_equipped', true)
+        .in('item_id', avatarItemIds)
 
-    if (equipError) {
-      console.error('[Equip Avatar] Error equipando:', equipError)
-      return NextResponse.json({ error: equipError.message }, { status: 500 })
-    }
+      // Equipar el nuevo avatar
+      const { error: equipError } = await supabase
+        .from('user_inventory')
+        .update({ is_equipped: true })
+        .eq('id', inventoryItem.id)
 
-    // Actualizar el avatar_url en el perfil con la imagen del item
-    // Si el item tiene image_url, usarla; si no, usar una URL por defecto basada en el tipo
-    let avatarUrl = inventoryItem.item.image_url
+      if (equipError) {
+        console.error('[Equip Avatar] Error equipando:', equipError)
+        return NextResponse.json({ error: equipError.message }, { status: 500 })
+      }
 
-    // Si no hay image_url, generar una URL basada en el tipo de avatar
-    if (!avatarUrl && inventoryItem.item.data) {
-      const avatarType = inventoryItem.item.data.avatar_type || 'default'
-      // Por ahora, usaremos una URL placeholder o el image_url del item
-      // En el futuro, esto podría apuntar a assets específicos
-      avatarUrl = inventoryItem.item.image_url || null
-    }
+      // Actualizar el avatar_url en el perfil
+      let avatarUrl = inventoryItem.item.image_url
 
-    // Si hay una URL de avatar, actualizar el perfil
-    if (avatarUrl) {
+      if (!avatarUrl && inventoryItem.item.data) {
+        const avatarType = inventoryItem.item.data.avatar_type || 'default'
+        avatarUrl = inventoryItem.item.image_url || null
+      }
+
+      if (avatarUrl) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: avatarUrl })
+          .eq('id', user.id)
+
+        if (profileError) {
+          console.error('[Equip Avatar] Error actualizando perfil:', profileError)
+        }
+      }
+
+      return NextResponse.json({ 
+        success: true,
+        message: 'Avatar equipado correctamente',
+        avatar_url: avatarUrl
+      })
+    } else if (itemCategory === 'color') {
+      // Lógica para equipar colores
+      // Obtener todos los items de color equipados del usuario
+      const { data: colorShopItems } = await supabase
+        .from('shop_items')
+        .select('id')
+        .eq('category', 'color')
+
+      if (!colorShopItems || colorShopItems.length === 0) {
+        return NextResponse.json({ error: 'No hay colores disponibles' }, { status: 404 })
+      }
+
+      const colorItemIds = colorShopItems.map(item => item.id)
+
+      // Desequipar todos los colores del usuario
+      await supabase
+        .from('user_inventory')
+        .update({ is_equipped: false })
+        .eq('user_id', user.id)
+        .eq('is_equipped', true)
+        .in('item_id', colorItemIds)
+
+      // Equipar el nuevo color
+      const { error: equipError } = await supabase
+        .from('user_inventory')
+        .update({ is_equipped: true })
+        .eq('id', inventoryItem.id)
+
+      if (equipError) {
+        console.error('[Equip Color] Error equipando:', equipError)
+        return NextResponse.json({ error: equipError.message }, { status: 500 })
+      }
+
+      // Obtener el color del item (puede ser rainbow, neon, o un color estándar)
+      let preferredColor: string | null = null
+      
+      if (inventoryItem.item.data && inventoryItem.item.data.color) {
+        const colorData = inventoryItem.item.data.color
+        
+        // Mapear colores especiales a colores del juego
+        // rainbow -> pink (color vibrante)
+        // neon -> cyan (color brillante)
+        // Si es un color estándar, usarlo directamente
+        if (colorData === 'rainbow') {
+          preferredColor = 'pink'
+        } else if (colorData === 'neon') {
+          preferredColor = 'cyan'
+        } else if (['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan'].includes(colorData)) {
+          preferredColor = colorData
+        }
+      }
+
+      // Si no se pudo determinar el color, usar un valor por defecto basado en el nombre del item
+      if (!preferredColor) {
+        const itemName = inventoryItem.item.name.toLowerCase()
+        if (itemName.includes('arcoiris') || itemName.includes('rainbow')) {
+          preferredColor = 'pink'
+        } else if (itemName.includes('neon') || itemName.includes('neón')) {
+          preferredColor = 'cyan'
+        } else {
+          // Color por defecto si no se puede determinar
+          preferredColor = 'blue'
+        }
+      }
+
+      // Actualizar el preferred_color en el perfil
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ avatar_url: avatarUrl })
+        .update({ preferred_color: preferredColor })
         .eq('id', user.id)
 
       if (profileError) {
-        console.error('[Equip Avatar] Error actualizando perfil:', profileError)
-        // No fallar si hay error actualizando el perfil, el item ya está equipado
+        console.error('[Equip Color] Error actualizando perfil:', profileError)
+        return NextResponse.json({ error: profileError.message }, { status: 500 })
       }
-    }
 
-    return NextResponse.json({ 
-      success: true,
-      message: 'Avatar equipado correctamente',
-      avatar_url: avatarUrl
-    })
+      return NextResponse.json({ 
+        success: true,
+        message: 'Color equipado correctamente',
+        preferred_color: preferredColor
+      })
+    } else {
+      return NextResponse.json({ error: 'Tipo de item no soportado para equipar' }, { status: 400 })
+    }
   } catch (error: any) {
     console.error('[Equip Avatar] Error:', error)
     return NextResponse.json({ 

@@ -69,6 +69,13 @@ export async function POST(request: Request) {
       })
     }
 
+    // Obtener color preferido del usuario si existe
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('preferred_color')
+      .eq('id', user.id)
+      .single()
+
     // Obtener colores ya usados
     const { data: existingPlayers } = await supabase
       .from('session_players')
@@ -77,7 +84,12 @@ export async function POST(request: Request) {
 
     const usedColors = existingPlayers?.map(p => p.color) || []
     const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
-    const availableColor = availableColors.find(c => !usedColors.includes(c)) || availableColors[0]
+    
+    // Intentar usar el color preferido del usuario si está disponible
+    let availableColor = availableColors.find(c => !usedColors.includes(c)) || availableColors[0]
+    if (profile?.preferred_color && availableColors.includes(profile.preferred_color) && !usedColors.includes(profile.preferred_color)) {
+      availableColor = profile.preferred_color
+    }
 
     // Agregar jugador a la sesión
     const { data: player, error: playerError } = await supabase

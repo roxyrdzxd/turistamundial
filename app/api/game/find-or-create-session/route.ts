@@ -77,6 +77,13 @@ export async function POST(request: Request) {
         // Si se llenó, continuar para crear una nueva
         console.log('[Find or Create] Sesión encontrada pero se llenó, creando nueva')
       } else {
+        // Obtener color preferido del usuario si existe
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('preferred_color')
+          .eq('id', user.id)
+          .single()
+
         // Unirse a la sesión existente
         const { data: existingPlayers } = await supabase
           .from('session_players')
@@ -85,7 +92,12 @@ export async function POST(request: Request) {
 
         const usedColors = existingPlayers?.map(p => p.color) || []
         const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
-        const availableColor = availableColors.find(c => !usedColors.includes(c)) || availableColors[0]
+        
+        // Intentar usar el color preferido del usuario si está disponible
+        let availableColor = availableColors.find(c => !usedColors.includes(c)) || availableColors[0]
+        if (profile?.preferred_color && availableColors.includes(profile.preferred_color) && !usedColors.includes(profile.preferred_color)) {
+          availableColor = profile.preferred_color
+        }
 
         const { data: player, error: joinError } = await supabase
           .from('session_players')
@@ -153,8 +165,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: sessionError.message }, { status: 500 })
     }
 
-    // Agregar el host como primer jugador
+    // Obtener color preferido del usuario si existe
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('preferred_color')
+      .eq('id', user.id)
+      .single()
+
+    // Colores disponibles para jugadores
     const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
+    
+    // Usar el color preferido del usuario si existe y es válido, sino usar el primero disponible
+    let playerColor = colors[0]
+    if (profile?.preferred_color && colors.includes(profile.preferred_color)) {
+      playerColor = profile.preferred_color
+    }
+    
     const { data: player, error: playerError } = await supabase
       .from('session_players')
       .insert({
@@ -162,7 +188,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         position: 0,
         money: 1500,
-        color: colors[0],
+        color: playerColor,
         turn_order: 0,
         is_bankrupt: false,
       })
