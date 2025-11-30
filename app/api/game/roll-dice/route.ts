@@ -279,6 +279,8 @@ export async function POST(request: Request) {
       propertyForSale,
       message: `Avanzaste ${total} casillas`,
       completedLap,
+      gameOver: false, // Se verificará después si es necesario
+      winner: null,
     })
   } catch (error: any) {
     console.error('[Roll Dice] Error general:', error)
