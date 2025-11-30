@@ -315,7 +315,7 @@ export default function GamePage() {
     } else if (!isNPC && !isDisconnected && currentPlayer.user_id === currentUserId) {
       npcProcessingRef.current = false
     }
-  }, [session?.current_turn, session?.status, currentUserId, sessionId, fetchSession, toast])
+  }, [session?.current_turn, session?.status, currentUserId, sessionId, fetchSession, toast, session?.players])
 
   const handleRollDice = async () => {
     if (!session || rolling) return
