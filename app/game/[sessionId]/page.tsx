@@ -164,11 +164,23 @@ export default function GamePage() {
     fetchCountries()
   }, [sessionId, fetchUser, fetchSession]) // Incluir funciones memoizadas en dependencias // Solo ejecutar cuando cambie sessionId
 
-  // Suscripciones de tiempo real (separadas para mejor control)
+  // Suscripciones de tiempo real optimizadas
   useEffect(() => {
-    if (!sessionId) return
+    if (!sessionId || !session) return
 
     const supabase = createClient()
+    let updateTimeout: NodeJS.Timeout | null = null
+    
+    // Función para actualizar con debounce (evita múltiples llamadas rápidas)
+    const debouncedFetchSession = () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout)
+      }
+      updateTimeout = setTimeout(() => {
+        fetchSession()
+      }, 300) // Esperar 300ms antes de actualizar
+    }
+
     const channel = supabase
       .channel(`game-${sessionId}`)
       .on(
@@ -180,8 +192,15 @@ export default function GamePage() {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload: RealtimePostgresChangesPayload<any>) => {
-          // Actualizar la sesión cuando cambie la posición de un jugador
-          fetchSession()
+          // Actualizar inmediatamente solo los campos relevantes del jugador
+          if (payload.new && session) {
+            const updatedPlayers = session.players.map((p: any) => 
+              p.id === payload.new.id ? { ...p, ...payload.new } : p
+            )
+            setSession({ ...session, players: updatedPlayers })
+          }
+          // También hacer fetch completo después de un delay para sincronizar
+          debouncedFetchSession()
         }
       )
       .on(
@@ -193,16 +212,56 @@ export default function GamePage() {
           filter: `id=eq.${sessionId}`,
         },
         (payload: RealtimePostgresChangesPayload<any>) => {
-          // Actualizar cuando cambie el turno o estado de la sesión
-          fetchSession()
+          // Actualizar inmediatamente el current_turn y otros campos críticos
+          if (payload.new && session) {
+            const updatedSession = {
+              ...session,
+              current_turn: payload.new.current_turn ?? session.current_turn,
+              status: payload.new.status ?? session.status,
+              current_players: payload.new.current_players ?? session.current_players,
+            }
+            setSession(updatedSession)
+            
+            // Si cambió el turno, actualizar inmediatamente sin delay
+            if (payload.new.current_turn !== session.current_turn) {
+              if (updateTimeout) {
+                clearTimeout(updateTimeout)
+              }
+              fetchSession()
+            } else {
+              debouncedFetchSession()
+            }
+          }
         }
       )
-      .subscribe()
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_countries',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<any>) => {
+          // Actualizar playerCountries cuando cambien las propiedades
+          debouncedFetchSession()
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[Realtime] Suscrito a cambios de la partida')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] Error en la suscripción')
+        }
+      })
     
     return () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout)
+      }
       supabase.removeChannel(channel)
     }
-  }, [sessionId, fetchSession]) // fetchSession está memoizado con useCallback
+  }, [sessionId, fetchSession, session]) // Incluir session para comparar current_turn
 
   // Sistema de heartbeat para mantener al jugador como online
   useEffect(() => {
