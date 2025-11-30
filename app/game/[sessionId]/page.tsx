@@ -249,9 +249,16 @@ export default function GamePage() {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('[Realtime] Suscrito a cambios de la partida')
+          console.log('[Realtime] ✅ Suscrito a cambios de la partida')
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('[Realtime] Error en la suscripción')
+          console.error('[Realtime] ❌ Error en la suscripción:', status)
+          // Fallback: intentar reconectar después de 2 segundos
+          setTimeout(() => {
+            console.log('[Realtime] 🔄 Intentando reconectar...')
+            fetchSession()
+          }, 2000)
+        } else {
+          console.log('[Realtime] Estado:', status)
         }
       })
     
