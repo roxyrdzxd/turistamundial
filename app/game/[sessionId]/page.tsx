@@ -20,6 +20,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { hasMonopoly, canBuild } from '@/lib/game/gameEngine'
 import { soundManager } from '@/lib/audio/soundManager'
 import { createClient } from '@/lib/supabase/client'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 interface Player {
   id: string
@@ -151,7 +152,7 @@ export default function GamePage() {
             table: 'session_players',
             filter: `session_id=eq.${sessionId}`,
           },
-          (payload) => {
+          (payload: RealtimePostgresChangesPayload<any>) => {
             // Actualizar la sesión cuando cambie la posición de un jugador
             fetchSession()
           }
@@ -164,7 +165,7 @@ export default function GamePage() {
             table: 'game_sessions',
             filter: `id=eq.${sessionId}`,
           },
-          (payload) => {
+          (payload: RealtimePostgresChangesPayload<any>) => {
             // Actualizar cuando cambie el turno o estado de la sesión
             fetchSession()
           }
