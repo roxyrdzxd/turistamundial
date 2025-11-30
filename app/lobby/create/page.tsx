@@ -20,6 +20,7 @@ function CreateLobbyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const addNPCs = searchParams.get('npcs') === 'true'
+  const boardIdParam = searchParams.get('boardId')
 
   useEffect(() => {
     fetchBoards()
@@ -31,8 +32,17 @@ function CreateLobbyContent() {
       const data = await response.json()
       if (data.boards && data.boards.length > 0) {
         setBoards(data.boards)
-        // Seleccionar el primer tablero por defecto
-        setSelectedBoardId(data.boards[0].id)
+        // Si hay un boardId en la URL, seleccionarlo; sino, seleccionar el primero
+        if (boardIdParam) {
+          const boardExists = data.boards.find((b: Board) => b.id === boardIdParam)
+          if (boardExists) {
+            setSelectedBoardId(boardIdParam)
+          } else {
+            setSelectedBoardId(data.boards[0].id)
+          }
+        } else {
+          setSelectedBoardId(data.boards[0].id)
+        }
       }
     } catch (err) {
       console.error('Error obteniendo tableros:', err)

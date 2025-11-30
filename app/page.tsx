@@ -93,6 +93,43 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Nuevo León Promo Banner */}
+      <section className="relative py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 border-y border-cyan-400/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20 shadow-2xl">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">🎮</span>
+                  <span className="px-3 py-1 bg-cyan-500/30 text-cyan-300 rounded-full text-sm font-semibold border border-cyan-400/50">
+                    ¡Nuevo!
+                  </span>
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                  Turista Nuevo León
+                </h3>
+                <p className="text-white/80 text-lg mb-4">
+                  Explora las ciudades, estadios y atracciones del estado más industrial de México
+                </p>
+                <div className="flex flex-wrap gap-2 text-sm text-white/70">
+                  <span>🏙️ 4 Monopolios Únicos</span>
+                  <span>•</span>
+                  <span>🏟️ Estadios Deportivos</span>
+                  <span>•</span>
+                  <span>🎡 Atracciones Turísticas</span>
+                </div>
+              </div>
+              <Link
+                href="/nuevo-leon"
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-bold hover:from-cyan-600 hover:to-blue-700 transition shadow-lg hover:shadow-cyan-500/50 whitespace-nowrap"
+              >
+                Ver Más →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white/5 backdrop-blur-sm border-t border-white/10">
         <div className="max-w-6xl mx-auto">

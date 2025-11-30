@@ -161,6 +161,32 @@ export default async function DashboardPage() {
           <NotificationPrompt />
         </div>
 
+        {/* Nuevo León Promo Banner */}
+        <Link
+          href="/nuevo-leon"
+          className="block mb-8 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-xl p-6 border-2 border-cyan-400/30 hover:border-cyan-400 transition-all shadow-lg hover:shadow-cyan-500/20"
+        >
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="text-5xl">🎮</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-3 py-1 bg-cyan-500/30 text-cyan-300 rounded-full text-xs font-semibold border border-cyan-400/50">
+                    ¡Nuevo!
+                  </span>
+                  <h3 className="text-xl font-bold text-white">Turista Nuevo León</h3>
+                </div>
+                <p className="text-white/80 text-sm">
+                  Explora las ciudades, estadios y atracciones del estado más industrial de México
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-semibold hover:from-cyan-600 hover:to-blue-700 transition whitespace-nowrap">
+              Ver Más →
+            </div>
+          </div>
+        </Link>
+
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
           <Link
