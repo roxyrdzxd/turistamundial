@@ -50,6 +50,8 @@ export default function SessionPage() {
   const [isHost, setIsHost] = useState(false)
   const [addingNPCs, setAddingNPCs] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [autoNpcTimer, setAutoNpcTimer] = useState<NodeJS.Timeout | null>(null)
+  const [autoNpcTriggered, setAutoNpcTriggered] = useState(false)
   const toast = useToast()
 
   useEffect(() => {
@@ -106,6 +108,66 @@ export default function SessionPage() {
       }
     }
   }, [sessionId, isHost, router])
+
+  // Auto-agregar NPCs después de 10 segundos si no hay suficientes jugadores
+  useEffect(() => {
+    if (!session || session.status !== 'waiting' || !isHost || autoNpcTriggered) {
+      return
+    }
+
+    // Si ya hay suficientes jugadores (más de 1), no hacer nada
+    if (session.current_players >= session.max_players) {
+      return
+    }
+
+    // Si solo hay 1 jugador (el host), esperar 10 segundos y agregar NPCs automáticamente
+    if (session.current_players === 1) {
+      const timer = setTimeout(async () => {
+        // Verificar nuevamente que aún estamos en waiting y solo hay 1 jugador
+        const currentSession = await fetch(`/api/game/session/${sessionId}`).then(r => r.json())
+        if (currentSession.session && 
+            currentSession.session.status === 'waiting' && 
+            currentSession.session.current_players === 1 &&
+            !autoNpcTriggered) {
+          
+          setAutoNpcTriggered(true)
+          
+          // Calcular cuántos NPCs agregar (llenar hasta max_players o agregar 2-3 NPCs)
+          const npcsToAdd = Math.min(
+            session.max_players - 1, // Espacios disponibles
+            Math.max(2, Math.floor(session.max_players / 2)) // Mínimo 2, máximo la mitad de max_players
+          )
+
+          if (npcsToAdd > 0) {
+            try {
+              const response = await fetch('/api/game/add-npcs', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sessionId, count: npcsToAdd }),
+              })
+
+              const data = await response.json()
+
+              if (response.ok) {
+                toast.showInfo(`${data.npcsAdded} jugador(es) se unieron a la partida`)
+                fetchSession()
+              }
+            } catch (err) {
+              console.error('Error auto-agregando NPCs:', err)
+            }
+          }
+        }
+      }, 10000) // 10 segundos
+
+      setAutoNpcTimer(timer)
+
+      return () => {
+        if (timer) clearTimeout(timer)
+      }
+    }
+  }, [session, isHost, sessionId, autoNpcTriggered, toast])
 
   const fetchSession = async () => {
     try {

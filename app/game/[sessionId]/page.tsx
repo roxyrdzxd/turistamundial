@@ -137,9 +137,46 @@ export default function GamePage() {
       fetchUser()
       fetchSession()
       fetchCountries()
-      // Refrescar cada 2 segundos
+      
+      // Suscripción en tiempo real para actualizar posiciones y cambios de jugadores
+      const supabase = createClient()
+      const channel = supabase
+        .channel(`game-${sessionId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'session_players',
+            filter: `session_id=eq.${sessionId}`,
+          },
+          (payload) => {
+            // Actualizar la sesión cuando cambie la posición de un jugador
+            fetchSession()
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'game_sessions',
+            filter: `id=eq.${sessionId}`,
+          },
+          (payload) => {
+            // Actualizar cuando cambie el turno o estado de la sesión
+            fetchSession()
+          }
+        )
+        .subscribe()
+      
+      // Refrescar cada 2 segundos como backup
       const interval = setInterval(fetchSession, 2000)
-      return () => clearInterval(interval)
+      
+      return () => {
+        clearInterval(interval)
+        supabase.removeChannel(channel)
+      }
     }
   }, [sessionId, fetchSession])
 
@@ -193,9 +230,8 @@ export default function GamePage() {
       return
     }
 
-    // Verificar si es un NPC
-    const isNPC = currentPlayer.user_id.startsWith('npc-') || 
-                  currentPlayer.profile.username.startsWith('Bot')
+    // Verificar si es un NPC (solo por user_id, no por nombre)
+    const isNPC = currentPlayer.user_id.startsWith('npc-')
 
     // Verificar si el jugador está desconectado
     const isDisconnected = currentPlayer.is_online === false

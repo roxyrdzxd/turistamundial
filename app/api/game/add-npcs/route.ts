@@ -44,10 +44,12 @@ export async function POST(request: Request) {
     const availableColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
     const unusedColors = availableColors.filter(c => !usedColors.includes(c))
 
-    // Nombres de NPCs
+    // Nombres comunes y realistas para NPCs (sin indicar que son bots)
     const npcNames = [
-      'Bot Alpha', 'Bot Beta', 'Bot Gamma', 'Bot Delta',
-      'Bot Epsilon', 'Bot Zeta', 'Bot Eta', 'Bot Theta'
+      'Alex', 'Carlos', 'Diego', 'Elena', 'Fernando', 'Gabriela', 'Hugo', 'Isabel',
+      'Javier', 'Laura', 'Miguel', 'Natalia', 'Oscar', 'Patricia', 'Roberto', 'Sofia',
+      'Tomas', 'Valeria', 'Andres', 'Beatriz', 'Cristian', 'Daniela', 'Emilio', 'Fabiola',
+      'Gonzalo', 'Hilda', 'Ivan', 'Julia', 'Kevin', 'Lucia', 'Manuel', 'Nora'
     ]
 
     const npcsToAdd = Math.min(count, unusedColors.length, session.max_players - session.current_players)
@@ -73,12 +75,11 @@ export async function POST(request: Request) {
       const npcName = npcNames[i % npcNames.length]
       
       // Generar un UUID único para el NPC
-      const npcUserId = generateUUID()
-      // Usar el UUID (sin guiones) como parte del nombre para garantizar unicidad
-      // También agregar timestamp para hacerlo más legible y único
-      const uuidShort = npcUserId.replace(/-/g, '').substring(0, 8)
-      const timestamp = Date.now()
-      const uniqueNpcName = `${npcName} #${uuidShort}-${timestamp}`
+      const npcUserId = `npc-${generateUUID()}`
+      // Usar solo el nombre común sin sufijos que indiquen que es bot
+      // Agregar un número aleatorio pequeño para variar si hay duplicados
+      const randomSuffix = Math.floor(Math.random() * 1000)
+      const uniqueNpcName = randomSuffix > 0 && randomSuffix < 100 ? `${npcName}${randomSuffix}` : npcName
       
       console.log(`[Add NPCs] Creando NPC ${i} con nombre:`, uniqueNpcName, 'UUID:', npcUserId)
       
@@ -96,10 +97,9 @@ export async function POST(request: Request) {
         
         // Si es error de username duplicado (muy improbable con UUID), intentar una vez más
         if (profileError.code === '23505' && profileError.message.includes('username')) {
-          const retryNpcUserId = generateUUID()
-          const retryUuidShort = retryNpcUserId.replace(/-/g, '').substring(0, 8)
-          const retryTimestamp = Date.now()
-          const retryUniqueNpcName = `${npcName} #${retryUuidShort}-${retryTimestamp}`
+          const retryNpcUserId = `npc-${generateUUID()}`
+          const retryRandomSuffix = Math.floor(Math.random() * 1000)
+          const retryUniqueNpcName = retryRandomSuffix > 0 && retryRandomSuffix < 100 ? `${npcName}${retryRandomSuffix}` : npcName
           
           console.log(`[Add NPCs] Reintentando con nuevo nombre:`, retryUniqueNpcName)
           

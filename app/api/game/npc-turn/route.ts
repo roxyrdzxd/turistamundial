@@ -36,20 +36,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Jugador actual no encontrado' }, { status: 404 })
     }
 
-    // Verificar si es un NPC (user_id empieza con 'npc-' o username empieza con 'Bot')
+    // Verificar si es un NPC (solo por user_id, no por nombre)
+    const isNPC = currentPlayer.user_id.startsWith('npc-')
+
+    if (!isNPC) {
+      return NextResponse.json({ error: 'No es un NPC' }, { status: 400 })
+    }
+
+    // Obtener perfil para el mensaje
     const { data: profile } = await supabase
       .from('profiles')
       .select('username')
       .eq('id', currentPlayer.user_id)
       .single()
-
-    const isNPC = currentPlayer.user_id.startsWith('npc-') || 
-                  profile?.username?.startsWith('Bot') || 
-                  false
-
-    if (!isNPC) {
-      return NextResponse.json({ error: 'No es un NPC' }, { status: 400 })
-    }
 
     // Lógica de IA simple para NPCs
     // 1. Tirar dados
