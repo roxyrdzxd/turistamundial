@@ -902,8 +902,20 @@ export default function GamePage() {
       }
 
       if (data.bankrupt) {
-        toast.showError('Has quedado en bancarrota')
-        soundManager?.play('error')
+        if (data.gameOver && data.winner) {
+          // El juego terminó - mostrar mensaje de felicitación al ganador
+          const isWinner = data.winner.id === myPlayer?.id
+          if (isWinner) {
+            toast.showSuccess(`🎉 ¡Felicidades! Has ganado la partida, ${data.winner.username}!`)
+            soundManager?.play('success')
+          } else {
+            toast.showInfo(`La partida ha terminado. Ganador: ${data.winner.username}`)
+            soundManager?.play('info')
+          }
+        } else {
+          toast.showError('Has quedado en bancarrota')
+          soundManager?.play('error')
+        }
       } else {
         toast.showSuccess(data.message)
         soundManager?.play('pay_toll')
@@ -911,7 +923,16 @@ export default function GamePage() {
 
       setNeedsToPayToll(false)
       setActionRequired(null)
-      fetchSession()
+      
+      // Si el juego terminó, actualizar la sesión y redirigir después de un momento
+      if (data.gameOver) {
+        fetchSession()
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 5000) // Redirigir después de 5 segundos
+      } else {
+        fetchSession()
+      }
     } catch (err: any) {
       toast.showError(err.message)
       soundManager?.play('error')
@@ -994,20 +1015,44 @@ export default function GamePage() {
   }
 
   if (session.status !== 'active') {
+    // Si la partida terminó, obtener información del ganador
+    const winnerPlayer = session.status === 'finished' 
+      ? session.players.find(p => !p.is_bankrupt)
+      : null
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-md text-center border border-white/20">
-          <h1 className="text-2xl font-bold mb-4 text-white">Partida no iniciada</h1>
-          <p className="text-white/80 mb-6">
-            {session.status === 'waiting' 
-              ? 'La partida aún no ha comenzado'
-              : 'La partida ha finalizado'}
-          </p>
+          {session.status === 'finished' && winnerPlayer ? (
+            <>
+              <div className="text-6xl mb-4">🎉</div>
+              <h1 className="text-3xl font-bold mb-4 text-yellow-400">¡Partida Finalizada!</h1>
+              <p className="text-white/90 mb-2 text-lg">
+                {winnerPlayer.user_id === currentUserId 
+                  ? '¡Felicidades! Has ganado la partida'
+                  : `Ganador: ${winnerPlayer.profile?.username || 'Jugador'}`}
+              </p>
+              {winnerPlayer.user_id === currentUserId && (
+                <p className="text-white/70 mb-6 text-sm">
+                  Has demostrado ser el mejor estratega de Turix
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold mb-4 text-white">Partida no iniciada</h1>
+              <p className="text-white/80 mb-6">
+                {session.status === 'waiting' 
+                  ? 'La partida aún no ha comenzado'
+                  : 'La partida ha finalizado'}
+              </p>
+            </>
+          )}
           <Link
-            href={`/lobby/${sessionId}`}
+            href="/dashboard"
             className="inline-block bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition"
           >
-            Volver al Lobby
+            Volver al Dashboard
           </Link>
         </div>
       </div>
