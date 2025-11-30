@@ -2173,7 +2173,7 @@ export default function GamePage() {
                                   const totalCount = groupCountries.length
                                   
                                   // Verificar monopolio
-                                  const hasMonopoly = isMonopolyGroup
+                                  const hasMonopolyStatus = isMonopolyGroup
                                     ? hasMonopoly(groupKey, player.id, countries, playerCountries, true)
                                     : hasMonopoly(groupKey, player.id, countries, playerCountries, false)
                                   
@@ -2186,7 +2186,7 @@ export default function GamePage() {
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2">
                                           <span className="text-sm font-semibold text-white">🌍 {groupName}</span>
-                                          {hasMonopoly && (
+                                          {hasMonopolyStatus && (
                                             <span className="bg-green-500/30 text-green-200 px-2 py-0.5 rounded text-xs font-semibold">
                                               ✅ Monopolio
                                             </span>
