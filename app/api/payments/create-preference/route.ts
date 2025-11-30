@@ -54,6 +54,7 @@ export async function POST(request: Request) {
     const preferenceData = {
       items: [
         {
+          id: packageId,
           title: coinPackage.name,
           description: coinPackage.description,
           quantity: 1,
