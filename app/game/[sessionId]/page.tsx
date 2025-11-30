@@ -139,53 +139,55 @@ export default function GamePage() {
     }
   }, [sessionId])
 
+  // Cargar datos iniciales solo una vez al montar
   useEffect(() => {
-    if (sessionId) {
-      fetchUser()
-      fetchSession()
-      fetchCountries()
-      
-      // Suscripción en tiempo real para actualizar posiciones y cambios de jugadores
-      const supabase = createClient()
-      const channel = supabase
-        .channel(`game-${sessionId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'session_players',
-            filter: `session_id=eq.${sessionId}`,
-          },
-          (payload: RealtimePostgresChangesPayload<any>) => {
-            // Actualizar la sesión cuando cambie la posición de un jugador
-            fetchSession()
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'game_sessions',
-            filter: `id=eq.${sessionId}`,
-          },
-          (payload: RealtimePostgresChangesPayload<any>) => {
-            // Actualizar cuando cambie el turno o estado de la sesión
-            fetchSession()
-          }
-        )
-        .subscribe()
-      
-      // Refrescar cada 2 segundos como backup
-      const interval = setInterval(fetchSession, 2000)
-      
-      return () => {
-        clearInterval(interval)
-        supabase.removeChannel(channel)
-      }
+    if (!sessionId) return
+
+    // Cargar datos iniciales
+    fetchUser()
+    fetchSession()
+    fetchCountries()
+  }, [sessionId]) // Solo ejecutar cuando cambie sessionId
+
+  // Suscripciones de tiempo real (separadas para mejor control)
+  useEffect(() => {
+    if (!sessionId) return
+
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`game-${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'session_players',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<any>) => {
+          // Actualizar la sesión cuando cambie la posición de un jugador
+          fetchSession()
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'game_sessions',
+          filter: `id=eq.${sessionId}`,
+        },
+        (payload: RealtimePostgresChangesPayload<any>) => {
+          // Actualizar cuando cambie el turno o estado de la sesión
+          fetchSession()
+        }
+      )
+      .subscribe()
+    
+    return () => {
+      supabase.removeChannel(channel)
     }
-  }, [sessionId, fetchSession])
+  }, [sessionId, fetchSession]) // fetchSession está memoizado con useCallback
 
   // Sistema de heartbeat para mantener al jugador como online
   useEffect(() => {
