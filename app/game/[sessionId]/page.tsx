@@ -17,7 +17,7 @@ import MobileBottomNav from '@/components/game/MobileBottomNav'
 import DesktopBottomNav from '@/components/game/DesktopBottomNav'
 import FloatingActions from '@/components/game/FloatingActions'
 import { useToast } from '@/contexts/ToastContext'
-import { hasMonopoly } from '@/lib/game/gameEngine'
+import { hasMonopoly, canBuild } from '@/lib/game/gameEngine'
 import { soundManager } from '@/lib/audio/soundManager'
 
 interface Player {
@@ -619,6 +619,36 @@ export default function GamePage() {
 
       toast.showSuccess(data.message)
       soundManager?.play('pay_toll')
+      fetchSession()
+    } catch (err: any) {
+      toast.showError(err.message)
+      soundManager?.play('error')
+    }
+  }
+
+  const handleBuild = async (countryId: string, houses: number, hotels: number) => {
+    try {
+      const response = await fetch('/api/game/build', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          countryId,
+          houses,
+          hotels,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al construir')
+      }
+
+      toast.showSuccess(data.message)
+      soundManager?.play('buy_property')
       fetchSession()
     } catch (err: any) {
       toast.showError(err.message)
@@ -1807,28 +1837,49 @@ export default function GamePage() {
                               )}
                             </div>
                             <div className="mt-3 pt-3 border-t border-white/30 flex gap-2">
-                              <BankModal
-                                property={{
-                                  id: prop.id,
-                                  country: prop.country,
-                                  houses: prop.houses || 0,
-                                  hotels: prop.hotels || 0,
-                                  is_mortgaged: prop.is_mortgaged || false,
-                                }}
-                                playerMoney={myPlayer.money}
-                                onMortgage={() => {
-                                  handleMortgage(prop.id)
-                                  setShowProperties(false)
-                                }}
-                                onUnmortgage={() => {
-                                  handleUnmortgage(prop.id)
-                                  setShowProperties(false)
-                                }}
-                                onSellBuild={(houses, hotels) => {
-                                  handleSellBuild(prop.id, houses, hotels)
-                                  setShowProperties(false)
-                                }}
-                              />
+                              {(() => {
+                                // Verificar si puede construir
+                                const gameState = {
+                                  sessionId,
+                                  players: session.players,
+                                  playerCountries,
+                                  countries,
+                                  currentTurn: session.current_turn,
+                                }
+                                const buildCheck = canBuild(prop.country, myPlayer.id, gameState)
+                                
+                                return (
+                                  <BankModal
+                                    property={{
+                                      id: prop.id,
+                                      country: prop.country,
+                                      houses: prop.houses || 0,
+                                      hotels: prop.hotels || 0,
+                                      is_mortgaged: prop.is_mortgaged || false,
+                                    }}
+                                    playerMoney={myPlayer.money}
+                                    canBuild={buildCheck.canBuild || false}
+                                    maxHouses={buildCheck.maxHouses || 0}
+                                    maxHotels={buildCheck.maxHotels || 0}
+                                    onMortgage={() => {
+                                      handleMortgage(prop.id)
+                                      setShowProperties(false)
+                                    }}
+                                    onUnmortgage={() => {
+                                      handleUnmortgage(prop.id)
+                                      setShowProperties(false)
+                                    }}
+                                    onBuild={(houses, hotels) => {
+                                      handleBuild(prop.country.id, houses, hotels)
+                                      setShowProperties(false)
+                                    }}
+                                    onSellBuild={(houses, hotels) => {
+                                      handleSellBuild(prop.id, houses, hotels)
+                                      setShowProperties(false)
+                                    }}
+                                  />
+                                )
+                              })()}
                               {!prop.is_mortgaged && (
                                 prop.is_for_sale ? (
                                   <button className="flex-1 bg-red-500/80 hover:bg-red-500 text-white text-sm py-2 px-3 rounded-lg transition font-semibold">
