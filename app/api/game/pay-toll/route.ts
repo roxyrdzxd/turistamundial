@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { calculateToll } from '@/lib/game/gameEngine'
+import { calculateToll, isGameOver } from '@/lib/game/gameEngine'
 
 export async function POST(request: Request) {
   try {
@@ -124,6 +124,78 @@ export async function POST(request: Request) {
             .from('player_countries')
             .update({ player_id: owner.id })
             .eq('id', ownedCountry.id)
+        }
+      }
+
+      // Verificar si el juego terminó (solo queda un jugador activo)
+      const { data: allPlayersAfterBankruptcy } = await supabase
+        .from('session_players')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('turn_order')
+
+      const { data: allCountries } = await supabase
+        .from('countries')
+        .select('*')
+        .eq('board_id', session.board_id)
+
+      const { data: allPlayerCountries } = await supabase
+        .from('player_countries')
+        .select('*')
+        .eq('session_id', sessionId)
+
+      const gameState = {
+        sessionId,
+        players: allPlayersAfterBankruptcy || [],
+        playerCountries: allPlayerCountries || [],
+        countries: allCountries || [],
+        currentTurn: session.current_turn,
+      }
+
+      const gameOver = isGameOver(gameState)
+
+      if (gameOver.isOver && gameOver.winner) {
+        // Obtener el user_id del ganador
+        const winnerPlayer = allPlayersAfterBankruptcy?.find(p => p.id === gameOver.winner?.id)
+        if (winnerPlayer && winnerPlayer.user_id) {
+          // Actualizar misión de victoria
+          try {
+            await supabase.rpc('update_mission_progress', {
+              p_user_id: winnerPlayer.user_id,
+              p_action: 'win_game',
+              p_count: 1,
+              p_session_id: sessionId
+            })
+          } catch (missionError) {
+            console.error('Error actualizando misión de victoria:', missionError)
+          }
+
+          // Cerrar la sesión
+          await supabase
+            .from('game_sessions')
+            .update({
+              status: 'finished',
+              finished_at: new Date().toISOString(),
+            })
+            .eq('id', sessionId)
+
+          // Obtener perfil del ganador para el mensaje
+          const { data: winnerProfile } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', winnerPlayer.user_id)
+            .single()
+
+          return NextResponse.json({
+            success: true,
+            bankrupt: true,
+            gameOver: true,
+            winner: {
+              id: winnerPlayer.id,
+              username: winnerProfile?.username || 'Jugador',
+            },
+            message: 'Has quedado en bancarrota. La partida ha terminado.',
+          })
         }
       }
 

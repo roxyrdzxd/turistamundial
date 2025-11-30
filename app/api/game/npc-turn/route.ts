@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { isGameOver } from '@/lib/game/gameEngine'
 
 export async function POST(request: Request) {
   try {
@@ -138,7 +139,63 @@ export async function POST(request: Request) {
               }
             }
 
-            actionTaken = 'bankrupt'
+            // Verificar si el juego terminó (solo queda un jugador activo)
+            const { data: allPlayersAfterBankruptcy } = await supabase
+              .from('session_players')
+              .select('*')
+              .eq('session_id', sessionId)
+              .order('turn_order')
+
+            const { data: allCountries } = await supabase
+              .from('countries')
+              .select('*')
+              .eq('board_id', session.board_id)
+
+            const { data: allPlayerCountries } = await supabase
+              .from('player_countries')
+              .select('*')
+              .eq('session_id', sessionId)
+
+            const gameState = {
+              sessionId,
+              players: allPlayersAfterBankruptcy || [],
+              playerCountries: allPlayerCountries || [],
+              countries: allCountries || [],
+              currentTurn: session.current_turn,
+            }
+
+            const gameOver = isGameOver(gameState)
+
+            if (gameOver.isOver && gameOver.winner) {
+              // Obtener el user_id del ganador
+              const winnerPlayer = allPlayersAfterBankruptcy?.find(p => p.id === gameOver.winner?.id)
+              if (winnerPlayer && winnerPlayer.user_id) {
+                // Actualizar misión de victoria
+                try {
+                  await supabase.rpc('update_mission_progress', {
+                    p_user_id: winnerPlayer.user_id,
+                    p_action: 'win_game',
+                    p_count: 1,
+                    p_session_id: sessionId
+                  })
+                } catch (missionError) {
+                  console.error('Error actualizando misión de victoria:', missionError)
+                }
+
+                // Cerrar la sesión
+                await supabase
+                  .from('game_sessions')
+                  .update({
+                    status: 'finished',
+                    finished_at: new Date().toISOString(),
+                  })
+                  .eq('id', sessionId)
+
+                actionTaken = 'game_over'
+              }
+            } else {
+              actionTaken = 'bankrupt'
+            }
           }
         }
       } else {
