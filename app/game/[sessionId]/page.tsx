@@ -240,11 +240,11 @@ export default function GamePage() {
     }
 
     // Verificar si es un NPC: los NPCs nunca están online
-    // Si el jugador no está online y no es el usuario actual, es un NPC
-    const isNPC = currentPlayer.is_online === false && currentPlayer.user_id !== currentUserId
+    // Si el jugador no está online (o is_online es undefined/null) y no es el usuario actual, es un NPC
+    const isNPC = (currentPlayer.is_online === false || currentPlayer.is_online === undefined || currentPlayer.is_online === null) && currentPlayer.user_id !== currentUserId
 
-    // Verificar si el jugador está desconectado
-    const isDisconnected = currentPlayer.is_online === false
+    // Verificar si el jugador está desconectado (solo para jugadores reales)
+    const isDisconnected = currentPlayer.is_online === false && !isNPC
 
     // Si es un NPC o está desconectado, y no es el usuario actual, hacer que se salte el turno
     if ((isNPC || isDisconnected) && currentPlayer.user_id !== currentUserId && !npcProcessingRef.current) {
@@ -268,12 +268,15 @@ export default function GamePage() {
             if (response.ok) {
               // No mostrar toast para NPCs para que parezcan jugadores reales
               // toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
+              console.log('[NPC Turn] Turno procesado exitosamente:', data)
               // Actualizar inmediatamente para reflejar el movimiento
+              // El fetchSession actualizará el current_turn y disparará el siguiente turno
               setTimeout(() => {
                 npcProcessingRef.current = false
                 fetchSession()
               }, 500) // Reducido a 500ms para actualización más rápida
             } else {
+              console.error('[NPC Turn] Error en respuesta:', data)
               npcProcessingRef.current = false
               toast.showError(`Error en turno de NPC: ${data.error}`)
             }
