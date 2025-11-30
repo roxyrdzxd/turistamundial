@@ -112,6 +112,32 @@ export default function SessionPage() {
     }
   }, [sessionId, isHost, router, autoNpcTimer])
 
+  const fetchSession = async () => {
+    try {
+      const response = await fetch(`/api/game/session/${sessionId}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cargar la sesión')
+      }
+
+      setSession(data.session)
+      
+      // Verificar si el usuario actual es el host
+      try {
+        const userResponse = await fetch('/api/auth/user')
+        const userData = await userResponse.json()
+        setIsHost(data.session.host_id === userData.data?.user?.id)
+      } catch {
+        setIsHost(false)
+      }
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Auto-agregar NPCs después de 10 segundos si no hay suficientes jugadores
   useEffect(() => {
     if (!session || session.status !== 'waiting' || !isHost || autoNpcTriggered) {
@@ -174,32 +200,6 @@ export default function SessionPage() {
       }
     }
   }, [session, isHost, sessionId, autoNpcTriggered, toast, fetchSession])
-
-  const fetchSession = async () => {
-    try {
-      const response = await fetch(`/api/game/session/${sessionId}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar la sesión')
-      }
-
-      setSession(data.session)
-      
-      // Verificar si el usuario actual es el host
-      try {
-        const userResponse = await fetch('/api/auth/user')
-        const userData = await userResponse.json()
-        setIsHost(data.session.host_id === userData.data?.user?.id)
-      } catch {
-        setIsHost(false)
-      }
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleAddNPCs = async () => {
     if (!isHost) return
