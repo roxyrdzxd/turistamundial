@@ -1672,8 +1672,8 @@ export default function GamePage() {
                         key={monopoly.playerId}
                         className="border-2 rounded-lg p-3"
                         style={{
-                          borderColor: getColorHex(monopoly.playerColor),
-                          backgroundColor: `${getColorHex(monopoly.playerColor)}20`,
+                          borderColor: getColorHex(monopoly.playerColor) || '#6b7280',
+                          backgroundColor: `${getColorHex(monopoly.playerColor) || '#6b7280'}20`,
                         }}
                       >
                         <div className="flex items-center gap-2 mb-2">
