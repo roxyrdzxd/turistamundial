@@ -164,11 +164,8 @@ export default function SessionPage() {
           
           setAutoNpcTriggered(true)
           
-          // Calcular cuántos NPCs agregar (llenar hasta max_players o agregar 2-3 NPCs)
-          const npcsToAdd = Math.min(
-            session.max_players - 1, // Espacios disponibles
-            Math.max(2, Math.floor(session.max_players / 2)) // Mínimo 2, máximo la mitad de max_players
-          )
+          // Agregar solo 2 NPCs para dejar espacio a jugadores reales
+          const npcsToAdd = Math.min(2, session.max_players - 1)
 
           if (npcsToAdd > 0) {
             try {
