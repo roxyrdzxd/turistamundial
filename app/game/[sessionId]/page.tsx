@@ -534,6 +534,23 @@ export default function GamePage() {
         soundManager?.play('money_received')
       }
 
+      // Verificar si el juego terminó
+      if (data.gameOver && data.winner) {
+        const isWinner = data.winner.id === myPlayer?.id
+        if (isWinner) {
+          toast.showSuccess(`🎉 ¡Felicidades! Has ganado la partida, ${data.winner.username}!`)
+          soundManager?.play('buy_property')
+        } else {
+          toast.showInfo(`La partida ha terminado. Ganador: ${data.winner.username}`)
+          soundManager?.play('pay_toll')
+        }
+        
+        // Redirigir después de un momento
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 5000)
+      }
+
       // Refrescar la sesión inmediatamente para obtener datos actualizados
       fetchSession()
 
