@@ -74,8 +74,8 @@ export async function POST(request: Request) {
       const color = unusedColors[i]
       const npcName = npcNames[i % npcNames.length]
       
-      // Generar un UUID único para el NPC
-      const npcUserId = `npc-${generateUUID()}`
+      // Generar un UUID único para el NPC (sin prefijo, debe ser UUID válido)
+      const npcUserId = generateUUID()
       // Usar solo el nombre común sin sufijos que indiquen que es bot
       // Agregar un número aleatorio pequeño para variar si hay duplicados
       const randomSuffix = Math.floor(Math.random() * 1000)
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         
         // Si es error de username duplicado (muy improbable con UUID), intentar una vez más
         if (profileError.code === '23505' && profileError.message.includes('username')) {
-          const retryNpcUserId = `npc-${generateUUID()}`
+          const retryNpcUserId = generateUUID()
           const retryRandomSuffix = Math.floor(Math.random() * 1000)
           const retryUniqueNpcName = retryRandomSuffix > 0 && retryRandomSuffix < 100 ? `${npcName}${retryRandomSuffix}` : npcName
           
