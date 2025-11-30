@@ -257,11 +257,13 @@ export default function GamePage() {
             const data = await response.json()
 
             if (response.ok) {
-              toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
+              // No mostrar toast para NPCs para que parezcan jugadores reales
+              // toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
+              // Actualizar inmediatamente para reflejar el movimiento
               setTimeout(() => {
                 npcProcessingRef.current = false
                 fetchSession()
-              }, 1500)
+              }, 500) // Reducido a 500ms para actualización más rápida
             } else {
               npcProcessingRef.current = false
               toast.showError(`Error en turno de NPC: ${data.error}`)
