@@ -1012,7 +1012,8 @@ export default function GamePage() {
                 )}
 
                 {/* Acciones después de tirar dados */}
-                {(actionRequired === 'can_buy' || canBuyCountry) && currentCountry && !propertyForSale && (
+                {/* No mostrar información de compra si estamos en una casilla especial (0, 10, 20, 30) */}
+                {(actionRequired === 'can_buy' || canBuyCountry) && currentCountry && !propertyForSale && myPlayer && ![0, 10, 20, 30].includes(myPlayer.position) && (
                   <div className="bg-green-50 border-2 border-green-500 rounded-lg p-2">
                     <p className="font-semibold text-green-800 mb-1 text-xs sm:text-sm">
                       🏛️ {currentCountry.name} disponible
