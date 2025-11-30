@@ -264,6 +264,7 @@ export default function GamePage() {
       const processTimer = setTimeout(async () => {
         try {
           if (isNPC) {
+            console.log('[NPC Turn] Iniciando turno de NPC:', currentPlayer.profile?.username || currentPlayer.user_id)
             // Si es NPC, hacer que juegue
             const response = await fetch('/api/game/npc-turn', {
               method: 'POST',
@@ -283,6 +284,7 @@ export default function GamePage() {
               // El fetchSession actualizará el current_turn y disparará el siguiente turno
               setTimeout(() => {
                 npcProcessingRef.current = false
+                console.log('[NPC Turn] Actualizando sesión después del turno')
                 fetchSession()
               }, 500) // Reducido a 500ms para actualización más rápida
             } else {
