@@ -1899,9 +1899,46 @@ export default function GamePage() {
                 }
               }).sort((a, b) => a.groupName.localeCompare(b.groupName))
 
+              // Obtener propiedades de otros jugadores
+              const otherPlayersProperties = session.players
+                .filter(p => p.user_id !== currentUserId && !p.is_bankrupt)
+                .map(player => {
+                  const playerProps = playerCountries
+                    .filter(pc => pc.player_id === player.id)
+                    .map(pc => {
+                      const country = countries.find(c => c.id === pc.country_id)
+                      return country ? { ...pc, country } : null
+                    })
+                    .filter((item): item is any => item !== null)
+
+                  // Agrupar por grupo de monopolio
+                  const propsByGroup = playerProps.reduce((acc: Record<string, any[]>, prop: any) => {
+                    const groupKey = prop.country.monopoly_group || prop.country.continent
+                    if (!acc[groupKey]) {
+                      acc[groupKey] = []
+                    }
+                    acc[groupKey].push(prop)
+                    return acc
+                  }, {})
+
+                  return {
+                    player,
+                    properties: playerProps,
+                    propertiesByGroup: propsByGroup,
+                    totalProperties: playerProps.length,
+                  }
+                })
+                .filter(p => p.totalProperties > 0) // Solo mostrar jugadores con propiedades
+
               return (
                 <div className="space-y-6">
-                  {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
+                  {/* Mis Propiedades */}
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                      <span>🏛️</span>
+                      <span>Mis Propiedades ({myProperties.length})</span>
+                    </h3>
+                    {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
                     <div key={groupKey} className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-4 border-2 border-white/20">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
