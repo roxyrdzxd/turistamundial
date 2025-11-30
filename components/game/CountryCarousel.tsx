@@ -273,9 +273,12 @@ export default function CountryCarousel({
   }
 
   const displayedCountry = sortedCountries[currentIndex]
-  const isSpecialSquare = SPECIAL_SQUARES[displayedCountry?.position || -1]
+  const isSpecialSquare = displayedCountry ? SPECIAL_SQUARES[displayedCountry.position] : null
   const isOnSpecialSquare = SPECIAL_SQUARES[currentPosition]
   const currentSpecialSquare = isOnSpecialSquare ? SPECIAL_SQUARES[currentPosition] : null
+  
+  // Si estamos en una casilla especial, no mostrar información de compra de otras casillas
+  const shouldShowPropertyInfo = !showSpecialCard && !isOnSpecialSquare && displayedCountry && displayedCountry.position === currentPosition
   
   // Verificar si estamos mostrando la posición correcta
   let isCurrentPosition = false
@@ -523,8 +526,8 @@ export default function CountryCarousel({
             </div>
           )}
 
-          {/* Información de propiedad - Solo mostrar si NO estamos en una casilla especial */}
-          {!showSpecialCard && !isSpecialSquare && displayedCountry && (
+          {/* Información de propiedad - Solo mostrar si NO estamos en una casilla especial Y estamos en la posición correcta */}
+          {shouldShowPropertyInfo && (
             <div className="space-y-2">
               {/* Estado de propiedad */}
               {ownedCountry ? (
