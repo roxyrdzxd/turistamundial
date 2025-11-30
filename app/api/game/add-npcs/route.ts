@@ -67,19 +67,51 @@ export async function POST(request: Request) {
       })
     }
 
+    // Función helper para generar un username único
+    async function generateUniqueUsername(baseName: string, maxAttempts = 10): Promise<string> {
+      // Primero intentar con el nombre base
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', baseName)
+        .single()
+      
+      if (!existing) {
+        return baseName
+      }
+      
+      // Si existe, agregar un número aleatorio
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const randomSuffix = Math.floor(Math.random() * 10000)
+        const candidateName = `${baseName}${randomSuffix}`
+        
+        const { data: existingCandidate } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', candidateName)
+          .single()
+        
+        if (!existingCandidate) {
+          return candidateName
+        }
+      }
+      
+      // Si todos los intentos fallaron, usar timestamp como último recurso
+      return `${baseName}${Date.now()}${Math.floor(Math.random() * 1000)}`
+    }
+
     // Crear jugadores NPC
     const npcPlayers = []
     
     for (let i = 0; i < npcsToAdd; i++) {
       const color = unusedColors[i]
-      const npcName = npcNames[i % npcNames.length]
+      const baseNpcName = npcNames[i % npcNames.length]
       
       // Generar un UUID único para el NPC (sin prefijo, debe ser UUID válido)
       const npcUserId = generateUUID()
-      // Usar solo el nombre común sin sufijos que indiquen que es bot
-      // Agregar un número aleatorio pequeño para variar si hay duplicados
-      const randomSuffix = Math.floor(Math.random() * 1000)
-      const uniqueNpcName = randomSuffix > 0 && randomSuffix < 100 ? `${npcName}${randomSuffix}` : npcName
+      
+      // Generar un username único verificando que no exista
+      const uniqueNpcName = await generateUniqueUsername(baseNpcName)
       
       console.log(`[Add NPCs] Creando NPC ${i} con nombre:`, uniqueNpcName, 'UUID:', npcUserId)
       
@@ -95,11 +127,10 @@ export async function POST(request: Request) {
       if (profileError) {
         console.error(`[Add NPCs] Error creando perfil NPC ${i}:`, profileError.message, profileError.code)
         
-        // Si es error de username duplicado (muy improbable con UUID), intentar una vez más
+        // Si es error de username duplicado, intentar con otro nombre único
         if (profileError.code === '23505' && profileError.message.includes('username')) {
           const retryNpcUserId = generateUUID()
-          const retryRandomSuffix = Math.floor(Math.random() * 1000)
-          const retryUniqueNpcName = retryRandomSuffix > 0 && retryRandomSuffix < 100 ? `${npcName}${retryRandomSuffix}` : npcName
+          const retryUniqueNpcName = await generateUniqueUsername(baseNpcName)
           
           console.log(`[Add NPCs] Reintentando con nuevo nombre:`, retryUniqueNpcName)
           
