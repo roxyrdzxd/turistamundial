@@ -59,7 +59,12 @@ export async function POST(request: Request) {
     const randomCard = cards[Math.floor(Math.random() * cards.length)]
 
     // Ejecutar acción de la carta
-    let result = { success: true, message: randomCard.description }
+    let result: {
+      success: boolean
+      message: string
+      gameOver?: boolean
+      winner?: { id: string; username: string }
+    } = { success: true, message: randomCard.description }
 
     switch (randomCard.action_type) {
       case 'gain_money':
@@ -141,11 +146,18 @@ export async function POST(request: Request) {
                 })
                 .eq('id', sessionId)
 
+              // Obtener perfil del ganador para el username
+              const { data: winnerProfile } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', winnerPlayer.user_id)
+                .single()
+
               result.message = `${randomCard.description}. Has quedado en bancarrota. La partida ha terminado.`
               result.gameOver = true
               result.winner = {
                 id: winnerPlayer.id,
-                username: winnerPlayer.user_id, // Se puede mejorar obteniendo el perfil
+                username: winnerProfile?.username || 'Jugador',
               }
             } else {
               result.message = `${randomCard.description}. Has quedado en bancarrota`
