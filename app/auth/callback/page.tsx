@@ -72,13 +72,7 @@ function AuthCallbackContent() {
       
       // Si hay error en el hash o query params, redirigir al login con el error
       if (error || errorCode) {
-        console.error('[AuthCallbackPage] ===== ERROR DETECTADO =====')
-        console.error('[AuthCallbackPage] Error:', error)
-        console.error('[AuthCallbackPage] Error Code:', errorCode)
-        console.error('[AuthCallbackPage] Error Description:', errorDescription)
-        console.error('[AuthCallbackPage] URL completa cuando se detectó el error:', window.location.href)
-        console.error('[AuthCallbackPage] Hash completo:', hash)
-        console.error('[AuthCallbackPage] Query string:', window.location.search)
+        console.error('[AuthCallbackPage] Error detectado:', { error, errorCode, errorDescription })
         
         const loginUrl = new URL('/login', window.location.origin)
         
@@ -89,17 +83,13 @@ function AuthCallbackContent() {
           loginUrl.searchParams.set('error', error)
           if (errorDescription) {
             loginUrl.searchParams.set('message', decodeURIComponent(errorDescription))
-          } else {
-            loginUrl.searchParams.set('message', `Error: ${error}`)
           }
         } else {
           loginUrl.searchParams.set('error', 'confirmation_failed')
           loginUrl.searchParams.set('message', 'Error al confirmar tu cuenta. Por favor, solicita un nuevo correo de confirmación.')
         }
         
-        console.error('[AuthCallbackPage] Redirigiendo a login con error')
         router.replace(loginUrl.toString())
-        processed = true
         return
       }
       
