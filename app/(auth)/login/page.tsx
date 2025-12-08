@@ -15,6 +15,27 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true)
+    
+    // Verificar si hay mensajes de error en la URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const error = urlParams.get('error')
+    const message = urlParams.get('message')
+    
+    if (error && message) {
+      setError(decodeURIComponent(message))
+    } else if (error === 'confirmation_failed' || error === 'expired_token') {
+      setError('El enlace de confirmación ha expirado o ya ha sido usado. Por favor, solicita un nuevo correo de confirmación.')
+    } else if (error === 'invalid_token') {
+      setError('El enlace de confirmación no es válido. Por favor, solicita un nuevo correo.')
+    } else if (error === 'missing_code') {
+      setError('No se recibió el código de confirmación. Por favor, solicita un nuevo correo de confirmación.')
+    } else if (error === 'no_session') {
+      setError('No se pudo crear la sesión. Por favor, intenta iniciar sesión nuevamente.')
+    } else if (error === 'email_error') {
+      setError('Error relacionado con el correo electrónico. Por favor, verifica tu correo e intenta nuevamente.')
+    } else if (error === 'unexpected_error') {
+      setError('Ocurrió un error inesperado. Por favor, intenta nuevamente.')
+    }
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
