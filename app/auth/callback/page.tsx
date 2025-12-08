@@ -10,22 +10,29 @@ function AuthCallbackContent() {
   const supabase = createClient()
 
   useEffect(() => {
+    let processed = false
+    
+    // Función helper para leer parámetros
+    const getParams = () => {
+      // Leer parámetros del hash (fragment) si existen
+      const hash = window.location.hash.substring(1) // Remover el #
+      const hashParams = new URLSearchParams(hash)
+      
+      // Leer parámetros de query también
+      const code = searchParams.get('code') || hashParams.get('code')
+      const type = searchParams.get('type') || hashParams.get('type')
+      const error = searchParams.get('error') || hashParams.get('error')
+      const errorDescription = searchParams.get('error_description') || hashParams.get('error_description')
+      const errorCode = searchParams.get('error_code') || hashParams.get('error_code')
+      const referralCode = searchParams.get('ref') || hashParams.get('ref')
+      
+      return { code, type, error, errorDescription, errorCode, referralCode, hash, hashParams }
+    }
+    
     const processCallback = async () => {
-      // Función helper para leer parámetros
-      const getParams = () => {
-        // Leer parámetros del hash (fragment) si existen
-        const hash = window.location.hash.substring(1) // Remover el #
-        const hashParams = new URLSearchParams(hash)
-        
-        // Leer parámetros de query también
-        const code = searchParams.get('code') || hashParams.get('code')
-        const type = searchParams.get('type') || hashParams.get('type')
-        const error = searchParams.get('error') || hashParams.get('error')
-        const errorDescription = searchParams.get('error_description') || hashParams.get('error_description')
-        const errorCode = searchParams.get('error_code') || hashParams.get('error_code')
-        const referralCode = searchParams.get('ref') || hashParams.get('ref')
-        
-        return { code, type, error, errorDescription, errorCode, referralCode, hash, hashParams }
+      if (processed) {
+        console.log('[AuthCallbackPage] Ya se procesó el callback, ignorando...')
+        return
       }
       
       // Intentar leer parámetros inmediatamente
@@ -34,7 +41,7 @@ function AuthCallbackContent() {
       // Si no hay código ni error, esperar un poco y reintentar (por si viene en el hash después de una redirección)
       if (!params.code && !params.error && !params.errorCode) {
         console.log('[AuthCallbackPage] No se encontraron parámetros inicialmente, esperando...')
-        await new Promise(resolve => setTimeout(resolve, 300))
+        await new Promise(resolve => setTimeout(resolve, 500))
         params = getParams()
       }
       
@@ -157,9 +164,26 @@ function AuthCallbackContent() {
       loginUrl.searchParams.set('error', 'missing_code')
       loginUrl.searchParams.set('message', 'No se recibió el código de confirmación. Por favor, solicita un nuevo correo de confirmación.')
       router.replace(loginUrl.toString())
+      processed = true
     }
     
+    // Procesar inmediatamente
     processCallback()
+    
+    // También escuchar cambios en el hash (por si Supabase actualiza el hash después)
+    const handleHashChange = () => {
+      console.log('[AuthCallbackPage] Hash cambió, reprocesando...')
+      if (!processed) {
+        processCallback()
+      }
+    }
+    
+    window.addEventListener('hashchange', handleHashChange)
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange)
+    }
   }, [router, searchParams, supabase])
 
   return (
