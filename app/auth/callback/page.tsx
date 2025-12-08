@@ -23,11 +23,23 @@ function AuthCallbackContent() {
       const errorCode = searchParams.get('error_code') || hashParams.get('error_code')
       const referralCode = searchParams.get('ref') || hashParams.get('ref')
       
-      console.log('[AuthCallbackPage] Procesando callback:', { 
-        hasCode: !!code, 
-        hasError: !!error, 
+      // Logging detallado para debugging
+      console.log('[AuthCallbackPage] ===== INICIO CALLBACK =====')
+      console.log('[AuthCallbackPage] URL completa:', window.location.href)
+      console.log('[AuthCallbackPage] Hash:', hash)
+      console.log('[AuthCallbackPage] Query params:', {
+        code: code ? code.substring(0, 20) + '...' : null,
+        type,
+        error,
         errorCode,
-        type 
+        errorDescription,
+        referralCode
+      })
+      console.log('[AuthCallbackPage] Hash params:', {
+        code: hashParams.get('code') ? hashParams.get('code')?.substring(0, 20) + '...' : null,
+        type: hashParams.get('type'),
+        error: hashParams.get('error'),
+        errorCode: hashParams.get('error_code')
       })
       
       // Si hay error en el hash o query params, redirigir al login con el error
