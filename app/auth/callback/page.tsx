@@ -11,6 +11,9 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const processCallback = async () => {
+      // Esperar un momento para que el hash esté disponible si viene de una redirección
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // Leer parámetros del hash (fragment) si existen
       const hash = window.location.hash.substring(1) // Remover el #
       const hashParams = new URLSearchParams(hash)
@@ -26,7 +29,8 @@ function AuthCallbackContent() {
       // Logging detallado para debugging
       console.log('[AuthCallbackPage] ===== INICIO CALLBACK =====')
       console.log('[AuthCallbackPage] URL completa:', window.location.href)
-      console.log('[AuthCallbackPage] Hash:', hash)
+      console.log('[AuthCallbackPage] Hash completo:', hash)
+      console.log('[AuthCallbackPage] Query string:', window.location.search)
       console.log('[AuthCallbackPage] Query params:', {
         code: code ? code.substring(0, 20) + '...' : null,
         type,
@@ -39,7 +43,8 @@ function AuthCallbackContent() {
         code: hashParams.get('code') ? hashParams.get('code')?.substring(0, 20) + '...' : null,
         type: hashParams.get('type'),
         error: hashParams.get('error'),
-        errorCode: hashParams.get('error_code')
+        errorCode: hashParams.get('error_code'),
+        errorDescription: hashParams.get('error_description')
       })
       
       // Si hay error en el hash o query params, redirigir al login con el error
