@@ -11,36 +11,52 @@ function AuthCallbackContent() {
 
   useEffect(() => {
     const processCallback = async () => {
-      // Esperar un momento para que el hash esté disponible si viene de una redirección
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Función helper para leer parámetros
+      const getParams = () => {
+        // Leer parámetros del hash (fragment) si existen
+        const hash = window.location.hash.substring(1) // Remover el #
+        const hashParams = new URLSearchParams(hash)
+        
+        // Leer parámetros de query también
+        const code = searchParams.get('code') || hashParams.get('code')
+        const type = searchParams.get('type') || hashParams.get('type')
+        const error = searchParams.get('error') || hashParams.get('error')
+        const errorDescription = searchParams.get('error_description') || hashParams.get('error_description')
+        const errorCode = searchParams.get('error_code') || hashParams.get('error_code')
+        const referralCode = searchParams.get('ref') || hashParams.get('ref')
+        
+        return { code, type, error, errorDescription, errorCode, referralCode, hash, hashParams }
+      }
       
-      // Leer parámetros del hash (fragment) si existen
-      const hash = window.location.hash.substring(1) // Remover el #
-      const hashParams = new URLSearchParams(hash)
+      // Intentar leer parámetros inmediatamente
+      let params = getParams()
       
-      // Leer parámetros de query también
-      const code = searchParams.get('code') || hashParams.get('code')
-      const type = searchParams.get('type') || hashParams.get('type')
-      const error = searchParams.get('error') || hashParams.get('error')
-      const errorDescription = searchParams.get('error_description') || hashParams.get('error_description')
-      const errorCode = searchParams.get('error_code') || hashParams.get('error_code')
-      const referralCode = searchParams.get('ref') || hashParams.get('ref')
+      // Si no hay código ni error, esperar un poco y reintentar (por si viene en el hash después de una redirección)
+      if (!params.code && !params.error && !params.errorCode) {
+        console.log('[AuthCallbackPage] No se encontraron parámetros inicialmente, esperando...')
+        await new Promise(resolve => setTimeout(resolve, 300))
+        params = getParams()
+      }
+      
+      const { code, type, error, errorDescription, errorCode, referralCode, hash, hashParams } = params
       
       // Logging detallado para debugging
       console.log('[AuthCallbackPage] ===== INICIO CALLBACK =====')
       console.log('[AuthCallbackPage] URL completa:', window.location.href)
-      console.log('[AuthCallbackPage] Hash completo:', hash)
-      console.log('[AuthCallbackPage] Query string:', window.location.search)
-      console.log('[AuthCallbackPage] Query params:', {
-        code: code ? code.substring(0, 20) + '...' : null,
+      console.log('[AuthCallbackPage] Hash completo:', hash || '(vacío)')
+      console.log('[AuthCallbackPage] Query string:', window.location.search || '(vacío)')
+      console.log('[AuthCallbackPage] Parámetros encontrados:', {
+        code: code ? code.substring(0, 30) + '...' : null,
         type,
         error,
         errorCode,
         errorDescription,
-        referralCode
+        referralCode,
+        hasHash: !!hash,
+        hasQuery: !!window.location.search
       })
-      console.log('[AuthCallbackPage] Hash params:', {
-        code: hashParams.get('code') ? hashParams.get('code')?.substring(0, 20) + '...' : null,
+      console.log('[AuthCallbackPage] Hash params individuales:', {
+        code: hashParams.get('code') ? hashParams.get('code')?.substring(0, 30) + '...' : null,
         type: hashParams.get('type'),
         error: hashParams.get('error'),
         errorCode: hashParams.get('error_code'),
