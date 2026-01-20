@@ -32,6 +32,7 @@ interface Treasure {
   max_collections: number | null
   despawn_time: string | null
   is_active: boolean
+  badge_url: string | null
 }
 
 export default function EditTreasurePage() {
@@ -52,7 +53,10 @@ export default function EditTreasurePage() {
     max_collections: null as number | null,
     despawn_time: '',
     is_active: true,
+    badge_url: '',
   })
+  const [badgeFile, setBadgeFile] = useState<File | null>(null)
+  const [uploadingBadge, setUploadingBadge] = useState(false)
 
   useEffect(() => {
     checkAdminAndLoad()
@@ -98,6 +102,7 @@ export default function EditTreasurePage() {
           max_collections: t.max_collections,
           despawn_time: t.despawn_time ? new Date(t.despawn_time).toISOString().slice(0, 16) : '',
           is_active: t.is_active,
+          badge_url: t.badge_url || '',
         })
       } else {
         alert('Tesoro no encontrado')
@@ -115,6 +120,32 @@ export default function EditTreasurePage() {
     setSaving(true)
 
     try {
+      let badgeUrl = formData.badge_url
+
+      // Subir badge si hay archivo nuevo
+      if (badgeFile) {
+        setUploadingBadge(true)
+        const badgeFormData = new FormData()
+        badgeFormData.append('file', badgeFile)
+        badgeFormData.append('treasureId', params.id as string)
+
+        const badgeResponse = await fetch('/api/admin/treasures/badge', {
+          method: 'POST',
+          body: badgeFormData,
+        })
+
+        const badgeData = await badgeResponse.json()
+        setUploadingBadge(false)
+
+        if (!badgeData.success) {
+          alert('Error al subir medalla: ' + (badgeData.error || 'Error desconocido'))
+          setSaving(false)
+          return
+        }
+
+        badgeUrl = badgeData.badge_url
+      }
+
       const payload: any = {
         name: formData.name,
         description: formData.description || null,
@@ -125,6 +156,7 @@ export default function EditTreasurePage() {
         rarity: formData.rarity,
         max_collections: formData.max_collections || null,
         is_active: formData.is_active,
+        badge_url: badgeUrl || null,
       }
 
       if (formData.despawn_time) {
@@ -352,13 +384,77 @@ export default function EditTreasurePage() {
             </div>
           </div>
 
+          <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 space-y-4">
+            <h2 className="text-xl font-semibold text-white mb-4">Medalla/Insignia (Opcional)</h2>
+            <p className="text-sm text-white/60 mb-4">
+              Sube una medalla que los usuarios recibirán al recolectar este tesoro. 
+              Recomendado: PNG con transparencia, 64x64px, máximo 50KB.
+            </p>
+            
+            {formData.badge_url && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Vista Previa
+                </label>
+                <div className="flex items-center gap-4">
+                  <img 
+                    src={formData.badge_url} 
+                    alt="Badge preview" 
+                    className="w-16 h-16 rounded-full border-2 border-white/20 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, badge_url: '' })
+                      setBadgeFile(null)
+                    }}
+                    className="text-red-400 hover:text-red-300 text-sm"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                {formData.badge_url ? 'Reemplazar Medalla' : 'Subir Medalla'}
+              </label>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    // Validar tamaño (< 50KB)
+                    if (file.size > 50 * 1024) {
+                      alert('La imagen debe ser menor a 50KB')
+                      return
+                    }
+                    setBadgeFile(file)
+                    // Preview
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                      setFormData({ ...formData, badge_url: e.target?.result as string })
+                    }
+                    reader.readAsDataURL(file)
+                  }
+                }}
+                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-500 file:text-white hover:file:bg-cyan-600"
+              />
+              <p className="text-xs text-white/60 mt-1">
+                Formatos: PNG, JPEG. Tamaño máximo: 50KB. Recomendado: 64x64px con transparencia.
+              </p>
+            </div>
+          </div>
+
           <div className="flex items-center gap-4">
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || uploadingBadge}
               className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Guardando...' : '💾 Guardar Cambios'}
+              {uploadingBadge ? 'Subiendo medalla...' : saving ? 'Guardando...' : '💾 Guardar Cambios'}
             </button>
             <Link
               href="/admin/treasures"

@@ -41,6 +41,7 @@ export async function GET(request: Request) {
         spawn_time,
         despawn_time,
         is_active,
+        badge_url,
         created_at,
         updated_at,
         location
@@ -113,7 +114,8 @@ export async function POST(request: Request) {
       rarity,
       max_collections,
       despawn_time,
-      is_active = true
+      is_active = true,
+      badge_url
     } = await request.json()
 
     // Validaciones
@@ -142,7 +144,8 @@ export async function POST(request: Request) {
       p_rarity: rarity || 'common',
       p_max_collections: max_collections || null,
       p_despawn_time: despawn_time || null,
-      p_is_active: is_active
+      p_is_active: is_active,
+      p_badge_url: badge_url || null
     })
 
     if (error) {

@@ -48,6 +48,8 @@ export default function ProfilePage() {
   const [purchasedColors, setPurchasedColors] = useState<PurchasedColor[]>([])
   const [equipping, setEquipping] = useState<string | null>(null)
   const [preferredColor, setPreferredColor] = useState<string | null>(null)
+  const [collectedBadges, setCollectedBadges] = useState<any[]>([])
+  const [loadingBadges, setLoadingBadges] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const toast = useToast()
@@ -57,6 +59,7 @@ export default function ProfilePage() {
     setMounted(true)
     fetchProfile()
     fetchPurchasedAvatars()
+    fetchBadges()
   }, [])
 
   const fetchProfile = async () => {
@@ -178,6 +181,38 @@ export default function ProfilePage() {
       setPurchasedColors(colorItems as PurchasedColor[])
     } catch (error) {
       console.error('Error obteniendo avatares comprados:', error)
+    }
+  }
+
+  const fetchBadges = async () => {
+    if (!user) return
+    setLoadingBadges(true)
+    try {
+      const { data, error } = await supabase
+        .from('user_treasure_badges')
+        .select(`
+          id,
+          collected_at,
+          treasure:treasures!inner(
+            id,
+            name,
+            badge_url,
+            rarity
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('collected_at', { ascending: false })
+
+      if (error) {
+        console.error('Error obteniendo medallas:', error)
+        return
+      }
+
+      setCollectedBadges(data || [])
+    } catch (error) {
+      console.error('Error obteniendo medallas:', error)
+    } finally {
+      setLoadingBadges(false)
     }
   }
 
@@ -654,6 +689,70 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+
+          {/* Medallas Recolectadas Section */}
+          <div className="lg:col-span-3">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
+              <h2 className="text-xl font-bold mb-6 text-white">Medallas Recolectadas</h2>
+              
+              {loadingBadges ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-cyan-400 border-t-transparent"></div>
+                </div>
+              ) : collectedBadges.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-white/60 mb-4">Aún no has recolectado ninguna medalla</p>
+                  <p className="text-sm text-white/40">
+                    Explora el mapa y recolecta tesoros para obtener medallas
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
+                  {collectedBadges.map((badge) => {
+                    const treasure = badge.treasure
+                    if (!treasure || !treasure.badge_url) return null
+                    
+                    const rarityColors = {
+                      common: 'border-gray-400',
+                      rare: 'border-blue-400',
+                      epic: 'border-purple-400',
+                      legendary: 'border-yellow-400'
+                    }
+                    
+                    return (
+                      <div
+                        key={badge.id}
+                        className="relative group"
+                        title={treasure.name}
+                      >
+                        <div className={`w-16 h-16 rounded-full border-2 ${rarityColors[treasure.rarity as keyof typeof rarityColors] || 'border-white/20'} bg-white/10 p-1 hover:scale-110 transition-transform cursor-pointer`}>
+                          <img 
+                            src={treasure.badge_url} 
+                            alt={treasure.name}
+                            className="w-full h-full rounded-full object-cover"
+                            onError={(e) => {
+                              // Si la imagen falla, mostrar placeholder
+                              e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="30" fill="%23ccc"/%3E%3C/svg%3E'
+                            }}
+                          />
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/90 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          <div className="font-semibold">{treasure.name}</div>
+                          <div className="text-xs text-white/70 capitalize">{treasure.rarity}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              
+              {collectedBadges.length > 0 && (
+                <p className="text-sm text-white/60 mt-4 text-center">
+                  {collectedBadges.length} {collectedBadges.length === 1 ? 'medalla recolectada' : 'medallas recolectadas'}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

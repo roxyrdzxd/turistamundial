@@ -92,7 +92,8 @@ export async function PUT(
       rarity,
       max_collections,
       despawn_time,
-      is_active
+      is_active,
+      badge_url
     } = await request.json()
 
     // Validar coordenadas si se proporcionan
@@ -123,7 +124,8 @@ export async function PUT(
       p_rarity: rarity || null,
       p_max_collections: max_collections !== undefined ? max_collections : null,
       p_despawn_time: despawn_time || null,
-      p_is_active: is_active !== undefined ? is_active : null
+      p_is_active: is_active !== undefined ? is_active : null,
+      p_badge_url: badge_url !== undefined ? badge_url : null
     })
 
     if (error) {
