@@ -59,8 +59,17 @@ export default function ProfilePage() {
     setMounted(true)
     fetchProfile()
     fetchPurchasedAvatars()
-    fetchBadges()
   }, [])
+
+  // Ejecutar fetchBadges cuando user esté disponible
+  useEffect(() => {
+    if (user) {
+      console.log('Usuario disponible, obteniendo medallas...', user.id)
+      fetchBadges()
+    } else {
+      console.log('Usuario no disponible aún')
+    }
+  }, [user])
 
   const fetchProfile = async () => {
     try {
@@ -185,7 +194,11 @@ export default function ProfilePage() {
   }
 
   const fetchBadges = async () => {
-    if (!user) return
+    if (!user) {
+      console.log('fetchBadges: Usuario no disponible')
+      return
+    }
+    console.log('fetchBadges: Iniciando obtención de medallas para usuario:', user.id)
     setLoadingBadges(true)
     try {
       // Primero obtener las medallas sin la relación para verificar que existen
