@@ -1,10 +1,23 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import TreasureMap from '@/components/explore/TreasureMap'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
+
+// Cargar TreasureMap solo en el cliente, sin SSR
+const TreasureMap = dynamic(() => import('@/components/explore/TreasureMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-400 border-t-transparent mx-auto mb-4"></div>
+        <p className="text-white/80 text-lg">Cargando mapa...</p>
+      </div>
+    </div>
+  ),
+})
 
 export default function ExplorePage() {
   const router = useRouter()

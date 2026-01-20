@@ -46,7 +46,9 @@ function MapContent({
   collecting: string | null
 }) {
   // Importar dinámicamente solo en el cliente
-  const { MapContainer, TileLayer, Marker, Popup, Circle, useMap } = require('react-leaflet')
+  const { MapContainer, TileLayer, Marker, Popup, Circle, useMap } = typeof window !== 'undefined' 
+    ? require('react-leaflet')
+    : { MapContainer: () => null, TileLayer: () => null, Marker: () => null, Popup: () => null, Circle: () => null, useMap: () => null }
   
   // Componente para centrar el mapa
   function MapCenter({ center }: { center: [number, number] }) {
