@@ -193,7 +193,7 @@ export default function ProfilePage() {
         .select(`
           id,
           collected_at,
-          treasure:treasures!inner(
+          treasure:treasures(
             id,
             name,
             badge_url,
@@ -205,9 +205,11 @@ export default function ProfilePage() {
 
       if (error) {
         console.error('Error obteniendo medallas:', error)
+        console.error('Detalles del error:', JSON.stringify(error, null, 2))
         return
       }
 
+      console.log('Medallas obtenidas:', data)
       setCollectedBadges(data || [])
     } catch (error) {
       console.error('Error obteniendo medallas:', error)

@@ -100,6 +100,9 @@ BEGIN
   -- Otorgar medalla si el tesoro tiene badge_url
   IF v_treasure.badge_url IS NOT NULL AND v_treasure.badge_url != '' THEN
     BEGIN
+      -- Insertar directamente sin verificar RLS ya que la función es SECURITY DEFINER
+      -- La política RLS permite INSERT si user_id = auth.uid(), pero como somos SECURITY DEFINER,
+      -- necesitamos insertar directamente sin pasar por RLS
       INSERT INTO user_treasure_badges (user_id, treasure_id)
       VALUES (p_user_id, p_treasure_id)
       ON CONFLICT (user_id, treasure_id) DO NOTHING;
@@ -108,7 +111,8 @@ BEGIN
       -- Si se insertó (ROW_COUNT = 1), se otorgó la medalla
       -- Si no (conflicto), el usuario ya tenía la medalla
     EXCEPTION WHEN OTHERS THEN
-      -- Ignorar errores de inserción de medalla, no es crítico
+      -- Log del error para debugging
+      RAISE WARNING 'Error al otorgar medalla: %', SQLERRM;
       v_badge_granted := false;
     END;
   END IF;
