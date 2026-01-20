@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { ImageResponse } from 'next/og'
+import { ImageResponse } from '@vercel/og'
 
 export const runtime = 'edge'
 
