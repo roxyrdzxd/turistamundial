@@ -20,7 +20,12 @@ interface Treasure {
   spawn_time: string
   despawn_time: string | null
   is_active: boolean
+  badge_url: string | null
   created_at: string
+  badge_stats?: {
+    total_collections: number
+    recent_collections: number
+  } | null
 }
 
 export default function AdminTreasuresPage() {
@@ -203,6 +208,9 @@ export default function AdminTreasuresPage() {
                     Estado
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
+                    Medallas Recolectadas
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-white/80 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -210,7 +218,7 @@ export default function AdminTreasuresPage() {
               <tbody className="divide-y divide-white/10">
                 {treasures.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-white/60">
+                    <td colSpan={7} className="px-6 py-8 text-center text-white/60">
                       No hay tesoros disponibles
                     </td>
                   </tr>
@@ -218,7 +226,15 @@ export default function AdminTreasuresPage() {
                   treasures.map((treasure) => (
                     <tr key={treasure.id} className="hover:bg-white/5 transition">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">{treasure.name}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium text-white">{treasure.name}</div>
+                          {treasure.badge_url && (
+                            <div className="inline-flex items-center gap-1">
+                              <span className="text-xs">🏅</span>
+                              <span className="text-xs text-yellow-400">Medalla</span>
+                            </div>
+                          )}
+                        </div>
                         {treasure.description && (
                           <div className="text-xs text-white/60 mt-1">{treasure.description}</div>
                         )}
@@ -243,6 +259,22 @@ export default function AdminTreasuresPage() {
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
                             Inactivo
                           </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {treasure.badge_url ? (
+                          <div className="text-sm text-white">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">🏆 {treasure.badge_stats?.total_collections || 0}</span>
+                              {treasure.badge_stats && treasure.badge_stats.recent_collections > 0 && (
+                                <span className="text-xs text-green-400">
+                                  (+{treasure.badge_stats.recent_collections} últimas 24h)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-white/40">Sin medalla</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

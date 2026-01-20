@@ -70,9 +70,32 @@ export async function GET(request: Request) {
       )
     }
 
+    // Obtener estadísticas de medallas para cada tesoro
+    const { data: badgeStats, error: statsError } = await supabase.rpc('get_all_treasure_badge_stats')
+
+    // Crear un mapa de estadísticas por treasure_id
+    const statsMap = new Map()
+    if (badgeStats && !statsError) {
+      badgeStats.forEach((stat: any) => {
+        statsMap.set(stat.treasure_id, {
+          total_collections: Number(stat.total_collections),
+          recent_collections: Number(stat.recent_collections)
+        })
+      })
+    }
+
+    // Agregar estadísticas a cada tesoro
+    const treasuresWithStats = (treasures || []).map((treasure: any) => ({
+      ...treasure,
+      badge_stats: treasure.badge_url ? (statsMap.get(treasure.id) || {
+        total_collections: 0,
+        recent_collections: 0
+      }) : null
+    }))
+
     return NextResponse.json({
       success: true,
-      treasures: treasures || []
+      treasures: treasuresWithStats
     })
   } catch (error: any) {
     console.error('Error inesperado:', error)
