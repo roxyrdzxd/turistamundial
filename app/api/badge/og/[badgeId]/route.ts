@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { ImageResponse } from '@vercel/og'
+import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 
@@ -30,7 +30,7 @@ export async function GET(
 
     const rarity = rarityColors[treasure.rarity as keyof typeof rarityColors] || rarityColors.common
 
-    // Generar imagen OG usando @vercel/og
+    // Generar imagen OG usando next/og
     return new ImageResponse(
       (
         <div
@@ -46,7 +46,6 @@ export async function GET(
             fontFamily: 'system-ui',
           }}
         >
-          {/* Badge */}
           <div
             style={{
               display: 'flex',
@@ -67,7 +66,6 @@ export async function GET(
             />
           </div>
 
-          {/* Title */}
           <div
             style={{
               fontSize: 48,
@@ -81,7 +79,6 @@ export async function GET(
             {treasure.name}
           </div>
 
-          {/* Rarity Badge */}
           <div
             style={{
               backgroundColor: rarity.bg,
@@ -96,7 +93,6 @@ export async function GET(
             {rarity.name}
           </div>
 
-          {/* Description */}
           <div
             style={{
               fontSize: 28,
@@ -109,7 +105,6 @@ export async function GET(
             ¡Conseguí esta medalla en TuristaMundial! 🏆
           </div>
 
-          {/* Footer */}
           <div
             style={{
               display: 'flex',
