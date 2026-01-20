@@ -40,6 +40,21 @@ export async function POST(request: Request) {
       )
     }
 
+    // Verificar que el usuario tenga un perfil
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile) {
+      console.error('Error: Usuario no tiene perfil:', profileError)
+      return NextResponse.json(
+        { error: 'Perfil de usuario no encontrado' },
+        { status: 400 }
+      )
+    }
+
     // Llamar a la función de base de datos para recolectar el tesoro
     console.log('Intentando recolectar tesoro:', {
       user_id: user.id,
