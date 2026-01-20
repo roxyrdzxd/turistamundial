@@ -49,21 +49,44 @@ export async function POST(request: Request) {
     })
 
     if (error) {
-      console.error('Error al recolectar tesoro:', error)
+      console.error('Error al recolectar tesoro (RPC error):', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        user_id: user.id,
+        treasure_id: treasureId,
+        latitude,
+        longitude
+      })
       return NextResponse.json(
-        { error: 'Error al recolectar tesoro', details: error.message },
+        { 
+          error: 'Error al recolectar tesoro', 
+          details: error.message,
+          code: error.code
+        },
         { status: 500 }
       )
     }
 
     // Verificar si la función retornó un error
     if (data && typeof data === 'object' && 'success' in data && !data.success) {
+      console.error('Error en respuesta de collect_treasure:', data)
       return NextResponse.json(
         { 
           error: data.error || 'No se pudo recolectar el tesoro',
           ...data
         },
         { status: 400 }
+      )
+    }
+
+    // Verificar que data existe y tiene la estructura esperada
+    if (!data) {
+      console.error('Error: collect_treasure retornó null o undefined')
+      return NextResponse.json(
+        { error: 'Error inesperado: la función no retornó datos' },
+        { status: 500 }
       )
     }
 
