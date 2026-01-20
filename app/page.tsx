@@ -130,6 +130,77 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Exploración Urbana e Insignias Section */}
+      <section className="relative py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-500/20 via-cyan-500/20 to-blue-500/20 border-y border-green-400/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <span className="text-4xl">🌍</span>
+              <span className="px-3 py-1 bg-green-500/30 text-green-300 rounded-full text-sm font-semibold border border-green-400/50">
+                ¡Nuevo!
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Explora el Mundo, Recolecta Insignias
+            </h2>
+            <p className="text-white/80 text-lg sm:text-xl max-w-3xl mx-auto mb-2">
+              Sal a explorar tu ciudad y encuentra tesoros únicos mientras ganas TuristaCoins
+            </p>
+            <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto">
+              Cada insignia cuenta una historia. Completa tu colección y comparte tus logros con amigos
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
+              <div className="text-3xl mb-2">🗺️</div>
+              <h3 className="font-semibold text-white mb-1 text-sm">Mapa Interactivo</h3>
+              <p className="text-xs text-white/70">Encuentra tesoros cerca de ti</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
+              <div className="text-3xl mb-2">🏅</div>
+              <h3 className="font-semibold text-white mb-1 text-sm">Insignias Únicas</h3>
+              <p className="text-xs text-white/70">Colecciona medallas especiales</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
+              <div className="text-3xl mb-2">💰</div>
+              <h3 className="font-semibold text-white mb-1 text-sm">Gana Coins</h3>
+              <p className="text-xs text-white/70">Recompensas por explorar</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-center">
+              <div className="text-3xl mb-2">📱</div>
+              <h3 className="font-semibold text-white mb-1 text-sm">Comparte</h3>
+              <p className="text-xs text-white/70">Muestra tus logros</p>
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/badges"
+              className="group relative px-8 py-4 bg-gradient-to-r from-green-500 to-cyan-600 text-white text-lg font-bold rounded-xl shadow-2xl hover:shadow-green-500/50 transform hover:scale-105 transition-all duration-300 overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <span>🏆 Ver Todas las Insignias</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-cyan-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </Link>
+            <Link
+              href="/explore"
+              className="group relative px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-lg font-bold rounded-xl shadow-2xl hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-300 overflow-hidden border-2 border-cyan-400/30"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <span>🗺️ Explorar Mapa</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-white/5 backdrop-blur-sm border-t border-white/10">
         <div className="max-w-6xl mx-auto">

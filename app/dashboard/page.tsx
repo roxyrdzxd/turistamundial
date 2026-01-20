@@ -276,6 +276,24 @@ export default async function DashboardPage() {
             </p>
           </Link>
 
+          <Link
+            href="/badges"
+            className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-yellow-400"
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-yellow-500/20 rounded-xl flex items-center justify-center group-hover:bg-yellow-500 transition-colors border border-yellow-400/30">
+                <span className="text-3xl group-hover:scale-110 transition-transform">🏅</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Galería de Insignias</h3>
+                <p className="text-sm text-white/70">Colecciona medallas</p>
+              </div>
+            </div>
+            <p className="text-white/80">
+              Descubre todas las insignias disponibles y completa tu colección
+            </p>
+          </Link>
+
           {isAdmin && (
             <Link
               href="/admin"
