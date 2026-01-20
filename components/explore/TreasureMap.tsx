@@ -556,6 +556,13 @@ export default function TreasureMap() {
   const handleCollectTreasure = async (treasure: Treasure) => {
     if (!userLocation || collecting) return
 
+    // Validar que tenemos coordenadas válidas
+    if (!userLocation.latitude || !userLocation.longitude || 
+        isNaN(userLocation.latitude) || isNaN(userLocation.longitude)) {
+      toast.showError('Ubicación no válida. Por favor, espera a que se calibre tu ubicación.')
+      return
+    }
+
     try {
       setCollecting(treasure.id)
       const response = await fetch('/api/treasures/collect', {
@@ -571,6 +578,20 @@ export default function TreasureMap() {
       })
 
       const data = await response.json()
+
+      if (!response.ok) {
+        // Error del servidor
+        const errorMessage = data.error || data.details || 'Error al recolectar tesoro'
+        console.error('Error al recolectar tesoro:', {
+          status: response.status,
+          error: data,
+          treasureId: treasure.id,
+          location: { lat: userLocation.latitude, lng: userLocation.longitude }
+        })
+        toast.showError(errorMessage)
+        setCollecting(null)
+        return
+      }
 
       if (data.success) {
         // Mostrar celebración según rareza
