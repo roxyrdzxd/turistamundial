@@ -31,6 +31,7 @@ interface Treasure {
   distance_meters: number
   can_collect: boolean
   already_collected: boolean
+  badge_url: string | null
 }
 
 // Componente interno del mapa (solo se renderiza en cliente)
@@ -160,6 +161,28 @@ function MapContent({
             >
               <Popup>
                 <div className="min-w-[200px]">
+                  {/* Medalla/Insignia */}
+                  {treasure.badge_url && (
+                    <div className="flex justify-center mb-3">
+                      <div className={`w-16 h-16 rounded-full border-2 ${
+                        treasure.rarity === 'common' ? 'border-gray-400' :
+                        treasure.rarity === 'rare' ? 'border-blue-400' :
+                        treasure.rarity === 'epic' ? 'border-purple-400' :
+                        'border-yellow-400'
+                      } bg-white/10 p-1`}>
+                        <img 
+                          src={treasure.badge_url} 
+                          alt={`Medalla ${treasure.name}`}
+                          className="w-full h-full rounded-full object-cover"
+                          onError={(e) => {
+                            // Si la imagen falla, ocultar el contenedor
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="font-bold text-lg mb-2" style={{ color: color }}>
                     {treasure.name}
                   </div>
