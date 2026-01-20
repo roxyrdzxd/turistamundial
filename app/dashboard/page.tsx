@@ -26,6 +26,8 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
+  const isAdmin = profile?.role === 'admin'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900">
       {/* Header */}
@@ -273,6 +275,26 @@ export default async function DashboardPage() {
               Encuentra tesoros cerca de ti mientras exploras y gana TuristaCoins
             </p>
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-orange-400"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:bg-orange-500 transition-colors border border-orange-400/30">
+                  <span className="text-3xl group-hover:scale-110 transition-transform">🛡️</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Panel de Administración</h3>
+                  <p className="text-sm text-white/70">Gestiona tesoros y misiones</p>
+                </div>
+              </div>
+              <p className="text-white/80">
+                Administra tesoros, misiones y configuración del juego
+              </p>
+            </Link>
+          )}
         </div>
 
         {/* Stats Section */}

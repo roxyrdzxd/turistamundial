@@ -46,6 +46,35 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Protect admin routes - solo administradores
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    // Verificar si el usuario es administrador
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError || !profile || profile.role !== 'admin') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      console.error('[Middleware] Error verificando rol de admin:', error)
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // Protect dashboard, game, and profile routes
   if (request.nextUrl.pathname.startsWith('/dashboard') || 
       request.nextUrl.pathname.startsWith('/lobby') ||
