@@ -5,9 +5,16 @@
 DROP POLICY IF EXISTS "Users can insert own collections" ON treasure_collections;
 
 -- Permitir que usuarios inserten sus propias recolecciones
+-- Esta política permite que tanto usuarios directos como funciones SECURITY DEFINER
+-- puedan insertar, siempre que el user_id coincida con auth.uid()
 CREATE POLICY "Users can insert own collections" ON treasure_collections
   FOR INSERT
   WITH CHECK (user_id = auth.uid());
+
+-- Verificar políticas para UPDATE en treasures
+-- La función collect_treasure necesita actualizar current_collections
+-- Como es SECURITY DEFINER, debería poder hacerlo, pero verifiquemos que no haya bloqueos
+-- Si hay problemas, podríamos necesitar una política específica para funciones
 
 -- También necesitamos permitir que la función SECURITY DEFINER pueda insertar
 -- Para esto, creamos una política que permita insertar si el user_id coincide

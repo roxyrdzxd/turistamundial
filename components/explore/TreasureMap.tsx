@@ -581,14 +581,28 @@ export default function TreasureMap() {
 
       if (!response.ok) {
         // Error del servidor
-        const errorMessage = data.error || data.details || 'Error al recolectar tesoro'
+        const errorMessage = data.error || data.details || data.hint || 'Error al recolectar tesoro'
         console.error('Error al recolectar tesoro:', {
           status: response.status,
           error: data,
+          errorCode: data.code,
+          errorDetails: data.details,
+          errorHint: data.hint,
           treasureId: treasure.id,
-          location: { lat: userLocation.latitude, lng: userLocation.longitude }
+          location: { lat: userLocation.latitude, lng: userLocation.longitude },
+          fullResponse: JSON.stringify(data, null, 2)
         })
-        toast.showError(errorMessage)
+        
+        // Mostrar mensaje más descriptivo
+        let userMessage = errorMessage
+        if (data.code) {
+          userMessage += ` (Código: ${data.code})`
+        }
+        if (data.hint) {
+          userMessage += `. ${data.hint}`
+        }
+        
+        toast.showError(userMessage)
         setCollecting(null)
         return
       }

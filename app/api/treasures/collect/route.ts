@@ -103,10 +103,19 @@ export async function POST(request: Request) {
       success: true,
       ...data
     })
-  } catch (error) {
-    console.error('Error inesperado:', error)
+  } catch (error: any) {
+    console.error('Error inesperado al recolectar tesoro:', {
+      error: error?.message || error,
+      stack: error?.stack,
+      name: error?.name,
+      fullError: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+    })
     return NextResponse.json(
-      { error: 'Error inesperado al recolectar tesoro' },
+      { 
+        error: 'Error inesperado al recolectar tesoro',
+        details: error?.message || 'Error desconocido',
+        type: error?.name || 'UnknownError'
+      },
       { status: 500 }
     )
   }
