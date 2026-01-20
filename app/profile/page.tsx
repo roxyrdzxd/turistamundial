@@ -208,7 +208,7 @@ export default function ProfilePage() {
       }
 
       // Obtener los IDs de los tesoros
-      const treasureIds = badgesData.map(b => b.treasure_id)
+      const treasureIds = badgesData.map((b: any) => b.treasure_id)
 
       // Obtener los tesoros con sus datos
       const { data: treasuresData, error: treasuresError } = await supabase
@@ -224,14 +224,14 @@ export default function ProfilePage() {
       console.log('Tesoros obtenidos:', treasuresData)
 
       // Combinar los datos
-      const combinedData = badgesData.map(badge => {
-        const treasure = treasuresData?.find(t => t.id === badge.treasure_id)
+      const combinedData = badgesData.map((badge: any) => {
+        const treasure = treasuresData?.find((t: any) => t.id === badge.treasure_id)
         return {
           id: badge.id,
           collected_at: badge.collected_at,
           treasure: treasure || null
         }
-      }).filter(item => item.treasure && item.treasure.badge_url) // Solo mostrar si tiene badge_url
+      }).filter((item: any) => item.treasure && item.treasure.badge_url) // Solo mostrar si tiene badge_url
 
       console.log('Medallas combinadas:', combinedData)
       setCollectedBadges(combinedData)
