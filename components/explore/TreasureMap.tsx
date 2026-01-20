@@ -883,26 +883,42 @@ export default function TreasureMap() {
           </div>
         </div>
 
-        {/* Contador de tesoros */}
-        {treasures.length > 0 && (
-          <div className="pt-3 border-t border-gray-200">
-            <p className="text-xs font-semibold text-gray-700 mb-1">Disponibles:</p>
-            <p className="text-sm font-bold text-blue-600">
-              {treasures.filter((t) => t.can_collect).length} tesoro{treasures.filter((t) => t.can_collect).length !== 1 ? 's' : ''}
-            </p>
-          </div>
+            {/* Contador de tesoros */}
+            {treasures.length > 0 && (
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-xs font-semibold text-gray-700 mb-1">Disponibles:</p>
+                <p className="text-sm font-bold text-blue-600">
+                  {treasures.filter((t) => t.can_collect).length} tesoro{treasures.filter((t) => t.can_collect).length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
+
+            {/* Botón para ver estadísticas */}
+            <div className="pt-3 border-t border-gray-200 mt-3">
+              <Link
+                href="/explore/stats"
+                className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition flex items-center justify-center gap-2"
+              >
+                <span>📊</span>
+                <span>Ver Estadísticas</span>
+              </Link>
+            </div>
+          </>
         )}
 
-        {/* Botón para ver estadísticas */}
-        <div className="pt-3 border-t border-gray-200 mt-3">
-          <Link
-            href="/explore/stats"
-            className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition flex items-center justify-center gap-2"
-          >
-            <span>📊</span>
-            <span>Ver Estadísticas</span>
-          </Link>
-        </div>
+        {/* Indicador cuando está minimizado */}
+        {isPanelMinimized && treasures.length > 0 && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="relative">
+              <span className="text-2xl">💎</span>
+              {treasures.filter((t) => t.can_collect).length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {treasures.filter((t) => t.can_collect).length}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
