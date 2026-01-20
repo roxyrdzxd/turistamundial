@@ -223,6 +223,7 @@ export default function TreasureMap() {
   const [showCelebration, setShowCelebration] = useState<{ rarity: string; coins: number } | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [lastNotificationTime, setLastNotificationTime] = useState<number>(0)
+  const [isPanelMinimized, setIsPanelMinimized] = useState(false)
   const toast = useToast()
   const mapRef = useRef<L.Map | null>(null)
   const watchStopRef = useRef<(() => void) | null>(null)
@@ -765,13 +766,36 @@ export default function TreasureMap() {
       )}
 
       {/* Panel de información lateral (estilo Google Maps) */}
-      <div className="absolute top-20 left-4 z-[1000] bg-white/95 backdrop-blur-md rounded-xl shadow-xl p-4 w-64 max-h-[calc(100vh-6rem)] overflow-y-auto">
-        <div className="mb-3">
-          <h2 className="text-lg font-bold text-gray-800 mb-1">Tesoros</h2>
-          <p className="text-xs text-gray-600">
-            Encuentra tesoros cerca de ti y gana TuristaCoins
-          </p>
-        </div>
+      <div className={`absolute top-20 left-4 z-[1000] bg-white/95 backdrop-blur-md rounded-xl shadow-xl transition-all duration-300 ${
+        isPanelMinimized 
+          ? 'w-12 h-12 p-2 overflow-hidden' 
+          : 'w-64 max-h-[calc(100vh-6rem)] p-4 overflow-y-auto'
+      }`}>
+        {/* Botón para minimizar/maximizar */}
+        <button
+          onClick={() => setIsPanelMinimized(!isPanelMinimized)}
+          className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+          aria-label={isPanelMinimized ? 'Expandir panel' : 'Minimizar panel'}
+        >
+          {isPanelMinimized ? (
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+          )}
+        </button>
+
+        {!isPanelMinimized && (
+          <>
+            <div className="mb-3 pr-8">
+              <h2 className="text-lg font-bold text-gray-800 mb-1">Tesoros</h2>
+              <p className="text-xs text-gray-600">
+                Encuentra tesoros cerca de ti y gana TuristaCoins
+              </p>
+            </div>
 
         {/* Precisión de ubicación */}
         {locationAccuracy !== null && (
