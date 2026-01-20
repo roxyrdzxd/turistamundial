@@ -42,7 +42,7 @@ function MapContent({
   // Componente para escuchar clics en el mapa
   function MapClickHandler() {
     useMapEvents({
-      click: (e) => {
+      click: (e: any) => {
         const { lat, lng } = e.latlng
         setSelectedLocation([lat, lng])
         onLocationSelect(lat, lng)
