@@ -188,29 +188,53 @@ export default function ProfilePage() {
     if (!user) return
     setLoadingBadges(true)
     try {
-      const { data, error } = await supabase
+      // Primero obtener las medallas sin la relación para verificar que existen
+      const { data: badgesData, error: badgesError } = await supabase
         .from('user_treasure_badges')
-        .select(`
-          id,
-          collected_at,
-          treasure:treasures(
-            id,
-            name,
-            badge_url,
-            rarity
-          )
-        `)
+        .select('id, collected_at, treasure_id')
         .eq('user_id', user.id)
         .order('collected_at', { ascending: false })
 
-      if (error) {
-        console.error('Error obteniendo medallas:', error)
-        console.error('Detalles del error:', JSON.stringify(error, null, 2))
+      if (badgesError) {
+        console.error('Error obteniendo medallas (sin relación):', badgesError)
         return
       }
 
-      console.log('Medallas obtenidas:', data)
-      setCollectedBadges(data || [])
+      console.log('Medallas encontradas (sin relación):', badgesData)
+
+      if (!badgesData || badgesData.length === 0) {
+        setCollectedBadges([])
+        return
+      }
+
+      // Obtener los IDs de los tesoros
+      const treasureIds = badgesData.map(b => b.treasure_id)
+
+      // Obtener los tesoros con sus datos
+      const { data: treasuresData, error: treasuresError } = await supabase
+        .from('treasures')
+        .select('id, name, badge_url, rarity')
+        .in('id', treasureIds)
+
+      if (treasuresError) {
+        console.error('Error obteniendo tesoros:', treasuresError)
+        return
+      }
+
+      console.log('Tesoros obtenidos:', treasuresData)
+
+      // Combinar los datos
+      const combinedData = badgesData.map(badge => {
+        const treasure = treasuresData?.find(t => t.id === badge.treasure_id)
+        return {
+          id: badge.id,
+          collected_at: badge.collected_at,
+          treasure: treasure || null
+        }
+      }).filter(item => item.treasure && item.treasure.badge_url) // Solo mostrar si tiene badge_url
+
+      console.log('Medallas combinadas:', combinedData)
+      setCollectedBadges(combinedData)
     } catch (error) {
       console.error('Error obteniendo medallas:', error)
     } finally {
