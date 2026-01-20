@@ -328,108 +328,111 @@ export default function GamePage() {
 
   // Detectar turnos de NPCs y jugadores desconectados, hacerlos jugar automáticamente
   const npcProcessingRef = useRef(false)
+  const processTimerRef = useRef<NodeJS.Timeout | null>(null)
   
   useEffect(() => {
     if (!session || !currentUserId || session.status !== 'active') {
       npcProcessingRef.current = false
-      return
-    }
+    } else {
+      const currentPlayer = session.players.find(
+        p => p.turn_order === session.current_turn
+      )
 
-    const currentPlayer = session.players.find(
-      p => p.turn_order === session.current_turn
-    )
+      if (!currentPlayer) {
+        npcProcessingRef.current = false
+      } else {
+        // Verificar si es un NPC: los NPCs nunca están online
+        // Si el jugador no está online (o is_online es undefined/null) y no es el usuario actual, es un NPC
+        const isNPC = (currentPlayer.is_online === false || currentPlayer.is_online === undefined || currentPlayer.is_online === null) && currentPlayer.user_id !== currentUserId
 
-    if (!currentPlayer) {
-      npcProcessingRef.current = false
-      return
-    }
+        // Verificar si el jugador está desconectado (solo para jugadores reales)
+        const isDisconnected = currentPlayer.is_online === false && !isNPC
 
-    // Verificar si es un NPC: los NPCs nunca están online
-    // Si el jugador no está online (o is_online es undefined/null) y no es el usuario actual, es un NPC
-    const isNPC = (currentPlayer.is_online === false || currentPlayer.is_online === undefined || currentPlayer.is_online === null) && currentPlayer.user_id !== currentUserId
+        console.log('[NPC Detection]', {
+          currentTurn: session.current_turn,
+          currentPlayer: currentPlayer.profile?.username || currentPlayer.user_id,
+          is_online: currentPlayer.is_online,
+          isNPC,
+          isDisconnected,
+          isProcessing: npcProcessingRef.current,
+          isCurrentUser: currentPlayer.user_id === currentUserId
+        })
 
-    // Verificar si el jugador está desconectado (solo para jugadores reales)
-    const isDisconnected = currentPlayer.is_online === false && !isNPC
+        // Si es un NPC o está desconectado, y no es el usuario actual, hacer que se salte el turno
+        if ((isNPC || isDisconnected) && currentPlayer.user_id !== currentUserId && !npcProcessingRef.current) {
+          npcProcessingRef.current = true // Marcar que estamos procesando
+          
+          // Esperar un momento antes de procesar
+          processTimerRef.current = setTimeout(async () => {
+            try {
+              if (isNPC) {
+                console.log('[NPC Turn] Iniciando turno de NPC:', currentPlayer.profile?.username || currentPlayer.user_id)
+                // Si es NPC, hacer que juegue
+                const response = await fetch('/api/game/npc-turn', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ sessionId }),
+                })
 
-    console.log('[NPC Detection]', {
-      currentTurn: session.current_turn,
-      currentPlayer: currentPlayer.profile?.username || currentPlayer.user_id,
-      is_online: currentPlayer.is_online,
-      isNPC,
-      isDisconnected,
-      isProcessing: npcProcessingRef.current,
-      isCurrentUser: currentPlayer.user_id === currentUserId
-    })
+                const data = await response.json()
 
-    // Si es un NPC o está desconectado, y no es el usuario actual, hacer que se salte el turno
-    if ((isNPC || isDisconnected) && currentPlayer.user_id !== currentUserId && !npcProcessingRef.current) {
-      npcProcessingRef.current = true // Marcar que estamos procesando
-      
-      // Esperar un momento antes de procesar
-      const processTimer = setTimeout(async () => {
-        try {
-          if (isNPC) {
-            console.log('[NPC Turn] Iniciando turno de NPC:', currentPlayer.profile?.username || currentPlayer.user_id)
-            // Si es NPC, hacer que juegue
-            const response = await fetch('/api/game/npc-turn', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ sessionId }),
-            })
+                if (response.ok) {
+                  // No mostrar toast para NPCs para que parezcan jugadores reales
+                  // toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
+                  console.log('[NPC Turn] Turno procesado exitosamente:', data)
+                  // Actualizar inmediatamente para reflejar el movimiento
+                  // El fetchSession actualizará el current_turn y disparará el siguiente turno
+                  setTimeout(() => {
+                    npcProcessingRef.current = false
+                    console.log('[NPC Turn] Actualizando sesión después del turno')
+                    fetchSession()
+                  }, 500) // Reducido a 500ms para actualización más rápida
+                } else {
+                  console.error('[NPC Turn] Error en respuesta:', data)
+                  npcProcessingRef.current = false
+                  toast.showError(`Error en turno de NPC: ${data.error}`)
+                }
+              } else if (isDisconnected) {
+                // Si está desconectado, saltar su turno automáticamente
+                const response = await fetch('/api/game/end-turn', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ sessionId }),
+                })
 
-            const data = await response.json()
+                const data = await response.json()
 
-            if (response.ok) {
-              // No mostrar toast para NPCs para que parezcan jugadores reales
-              // toast.showInfo(`${currentPlayer.profile.username}: ${data.message}`)
-              console.log('[NPC Turn] Turno procesado exitosamente:', data)
-              // Actualizar inmediatamente para reflejar el movimiento
-              // El fetchSession actualizará el current_turn y disparará el siguiente turno
-              setTimeout(() => {
-                npcProcessingRef.current = false
-                console.log('[NPC Turn] Actualizando sesión después del turno')
-                fetchSession()
-              }, 500) // Reducido a 500ms para actualización más rápida
-            } else {
-              console.error('[NPC Turn] Error en respuesta:', data)
+                if (response.ok) {
+                  toast.showInfo(`Turno de ${currentPlayer.profile.username} saltado (desconectado)`)
+                  setTimeout(() => {
+                    npcProcessingRef.current = false
+                    fetchSession()
+                  }, 1000)
+                } else {
+                  npcProcessingRef.current = false
+                }
+              }
+            } catch (err: any) {
+              console.error('Error procesando turno:', err)
               npcProcessingRef.current = false
-              toast.showError(`Error en turno de NPC: ${data.error}`)
             }
-          } else if (isDisconnected) {
-            // Si está desconectado, saltar su turno automáticamente
-            const response = await fetch('/api/game/end-turn', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ sessionId }),
-            })
-
-            const data = await response.json()
-
-            if (response.ok) {
-              toast.showInfo(`Turno de ${currentPlayer.profile.username} saltado (desconectado)`)
-              setTimeout(() => {
-                npcProcessingRef.current = false
-                fetchSession()
-              }, 1000)
-            } else {
-              npcProcessingRef.current = false
-            }
-          }
-        } catch (err: any) {
-          console.error('Error procesando turno:', err)
+          }, isDisconnected ? 1000 : 2000) // Menos tiempo si está desconectado
+        } else if (!isNPC && !isDisconnected && currentPlayer.user_id === currentUserId) {
           npcProcessingRef.current = false
         }
-      }, isDisconnected ? 1000 : 2000) // Menos tiempo si está desconectado
-
-      return () => {
-        clearTimeout(processTimer)
-        npcProcessingRef.current = false
       }
-    } else if (!isNPC && !isDisconnected && currentPlayer.user_id === currentUserId) {
+    }
+
+    // Cleanup del useEffect
+    return () => {
+      if (processTimerRef.current) {
+        clearTimeout(processTimerRef.current)
+        processTimerRef.current = null
+      }
       npcProcessingRef.current = false
     }
   }, [session?.current_turn, session?.status, currentUserId, sessionId, fetchSession, toast, session?.players])
@@ -1115,11 +1118,12 @@ export default function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative pb-20 md:pb-20">
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-3">
-        {/* Header */}
-        <div className="mb-2">
-          <Link
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-3">
+          {/* Header */}
+          <div className="mb-2">
+            <Link
             href="/dashboard"
             className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 mb-1 transition text-xs sm:text-sm"
           >
@@ -1171,9 +1175,17 @@ export default function GamePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 items-start">
+        <div className={`grid grid-cols-1 gap-2 sm:gap-3 items-start transition-all duration-300 ${
+          showBoardOverview && activeDesktopTab === 'board' 
+            ? 'lg:grid-cols-1' 
+            : 'lg:grid-cols-3'
+        }`}>
           {/* Tablero / Área Principal */}
-          <div className="lg:col-span-2 order-1">
+          <div className={`order-1 transition-all duration-300 ${
+            showBoardOverview && activeDesktopTab === 'board' 
+              ? 'lg:col-span-1' 
+              : 'lg:col-span-2'
+          }`}>
             <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-2 sm:p-3 mb-2 border border-white/20">
               <h2 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-center text-white">
                 Casilla Actual {myPlayer ? `- Casilla ${myPlayer.position}` : ''}
@@ -1408,7 +1420,11 @@ export default function GamePage() {
           </div>
 
           {/* Panel Lateral - Mobile First */}
-          <div className="space-y-2 self-start">
+          <div className={`space-y-2 self-start transition-all duration-300 ${
+            showBoardOverview && activeDesktopTab === 'board' 
+              ? 'hidden lg:block lg:col-span-1' 
+              : 'lg:col-span-1'
+          }`}>
             {/* Mi Información - Siempre visible */}
             {myPlayer && (
               <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
@@ -1431,17 +1447,18 @@ export default function GamePage() {
             )}
 
             {/* Historial de Transacciones - Solo visible cuando se hace clic en desktop */}
-            {showHistory && (
+            {showHistory && activeDesktopTab === 'history' && (
               <div className="hidden md:block">
-                <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-3 mb-2 border border-white/20">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-3 mb-2 border border-white/20 max-h-[calc(100vh-300px)] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-2 sticky top-0 bg-white/10 backdrop-blur-md -m-3 p-3 border-b border-white/20 z-10">
                     <h3 className="text-sm font-bold text-white">Historial</h3>
                     <button
                       onClick={() => {
                         setShowHistory(false)
                         setActiveDesktopTab(null)
                       }}
-                      className="text-white/60 hover:text-white"
+                      className="text-white/60 hover:text-white transition"
+                      title="Cerrar historial"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1454,7 +1471,7 @@ export default function GamePage() {
             )}
 
             {/* Mis Propiedades - Solo visible cuando se hace clic en desktop */}
-            {showProperties && myPlayer && (() => {
+            {showProperties && activeDesktopTab === 'properties' && myPlayer && (() => {
               // Mapeo de colores a nombres de continentes
               const continentNames: Record<string, string> = {
                 'blue': 'América del Norte',
@@ -1542,25 +1559,28 @@ export default function GamePage() {
               }).sort((a, b) => a.groupName.localeCompare(b.groupName))
 
               return (
-                <div className="hidden md:block bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <h4 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
-                      <span>🏛️</span>
-                      <span>Mis Propiedades ({myProperties.length})</span>
-                    </h4>
-                    <button
-                      onClick={() => {
-                        setShowProperties(false)
-                        setActiveDesktopTab(null)
-                      }}
-                      className="text-white/80 hover:text-white"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  {myProperties.length === 0 ? (
+                <div className="hidden md:block">
+                  <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-3 mb-2 border border-white/20 max-h-[calc(100vh-300px)] overflow-y-auto">
+                    <div className="flex items-center justify-between mb-2 sticky top-0 bg-white/10 backdrop-blur-md -m-3 p-3 border-b border-white/20 z-10">
+                      <h4 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-white">
+                        <span>🏛️</span>
+                        <span>Mis Propiedades ({myProperties.length})</span>
+                      </h4>
+                      <button
+                        onClick={() => {
+                          setShowProperties(false)
+                          setActiveDesktopTab(null)
+                        }}
+                        className="text-white/60 hover:text-white transition"
+                        title="Cerrar propiedades"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white mb-3">
+                      {myProperties.length === 0 ? (
                       <p className="text-xs opacity-80 text-center py-1">
                         No tienes propiedades aún
                       </p>
@@ -1867,22 +1887,41 @@ export default function GamePage() {
                       </div>
                     ))}
                   </div>
+                    </div>
+                  </div>
                 </div>
               ) : null
             })()}
 
-            {/* Vista del Tablero - Solo visible en desktop */}
-            <div className="lg:col-span-2 order-2 lg:order-3 hidden md:block">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 border border-white/20">
-                <BoardOverview
-                  countries={countries}
-                  players={session.players}
-                  currentUserId={currentUserId}
-                  currentTurn={session.current_turn}
-                  playerCountries={playerCountries}
-                />
+            {/* Vista del Tablero - Solo visible en desktop cuando se activa */}
+            {showBoardOverview && activeDesktopTab === 'board' && (
+              <div className="lg:col-span-1 order-2 lg:order-2 hidden md:block">
+                <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-lg p-4 sm:p-6 border border-white/20 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/10 backdrop-blur-md -m-4 p-4 border-b border-white/20 z-10">
+                    <h3 className="text-lg font-bold text-white">Vista del Tablero</h3>
+                    <button
+                      onClick={() => {
+                        setShowBoardOverview(false)
+                        setActiveDesktopTab(null)
+                      }}
+                      className="text-white/60 hover:text-white transition"
+                      title="Cerrar tablero"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <BoardOverview
+                    countries={countries}
+                    players={session.players}
+                    currentUserId={currentUserId}
+                    currentTurn={session.current_turn}
+                    playerCountries={playerCountries}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -1963,8 +2002,9 @@ export default function GamePage() {
         unreadChatCount={chatUnreadCount}
       />
 
-      {/* Navegación inferior desktop */}
-      <DesktopBottomNav
+      {/* Navegación inferior desktop - Fixed en la parte inferior */}
+      <div className="hidden md:block">
+        <DesktopBottomNav
         onShowBoard={() => {
           if (activeDesktopTab === 'board') {
             setShowBoardOverview(false)
@@ -2015,7 +2055,8 @@ export default function GamePage() {
         }}
         unreadChatCount={chatUnreadCount}
         activeTab={activeDesktopTab}
-      />
+        />
+      </div>
 
       {/* Modales móviles para propiedades e historial */}
       {showProperties && myPlayer && (

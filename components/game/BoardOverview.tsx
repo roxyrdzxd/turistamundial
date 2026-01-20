@@ -180,7 +180,6 @@ export default function BoardOverview({
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 overflow-hidden">
-      <h3 className="text-xl font-bold mb-4 text-gray-900">Vista del Tablero</h3>
       
       {/* Tablero - 40 casillas en grid */}
       <div className="relative w-full max-w-5xl mx-auto overflow-x-auto">
