@@ -1006,6 +1006,45 @@ export default function GamePage() {
     }
   }
 
+  // Definir variables y funciones antes de los returns tempranos
+  const currentPlayer = session?.players.find(
+    p => p.turn_order === session?.current_turn
+  )
+  const isMyTurn = currentPlayer?.user_id === currentUserId
+  const myPlayer = session?.players.find(p => p.user_id === currentUserId)
+  const isHost = session?.host_id === currentUserId
+
+  const handleCloseClick = () => {
+    if (!isHost) return
+    setShowCloseConfirm(true)
+  }
+
+  const handleCloseConfirm = async () => {
+    setShowCloseConfirm(false)
+    
+    try {
+      const response = await fetch('/api/game/close-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cerrar la partida')
+      }
+
+      toast.showSuccess('Partida cerrada correctamente')
+      // Redirigir al lobby
+      router.push('/lobby')
+    } catch (err: any) {
+      toast.showError(err.message || 'Error al cerrar la partida')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 flex items-center justify-center">
@@ -1079,42 +1118,281 @@ export default function GamePage() {
     )
   }
 
-  const currentPlayer = session.players.find(
-    p => p.turn_order === session.current_turn
-  )
-  const isMyTurn = currentPlayer?.user_id === currentUserId
-  const myPlayer = session.players.find(p => p.user_id === currentUserId)
-  const isHost = session.host_id === currentUserId
-
-  const handleCloseClick = () => {
-    if (!isHost) return
-    setShowCloseConfirm(true)
-  }
-
-  const handleCloseConfirm = async () => {
-    setShowCloseConfirm(false)
+  // Función auxiliar para renderizar propiedades
+  const renderPropertiesPanel = () => {
+    if (!showProperties || activeDesktopTab !== 'properties' || !myPlayer) return null
+    if (!session) return null
     
-    try {
-      const response = await fetch('/api/game/close-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cerrar la partida')
-      }
-
-      toast.showToast('Partida cerrada correctamente', 'success')
-      // Redirigir al lobby
-      router.push('/lobby')
-    } catch (err: any) {
-      toast.showToast(err.message || 'Error al cerrar la partida', 'error')
+    // Mapeo de colores a nombres de continentes
+    const continentNames: Record<string, string> = {
+      'blue': 'América del Norte',
+      'pink': 'Europa',
+      'orange': 'Asia',
+      'red': 'América del Sur',
+      'yellow': 'África',
+      'green': 'Oceanía',
+      'purple': 'Especial',
+      'america': 'América',
+      // Monopolios del tablero Nuevo León
+      'Capital Regia': 'Capital Regia',
+      'Ruta Citrícola': 'Ruta Citrícola',
+      'Corredor Industrial': 'Corredor Industrial',
+      'Tierras Nuevas': 'Tierras Nuevas',
+      'Transporte': 'Transporte',
+      'Atracciones Turísticas': 'Atracciones Turísticas',
+      'Atracciones deportivas': 'Atracciones deportivas',
+      'europa': 'Europa',
+      'asia': 'Asia',
+      'africa': 'África',
+      'oceania': 'Oceanía',
+      'especial': 'Especial',
     }
+
+    // Obtener propiedades del jugador actual
+    const myProperties = playerCountries
+      .filter(pc => pc.player_id === myPlayer.id)
+      .map(pc => {
+        const country = countries.find(c => c.id === pc.country_id)
+        return country ? { ...pc, country } : null
+      })
+      .filter((item): item is any => item !== null)
+
+    // Agrupar propiedades por monopoly_group (si existe) o por continente
+    const propertiesByGroup = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
+      // Si tiene monopoly_group, usar ese; si no, usar continent
+      const groupKey = prop.country.monopoly_group || prop.country.continent
+      if (!acc[groupKey]) {
+        acc[groupKey] = []
+      }
+      acc[groupKey].push(prop)
+      return acc
+    }, {})
+
+    // Calcular progreso de monopolio para cada grupo
+    const groupProgress = Object.keys(propertiesByGroup).map(groupKey => {
+      // Determinar si es un monopoly_group o un continent
+      const firstProp = propertiesByGroup[groupKey][0]
+      const isMonopolyGroup = !!firstProp.country.monopoly_group
+      
+      // Obtener países del grupo
+      const groupCountries = countries.filter(c => {
+        if (isMonopolyGroup) {
+          // Para grupos de monopolio, incluir todas las propiedades del grupo
+          // (ciudades, estadios, transporte, atracciones, etc.)
+          return c.monopoly_group === groupKey
+        } else {
+          return c.continent === groupKey
+        }
+      })
+      
+      const ownedCount = propertiesByGroup[groupKey].length
+      const totalCount = groupCountries.length
+      
+      // Verificar monopolio usando el método correcto
+      const hasMonopolyStatus = isMonopolyGroup
+        ? hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, true)
+        : hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, false)
+      
+      // Obtener nombre del grupo
+      const groupName = isMonopolyGroup 
+        ? groupKey // Usar el nombre del monopolio directamente
+        : (continentNames[groupKey] || groupKey)
+      
+      return {
+        groupKey,
+        groupName,
+        isMonopolyGroup,
+        properties: propertiesByGroup[groupKey].sort((a, b) => a.country.position - b.country.position),
+        ownedCount,
+        totalCount,
+        hasMonopoly: hasMonopolyStatus,
+      }
+    }).sort((a, b) => a.groupName.localeCompare(b.groupName))
+
+    // Obtener propiedades de otros jugadores (session ya está verificado arriba)
+    const otherPlayersProps = session!.players
+      .filter(p => p.user_id !== currentUserId && !p.is_bankrupt)
+      .map(player => {
+        const playerProps = playerCountries
+          .filter(pc => pc.player_id === player.id)
+          .map(pc => {
+            const country = countries.find(c => c.id === pc.country_id)
+            return country ? { ...pc, country } : null
+          })
+          .filter((item): item is any => item !== null)
+
+        return {
+          player,
+          properties: playerProps,
+          totalProperties: playerProps.length,
+        }
+      })
+      .filter(p => p.totalProperties > 0)
+
+    return (
+      <div className="hidden md:block">
+        <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-3 mb-2 border border-white/20 max-h-[calc(100vh-300px)] overflow-y-auto">
+          <div className="flex items-center justify-between mb-2 sticky top-0 bg-white/10 backdrop-blur-md -m-3 p-3 border-b border-white/20 z-10">
+            <h4 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-white">
+              <span>🏛️</span>
+              <span>Mis Propiedades ({myProperties.length})</span>
+            </h4>
+            <button
+              onClick={() => {
+                setShowProperties(false)
+                setActiveDesktopTab(null)
+              }}
+              className="text-white/60 hover:text-white transition"
+              title="Cerrar propiedades"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white mb-3">
+            {myProperties.length === 0 ? (
+            <p className="text-xs opacity-80 text-center py-1">
+              No tienes propiedades aún
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+              {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
+                <div key={groupKey} className="bg-white/10 hover:bg-white/20 rounded p-1.5 transition-colors">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs">🌍 {groupName}</span>
+                      {hasMonopoly && (
+                        <span className="bg-green-500/30 text-green-200 px-1 py-0.5 rounded text-xs font-semibold">
+                          ✅
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs opacity-90">
+                      {ownedCount}/{totalCount}
+                    </span>
+                  </div>
+                  {!hasMonopoly && (
+                    <p className="text-xs opacity-80 mb-1">
+                      Faltan {totalCount - ownedCount}
+                    </p>
+                  )}
+                  <div className="space-y-1">
+                    {properties.map((prop: any) => {
+                      // Verificar si puede construir
+                      const gameState = {
+                        sessionId,
+                        players: session!.players,
+                        playerCountries,
+                        countries,
+                        currentTurn: session!.current_turn,
+                      }
+                      const buildCheck = canBuild(prop.country, myPlayer.id, gameState)
+                      
+                      return (
+                        <div
+                          key={prop.id}
+                          className="bg-white/5 hover:bg-white/10 rounded p-1 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-xs truncate">
+                                {prop.country.name}
+                              </p>
+                              <div className="flex items-center gap-1 mt-0.5 text-xs opacity-90 flex-wrap">
+                                <span>📍 {prop.country.position}</span>
+                                {prop.is_mortgaged && (
+                                  <span className="bg-yellow-500/30 text-yellow-200 px-1 py-0.5 rounded text-xs">
+                                    ⚠️
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-0.5 ml-1">
+                              {prop.hotels > 0 ? (
+                                <div className="flex items-center gap-0.5">
+                                  <span className="text-sm">🏨</span>
+                                  <span className="text-xs font-semibold">{prop.hotels}</span>
+                                </div>
+                              ) : prop.houses > 0 ? (
+                                <div className="flex items-center gap-0.5">
+                                  <span className="text-xs">🏠</span>
+                                  <span className="text-xs font-semibold">{prop.houses}</span>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-white/20">
+                            <BankModal
+                              property={{
+                                id: prop.id,
+                                country: prop.country,
+                                houses: prop.houses || 0,
+                                hotels: prop.hotels || 0,
+                                is_mortgaged: prop.is_mortgaged || false,
+                              }}
+                              playerMoney={myPlayer.money}
+                              canBuild={buildCheck.canBuild || false}
+                              maxHouses={buildCheck.maxHouses || 0}
+                              maxHotels={buildCheck.maxHotels || 0}
+                              onMortgage={() => {
+                                handleMortgage(prop.id)
+                              }}
+                              onUnmortgage={() => {
+                                handleUnmortgage(prop.id)
+                              }}
+                              onBuild={(houses, hotels) => {
+                                handleBuild(prop.country.id, houses, hotels)
+                              }}
+                              onSellBuild={(houses, hotels) => {
+                                handleSellBuild(prop.id, houses, hotels)
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {otherPlayersProps.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-white/20">
+              <h4 className="text-xs sm:text-sm font-semibold text-white/90 mb-2 flex items-center gap-1.5">
+                <span>👥</span>
+                <span>Otros Jugadores</span>
+              </h4>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {otherPlayersProps.map(({ player, properties, totalProperties }) => {
+                  const playerProfile = player.profile || { username: 'Jugador' }
+                  const playerColor = player.color || 'gray'
+                  
+                  return (
+                    <div key={player.id} className="bg-white/5 hover:bg-white/10 rounded p-1.5 transition-colors">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <div 
+                            className="w-4 h-4 rounded-full border border-white/50 flex-shrink-0"
+                            style={{ backgroundColor: playerColor === 'red' ? '#ef4444' : playerColor === 'blue' ? '#3b82f6' : playerColor === 'green' ? '#22c55e' : playerColor === 'yellow' ? '#eab308' : playerColor === 'purple' ? '#a855f7' : playerColor === 'orange' ? '#f97316' : playerColor === 'pink' ? '#ec4899' : playerColor === 'cyan' ? '#06b6d4' : '#6b7280' }}
+                          />
+                          <span className="text-xs font-semibold text-white truncate">{playerProfile.username}</span>
+                        </div>
+                        <span className="text-xs opacity-80 text-white">{totalProperties}</span>
+                      </div>
+                      <div className="text-xs text-white/70">
+                        💰 ${player.money.toLocaleString()}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -1471,281 +1749,7 @@ export default function GamePage() {
             )}
 
             {/* Mis Propiedades - Solo visible cuando se hace clic en desktop */}
-            {showProperties && activeDesktopTab === 'properties' && myPlayer && (() => {
-              // Mapeo de colores a nombres de continentes
-              const continentNames: Record<string, string> = {
-                'blue': 'América del Norte',
-                'pink': 'Europa',
-                'orange': 'Asia',
-                'red': 'América del Sur',
-                'yellow': 'África',
-                'green': 'Oceanía',
-                'purple': 'Especial',
-                'america': 'América',
-                // Monopolios del tablero Nuevo León
-                'Capital Regia': 'Capital Regia',
-                'Ruta Citrícola': 'Ruta Citrícola',
-                'Corredor Industrial': 'Corredor Industrial',
-                'Tierras Nuevas': 'Tierras Nuevas',
-                'Transporte': 'Transporte',
-                'Atracciones Turísticas': 'Atracciones Turísticas',
-                'Atracciones deportivas': 'Atracciones deportivas',
-                'europa': 'Europa',
-                'asia': 'Asia',
-                'africa': 'África',
-                'oceania': 'Oceanía',
-                'especial': 'Especial',
-              }
-
-              // Obtener propiedades del jugador actual
-              const myProperties = playerCountries
-                .filter(pc => pc.player_id === myPlayer.id)
-                .map(pc => {
-                  const country = countries.find(c => c.id === pc.country_id)
-                  return country ? { ...pc, country } : null
-                })
-                .filter((item): item is any => item !== null)
-
-              // Agrupar propiedades por monopoly_group (si existe) o por continente
-              const propertiesByGroup = myProperties.reduce((acc: Record<string, any[]>, prop: any) => {
-                // Si tiene monopoly_group, usar ese; si no, usar continent
-                const groupKey = prop.country.monopoly_group || prop.country.continent
-                if (!acc[groupKey]) {
-                  acc[groupKey] = []
-                }
-                acc[groupKey].push(prop)
-                return acc
-              }, {})
-
-              // Calcular progreso de monopolio para cada grupo
-              const groupProgress = Object.keys(propertiesByGroup).map(groupKey => {
-                // Determinar si es un monopoly_group o un continent
-                const firstProp = propertiesByGroup[groupKey][0]
-                const isMonopolyGroup = !!firstProp.country.monopoly_group
-                
-                // Obtener países del grupo
-                const groupCountries = countries.filter(c => {
-                  if (isMonopolyGroup) {
-                    // Para grupos de monopolio, incluir todas las propiedades del grupo
-                    // (ciudades, estadios, transporte, atracciones, etc.)
-                    return c.monopoly_group === groupKey
-                  } else {
-                    return c.continent === groupKey
-                  }
-                })
-                
-                const ownedCount = propertiesByGroup[groupKey].length
-                const totalCount = groupCountries.length
-                
-                // Verificar monopolio usando el método correcto
-                const hasMonopolyStatus = isMonopolyGroup
-                  ? hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, true)
-                  : hasMonopoly(groupKey, myPlayer.id, countries, playerCountries, false)
-                
-                // Obtener nombre del grupo
-                const groupName = isMonopolyGroup 
-                  ? groupKey // Usar el nombre del monopolio directamente
-                  : (continentNames[groupKey] || groupKey)
-                
-                return {
-                  groupKey,
-                  groupName,
-                  isMonopolyGroup,
-                  properties: propertiesByGroup[groupKey].sort((a, b) => a.country.position - b.country.position),
-                  ownedCount,
-                  totalCount,
-                  hasMonopoly: hasMonopolyStatus,
-                }
-              }).sort((a, b) => a.groupName.localeCompare(b.groupName))
-
-              return (
-                <div className="hidden md:block">
-                  <div className="bg-white/10 backdrop-blur-md rounded-lg shadow-md p-3 mb-2 border border-white/20 max-h-[calc(100vh-300px)] overflow-y-auto">
-                    <div className="flex items-center justify-between mb-2 sticky top-0 bg-white/10 backdrop-blur-md -m-3 p-3 border-b border-white/20 z-10">
-                      <h4 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-white">
-                        <span>🏛️</span>
-                        <span>Mis Propiedades ({myProperties.length})</span>
-                      </h4>
-                      <button
-                        onClick={() => {
-                          setShowProperties(false)
-                          setActiveDesktopTab(null)
-                        }}
-                        className="text-white/60 hover:text-white transition"
-                        title="Cerrar propiedades"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg shadow-md p-2 sm:p-3 text-white mb-3">
-                      {myProperties.length === 0 ? (
-                      <p className="text-xs opacity-80 text-center py-1">
-                        No tienes propiedades aún
-                      </p>
-                    ) : (
-                      <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
-                        {groupProgress.map(({ groupKey, groupName, properties, ownedCount, totalCount, hasMonopoly }) => (
-                          <div key={groupKey} className="bg-white/10 hover:bg-white/20 rounded p-1.5 transition-colors">
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-xs">🌍 {groupName}</span>
-                                {hasMonopoly && (
-                                  <span className="bg-green-500/30 text-green-200 px-1 py-0.5 rounded text-xs font-semibold">
-                                    ✅
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-xs opacity-90">
-                                {ownedCount}/{totalCount}
-                              </span>
-                            </div>
-                            {!hasMonopoly && (
-                              <p className="text-xs opacity-80 mb-1">
-                                Faltan {totalCount - ownedCount}
-                              </p>
-                            )}
-                            <div className="space-y-1">
-                              {properties.map((prop: any) => {
-                                // Verificar si puede construir
-                                const gameState = {
-                                  sessionId,
-                                  players: session.players,
-                                  playerCountries,
-                                  countries,
-                                  currentTurn: session.current_turn,
-                                }
-                                const buildCheck = canBuild(prop.country, myPlayer.id, gameState)
-                                
-                                return (
-                                  <div
-                                    key={prop.id}
-                                    className="bg-white/5 hover:bg-white/10 rounded p-1 transition-colors"
-                                  >
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-xs truncate">
-                                          {prop.country.name}
-                                        </p>
-                                        <div className="flex items-center gap-1 mt-0.5 text-xs opacity-90 flex-wrap">
-                                          <span>📍 {prop.country.position}</span>
-                                          {prop.is_mortgaged && (
-                                            <span className="bg-yellow-500/30 text-yellow-200 px-1 py-0.5 rounded text-xs">
-                                              ⚠️
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="flex flex-col items-end gap-0.5 ml-1">
-                                        {prop.hotels > 0 ? (
-                                          <div className="flex items-center gap-0.5">
-                                            <span className="text-sm">🏨</span>
-                                            <span className="text-xs font-semibold">{prop.hotels}</span>
-                                          </div>
-                                        ) : prop.houses > 0 ? (
-                                          <div className="flex items-center gap-0.5">
-                                            <span className="text-xs">🏠</span>
-                                            <span className="text-xs font-semibold">{prop.houses}</span>
-                                          </div>
-                                        ) : null}
-                                      </div>
-                                    </div>
-                                    <div className="mt-2 pt-2 border-t border-white/20">
-                                      <BankModal
-                                        property={{
-                                          id: prop.id,
-                                          country: prop.country,
-                                          houses: prop.houses || 0,
-                                          hotels: prop.hotels || 0,
-                                          is_mortgaged: prop.is_mortgaged || false,
-                                        }}
-                                        playerMoney={myPlayer.money}
-                                        canBuild={buildCheck.canBuild || false}
-                                        maxHouses={buildCheck.maxHouses || 0}
-                                        maxHotels={buildCheck.maxHotels || 0}
-                                        onMortgage={() => {
-                                          handleMortgage(prop.id)
-                                        }}
-                                        onUnmortgage={() => {
-                                          handleUnmortgage(prop.id)
-                                        }}
-                                        onBuild={(houses, hotels) => {
-                                          handleBuild(prop.country.id, houses, hotels)
-                                        }}
-                                        onSellBuild={(houses, hotels) => {
-                                          handleSellBuild(prop.id, houses, hotels)
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Propiedades de Otros Jugadores - Desktop */}
-                    {(() => {
-                      const otherPlayersProps = session.players
-                        .filter(p => p.user_id !== currentUserId && !p.is_bankrupt)
-                        .map(player => {
-                          const playerProps = playerCountries
-                            .filter(pc => pc.player_id === player.id)
-                            .map(pc => {
-                              const country = countries.find(c => c.id === pc.country_id)
-                              return country ? { ...pc, country } : null
-                            })
-                            .filter((item): item is any => item !== null)
-
-                          return {
-                            player,
-                            properties: playerProps,
-                            totalProperties: playerProps.length,
-                          }
-                        })
-                        .filter(p => p.totalProperties > 0)
-
-                      if (otherPlayersProps.length === 0) return null
-
-                      return (
-                        <div className="mt-4 pt-4 border-t border-white/20">
-                          <h4 className="text-xs sm:text-sm font-semibold text-white/90 mb-2 flex items-center gap-1.5">
-                            <span>👥</span>
-                            <span>Otros Jugadores</span>
-                          </h4>
-                          <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                            {otherPlayersProps.map(({ player, properties, totalProperties }) => {
-                              const playerProfile = player.profile || { username: 'Jugador' }
-                              const playerColor = player.color || 'gray'
-                              
-                              return (
-                                <div key={player.id} className="bg-white/5 hover:bg-white/10 rounded p-1.5 transition-colors">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                      <div 
-                                        className="w-4 h-4 rounded-full border border-white/50 flex-shrink-0"
-                                        style={{ backgroundColor: playerColor === 'red' ? '#ef4444' : playerColor === 'blue' ? '#3b82f6' : playerColor === 'green' ? '#22c55e' : playerColor === 'yellow' ? '#eab308' : playerColor === 'purple' ? '#a855f7' : playerColor === 'orange' ? '#f97316' : playerColor === 'pink' ? '#ec4899' : playerColor === 'cyan' ? '#06b6d4' : '#6b7280' }}
-                                      />
-                                      <span className="text-xs font-semibold text-white truncate">{playerProfile.username}</span>
-                                    </div>
-                                    <span className="text-xs opacity-80 text-white">{totalProperties}</span>
-                                  </div>
-                                  <div className="text-xs text-white/70">
-                                    💰 ${player.money.toLocaleString()}
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )
-                    })()}
-                </div>
-              )
-            })()}
+            {renderPropertiesPanel()}
 
             {/* Monopolios de Continentes */}
             {(() => {
@@ -1886,8 +1890,6 @@ export default function GamePage() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                    </div>
                   </div>
                 </div>
               ) : null
@@ -2495,6 +2497,7 @@ export default function GamePage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
