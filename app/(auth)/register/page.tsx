@@ -20,12 +20,19 @@ export default function RegisterPage() {
   useEffect(() => {
     setMounted(true)
     
-    // Detectar código de referencia desde la URL
+    // Detectar código de referencia y badge desde la URL
     const urlParams = new URLSearchParams(window.location.search)
     const refCode = urlParams.get('ref')
+    const badgeId = urlParams.get('badge')
+    
     if (refCode) {
       // Guardar en localStorage para usarlo después del registro
       localStorage.setItem('referral_code', refCode)
+    }
+    
+    if (badgeId) {
+      // Guardar badge_id si viene de un link de medalla compartida
+      localStorage.setItem('badge_treasure_id', badgeId)
     }
   }, [])
 
@@ -45,8 +52,9 @@ export default function RegisterPage() {
         }
       }
 
-      // Obtener código de referencia si existe
+      // Obtener código de referencia y badge si existen
       const referralCode = localStorage.getItem('referral_code')
+      const badgeTreasureId = localStorage.getItem('badge_treasure_id')
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -55,14 +63,18 @@ export default function RegisterPage() {
           data: {
             username: username || `Usuario${Math.random().toString(36).substr(2, 8)}`,
             referral_code: referralCode || null, // Pasar código si existe
+            badge_treasure_id: badgeTreasureId || null, // Pasar badge_id si viene de medalla compartida (treasure_id)
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
       
-      // Limpiar código de referencia después del registro
+      // Limpiar códigos después del registro
       if (referralCode) {
         localStorage.removeItem('referral_code')
+      }
+      if (badgeTreasureId) {
+        localStorage.removeItem('badge_treasure_id')
       }
 
       if (error) {
@@ -104,12 +116,17 @@ export default function RegisterPage() {
     setError(null)
 
     try {
-      // Obtener código de referencia si existe
+      // Obtener código de referencia y badge si existen
       const referralCode = localStorage.getItem('referral_code')
+      const badgeTreasureId = localStorage.getItem('badge_treasure_id')
       
-      // Pasar el referral_code en la URL del callback si existe
-      const callbackUrl = referralCode 
-        ? `${window.location.origin}/auth/callback?ref=${encodeURIComponent(referralCode)}`
+      // Construir URL de callback con parámetros si existen
+      const params = new URLSearchParams()
+      if (referralCode) params.set('ref', referralCode)
+      if (badgeTreasureId) params.set('badge', badgeTreasureId)
+      
+      const callbackUrl = params.toString()
+        ? `${window.location.origin}/auth/callback?${params.toString()}`
         : `${window.location.origin}/auth/callback`
 
       const { data, error } = await supabase.auth.signInWithOAuth({

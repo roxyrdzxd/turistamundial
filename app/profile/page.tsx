@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/contexts/ToastContext'
 import AvatarDisplay from '@/components/avatar/AvatarDisplay'
+import ShareBadgeModal from '@/components/badge/ShareBadgeModal'
 
 interface PurchasedAvatar {
   id: string
@@ -50,6 +51,8 @@ export default function ProfilePage() {
   const [preferredColor, setPreferredColor] = useState<string | null>(null)
   const [collectedBadges, setCollectedBadges] = useState<any[]>([])
   const [loadingBadges, setLoadingBadges] = useState(false)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [sharingBadge, setSharingBadge] = useState<any | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const toast = useToast()
@@ -59,7 +62,27 @@ export default function ProfilePage() {
     setMounted(true)
     fetchProfile()
     fetchPurchasedAvatars()
+    fetchReferralCode()
   }, [])
+
+  const fetchReferralCode = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.referral_code) {
+        setReferralCode(profile.referral_code)
+      }
+    } catch (error) {
+      console.error('Error obteniendo código de referido:', error)
+    }
+  }
 
   // Ejecutar fetchBadges cuando user esté disponible
   useEffect(() => {
@@ -770,6 +793,16 @@ export default function ProfilePage() {
                             }}
                           />
                         </div>
+                        {/* Botón de compartir */}
+                        <button
+                          onClick={() => setSharingBadge(badge)}
+                          className="absolute top-0 right-0 w-6 h-6 bg-cyan-500 hover:bg-cyan-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-lg"
+                          title="Compartir medalla"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          </svg>
+                        </button>
                         <div className="absolute bottom-0 left-0 right-0 bg-black/90 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                           <div className="font-semibold">{treasure.name}</div>
                           <div className="text-xs text-white/70 capitalize">{treasure.rarity}</div>
@@ -789,6 +822,16 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de compartir medalla */}
+      {sharingBadge && referralCode && (
+        <ShareBadgeModal
+          badge={sharingBadge}
+          userReferralCode={referralCode}
+          username={username}
+          onClose={() => setSharingBadge(null)}
+        />
+      )}
     </div>
   )
 }
