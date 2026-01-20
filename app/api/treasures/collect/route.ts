@@ -41,6 +41,13 @@ export async function POST(request: Request) {
     }
 
     // Llamar a la función de base de datos para recolectar el tesoro
+    console.log('Intentando recolectar tesoro:', {
+      user_id: user.id,
+      treasure_id: treasureId,
+      latitude,
+      longitude
+    })
+
     const { data, error } = await supabase.rpc('collect_treasure', {
       p_user_id: user.id,
       p_treasure_id: treasureId,
@@ -57,13 +64,15 @@ export async function POST(request: Request) {
         user_id: user.id,
         treasure_id: treasureId,
         latitude,
-        longitude
+        longitude,
+        fullError: JSON.stringify(error, null, 2)
       })
       return NextResponse.json(
         { 
           error: 'Error al recolectar tesoro', 
           details: error.message,
-          code: error.code
+          code: error.code,
+          hint: error.hint
         },
         { status: 500 }
       )
