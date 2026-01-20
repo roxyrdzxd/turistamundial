@@ -209,32 +209,59 @@ export default function ProfilePage() {
 
       // Obtener los IDs de los tesoros
       const treasureIds = badgesData.map((b: any) => b.treasure_id)
+      console.log('IDs de tesoros a buscar:', treasureIds)
 
       // Obtener los tesoros con sus datos
+      // Nota: La política RLS solo permite ver tesoros activos, pero necesitamos ver todos los tesoros
+      // que el usuario ha recolectado, incluso si ya no están activos
       const { data: treasuresData, error: treasuresError } = await supabase
         .from('treasures')
-        .select('id, name, badge_url, rarity')
+        .select('id, name, badge_url, rarity, is_active')
         .in('id', treasureIds)
 
       if (treasuresError) {
         console.error('Error obteniendo tesoros:', treasuresError)
-        return
+        console.error('Detalles del error:', JSON.stringify(treasuresError, null, 2))
+        // Continuar aunque haya error, para ver qué datos tenemos
       }
 
       console.log('Tesoros obtenidos:', treasuresData)
+      console.log('Cantidad de tesoros encontrados:', treasuresData?.length || 0)
 
       // Combinar los datos
       const combinedData = badgesData.map((badge: any) => {
         const treasure = treasuresData?.find((t: any) => t.id === badge.treasure_id)
+        console.log(`Badge ${badge.id}:`, {
+          treasure_id: badge.treasure_id,
+          treasure_encontrado: !!treasure,
+          badge_url: treasure?.badge_url || 'NO TIENE',
+          is_active: treasure?.is_active
+        })
         return {
           id: badge.id,
           collected_at: badge.collected_at,
           treasure: treasure || null
         }
-      }).filter((item: any) => item.treasure && item.treasure.badge_url) // Solo mostrar si tiene badge_url
+      })
 
-      console.log('Medallas combinadas:', combinedData)
-      setCollectedBadges(combinedData)
+      console.log('Medallas combinadas (antes de filtrar):', combinedData)
+      console.log('Cantidad antes de filtrar:', combinedData.length)
+
+      // Filtrar solo los que tienen badge_url
+      const filteredData = combinedData.filter((item: any) => {
+        const hasTreasure = !!item.treasure
+        const hasBadgeUrl = item.treasure?.badge_url
+        if (!hasTreasure) {
+          console.log(`Medalla ${item.id} sin tesoro encontrado`)
+        } else if (!hasBadgeUrl) {
+          console.log(`Medalla ${item.id} sin badge_url. Tesoro: ${item.treasure.name}`)
+        }
+        return hasTreasure && hasBadgeUrl
+      })
+
+      console.log('Medallas combinadas (después de filtrar):', filteredData)
+      console.log('Cantidad después de filtrar:', filteredData.length)
+      setCollectedBadges(filteredData)
     } catch (error) {
       console.error('Error obteniendo medallas:', error)
     } finally {
