@@ -3,9 +3,22 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import AdminLayout from '@/components/admin/AdminLayout'
-import TreasureMapEditor from '@/components/admin/TreasureMapEditor'
 import Link from 'next/link'
+
+// Cargar TreasureMapEditor dinámicamente sin SSR
+const TreasureMapEditor = dynamic(() => import('@/components/admin/TreasureMapEditor'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center bg-gray-100 rounded-lg" style={{ height: '400px' }}>
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-cyan-400 border-t-transparent mx-auto mb-4"></div>
+        <p className="text-gray-600">Cargando mapa...</p>
+      </div>
+    </div>
+  ),
+})
 
 export default function NewTreasurePage() {
   const router = useRouter()
