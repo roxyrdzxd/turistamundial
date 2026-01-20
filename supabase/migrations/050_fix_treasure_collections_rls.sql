@@ -1,8 +1,11 @@
 -- Fix: Agregar política RLS para INSERT en treasure_collections
 -- La función collect_treasure necesita poder insertar recolecciones
 
+-- Eliminar política si existe (por si acaso)
+DROP POLICY IF EXISTS "Users can insert own collections" ON treasure_collections;
+
 -- Permitir que usuarios inserten sus propias recolecciones
-CREATE POLICY IF NOT EXISTS "Users can insert own collections" ON treasure_collections
+CREATE POLICY "Users can insert own collections" ON treasure_collections
   FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
