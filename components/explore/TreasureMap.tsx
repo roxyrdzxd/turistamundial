@@ -32,6 +32,7 @@ interface Treasure {
   can_collect: boolean
   already_collected: boolean
   badge_url: string | null
+  is_dynamic?: boolean
 }
 
 // Componente interno del mapa (solo se renderiza en cliente)
@@ -183,11 +184,21 @@ function MapContent({
                     </div>
                   )}
                   
+                  {treasure.is_dynamic && (
+                    <div className="mb-2 px-2 py-1 bg-yellow-400/20 border border-yellow-400/50 rounded text-xs text-yellow-600 font-semibold text-center">
+                      ⭐ Tesoro Dinámico - ¡Camina para conseguirlo!
+                    </div>
+                  )}
                   <div className="font-bold text-lg mb-2" style={{ color: color }}>
                     {treasure.name}
                   </div>
                   {treasure.description && (
                     <p className="text-sm text-gray-600 mb-2">{treasure.description}</p>
+                  )}
+                  {treasure.is_dynamic && treasure.badge_url && (
+                    <div className="mb-2 px-2 py-1 bg-purple-400/20 border border-purple-400/50 rounded text-xs text-purple-600 font-semibold text-center">
+                      🏅 Incluye Insignia Especial
+                    </div>
                   )}
                   <div className="space-y-1 text-sm">
                     <p>
@@ -204,6 +215,11 @@ function MapContent({
                     <p>
                       <span className="font-semibold">Radio:</span> {treasure.radius_meters}m
                     </p>
+                    {treasure.is_dynamic && (
+                      <p className="text-xs text-yellow-600 font-semibold mt-2">
+                        ⚡ Este tesoro apareció aleatoriamente cerca de ti
+                      </p>
+                    )}
                   </div>
                   {treasure.already_collected ? (
                     <div className="mt-3 p-2 bg-gray-200 rounded text-center text-sm text-gray-600">

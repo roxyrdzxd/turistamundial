@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // Llamar a la función de generación de tesoros
-    const { data, error } = await supabase.rpc('spawn_daily_treasures', {
+    // Llamar a la función mejorada de generación de tesoros (con templates e insignias)
+    const { data, error } = await supabase.rpc('spawn_dynamic_treasures_with_badges', {
       p_latitude: latitude,
       p_longitude: longitude,
       p_radius_meters: radius,

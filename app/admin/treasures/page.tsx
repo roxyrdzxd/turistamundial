@@ -142,12 +142,20 @@ export default function AdminTreasuresPage() {
             <h1 className="text-3xl font-bold text-white mb-2">Gestión de Tesoros</h1>
             <p className="text-white/70">Administra todos los tesoros del juego</p>
           </div>
-          <Link
-            href="/admin/treasures/new"
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold"
-          >
-            ➕ Crear Tesoro
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/admin/treasures/templates"
+              className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-6 py-3 rounded-lg hover:from-yellow-600 hover:to-orange-700 transition font-semibold"
+            >
+              🎲 Templates Dinámicos
+            </Link>
+            <Link
+              href="/admin/treasures/new"
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition font-semibold"
+            >
+              ➕ Crear Tesoro
+            </Link>
+          </div>
         </div>
 
         {/* Filtros */}
