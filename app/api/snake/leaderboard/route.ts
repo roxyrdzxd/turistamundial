@@ -8,8 +8,11 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const limit = Number(searchParams.get('limit') || 10)
+    const requestedMode = searchParams.get('mode') || 'arcade'
+    const mode = requestedMode === 'classic' ? 'classic' : 'arcade'
 
-    const { data, error } = await supabase.rpc('get_snake_leaderboard', {
+    const { data, error } = await supabase.rpc('get_snake_leaderboard_by_mode', {
+      mode_filter: mode,
       limit_count: Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 100) : 10,
     })
 
@@ -21,7 +24,7 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json({ leaderboard: data || [] })
+    return NextResponse.json({ leaderboard: data || [], mode })
   } catch (error: any) {
     console.error('Error en snake leaderboard:', error)
     return NextResponse.json(

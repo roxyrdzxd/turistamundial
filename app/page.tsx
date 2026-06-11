@@ -130,6 +130,73 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Snake Mundial Promo Section */}
+      <section className="relative py-16 px-4 sm:px-6 lg:px-8 bg-slate-950 border-y border-cyan-400/30 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_78%_58%,rgba(16,185,129,0.18),transparent_30%)] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.07)_1px,transparent_1px)] bg-[size:36px_36px] opacity-40 pointer-events-none"></div>
+
+        <div className="relative max-w-6xl mx-auto grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-lg border border-cyan-300/40 bg-cyan-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.32em] text-cyan-100">
+              Nuevo reto
+            </div>
+            <h2 className="text-5xl sm:text-6xl md:text-7xl font-black uppercase leading-[0.86] text-white">
+              Snake
+              <span className="block text-cyan-300 drop-shadow-[0_0_18px_rgba(34,211,238,0.75)]">
+                Mundial
+              </span>
+            </h2>
+            <p className="mt-5 max-w-xl text-lg text-cyan-50/80">
+              Compite por velocidad, encadena frutas especiales y sube en rankings separados por modo.
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-cyan-300/25 bg-white/[0.06] p-4">
+                <p className="text-2xl mb-2">⚡</p>
+                <p className="font-black text-white">Partidas rápidas</p>
+                <p className="mt-1 text-sm text-cyan-50/60">Diversión inmediata</p>
+              </div>
+              <div className="rounded-xl border border-cyan-300/25 bg-white/[0.06] p-4">
+                <p className="text-2xl mb-2">🌐</p>
+                <p className="font-black text-white">Ranking global</p>
+                <p className="mt-1 text-sm text-cyan-50/60">Tu nombre en la cima</p>
+              </div>
+              <div className="rounded-xl border border-cyan-300/25 bg-white/[0.06] p-4">
+                <p className="text-2xl mb-2">🏆</p>
+                <p className="font-black text-white">Retos semanales</p>
+                <p className="mt-1 text-sm text-cyan-50/60">Base para torneos</p>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/snake-mundial"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-300 px-7 py-4 text-lg font-black uppercase text-slate-950 shadow-2xl shadow-cyan-500/30 hover:bg-cyan-200 transition"
+              >
+                Ver Landing →
+              </Link>
+              <Link
+                href="/snake"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-7 py-4 text-lg font-black text-white hover:bg-white/15 transition"
+              >
+                Jugar Ahora
+              </Link>
+            </div>
+          </div>
+
+          <Link href="/snake-mundial" className="group relative block">
+            <div className="absolute inset-x-8 bottom-2 h-20 rounded-full bg-cyan-300/25 blur-3xl transition group-hover:bg-cyan-300/40"></div>
+            <Image
+              src="/images/snake-mundial-promo.png"
+              alt="Snake Mundial"
+              width={548}
+              height={704}
+              className="relative mx-auto w-full max-w-[430px] rounded-xl border border-cyan-300/30 shadow-2xl shadow-cyan-950/70 transition duration-300 group-hover:scale-[1.02]"
+            />
+          </Link>
+        </div>
+      </section>
+
       {/* Exploración Urbana e Insignias Section */}
       <section className="relative py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-500/20 via-cyan-500/20 to-blue-500/20 border-y border-green-400/30">
         <div className="max-w-6xl mx-auto">

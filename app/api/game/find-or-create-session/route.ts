@@ -1,6 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+const MIN_PLAYERS = 2
+const MAX_PLAYERS = 8
+
+function normalizeMaxPlayers(value: unknown) {
+  const parsed = Number(value ?? MAX_PLAYERS)
+
+  if (!Number.isInteger(parsed) || parsed < MIN_PLAYERS || parsed > MAX_PLAYERS) {
+    return null
+  }
+
+  return parsed
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -15,7 +28,14 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}))
     const boardId = body.boardId || '00000000-0000-0000-0000-000000000001' // Turista Mundial por defecto
-    const maxPlayers = body.maxPlayers || 8
+    const maxPlayers = normalizeMaxPlayers(body.maxPlayers)
+
+    if (!maxPlayers) {
+      return NextResponse.json(
+        { error: `El numero maximo de jugadores debe estar entre ${MIN_PLAYERS} y ${MAX_PLAYERS}` },
+        { status: 400 }
+      )
+    }
 
     // Asegurar que el perfil existe
     const { data: existingProfile } = await supabase

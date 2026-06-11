@@ -18,6 +18,10 @@ function isSafeInteger(value: unknown, min: number, max: number) {
   return Number.isInteger(value) && Number(value) >= min && Number(value) <= max
 }
 
+function getNumber(value: unknown, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
@@ -68,6 +72,7 @@ export async function POST(request: Request) {
 
     const result = data?.[0] || null
     let achievements: any[] = []
+    let completedChallenges: any[] = []
 
     if (result?.score_id) {
       const { data: unlockedAchievements, error: achievementsError } = await supabase.rpc(
@@ -84,12 +89,44 @@ export async function POST(request: Request) {
       } else {
         achievements = unlockedAchievements || []
       }
+
+      const metadata = body.metadata || {}
+      const comboMetadata = metadata.combo && typeof metadata.combo === 'object'
+        ? metadata.combo as Record<string, unknown>
+        : {}
+      const fruitCounts = metadata.fruitCounts && typeof metadata.fruitCounts === 'object'
+        ? metadata.fruitCounts as Record<string, unknown>
+        : {}
+      const gameMode = typeof metadata.gameMode === 'string' ? metadata.gameMode : 'arcade'
+
+      const { data: unlockedChallenges, error: challengesError } = await supabase.rpc(
+        'evaluate_snake_daily_challenges',
+        {
+          p_user_id: user.id,
+          p_score_id: result.score_id,
+          p_score: body.score,
+          p_duration_ms: body.durationMs,
+          p_food_count: body.foodCount,
+          p_level_reached: body.levelReached,
+          p_game_mode: gameMode,
+          p_fruit_counts: fruitCounts,
+          p_best_combo: getNumber(comboMetadata.best),
+          p_is_personal_best: Boolean(result.is_personal_best),
+        }
+      )
+
+      if (challengesError) {
+        console.error('Error evaluando retos diarios Snake:', challengesError)
+      } else {
+        completedChallenges = unlockedChallenges || []
+      }
     }
 
     return NextResponse.json({
       success: true,
       result,
       achievements,
+      completedChallenges,
     })
   } catch (error: any) {
     console.error('Error en snake score:', error)
