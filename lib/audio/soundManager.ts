@@ -11,11 +11,26 @@ export type SoundType =
   | 'notification'
   | 'victory'
   | 'error'
+  | 'snake_start'
+  | 'snake_eat'
+  | 'snake_level_up'
+  | 'snake_game_over'
+  | 'snake_new_record'
 
 class SoundManager {
   private sounds: Map<SoundType, HTMLAudioElement> = new Map()
   private enabled: boolean = true
   private volume: number = 0.5
+  private musicEnabled: boolean = true
+  private musicVolume: number = 0.35
+  private currentMusic: HTMLAudioElement | null = null
+  private musicFiles = [
+    'snake-theme-1.mp3',
+    'snake-theme-2.mp3',
+    'snake-theme-3.mp3',
+    'snake-theme-4.mp3',
+    'snake-theme-5.mp3',
+  ]
   private supabaseUrl: string | null = null
 
   constructor() {
@@ -30,7 +45,6 @@ class SoundManager {
         console.log('[SoundManager] Inicializando con URL:', this.supabaseUrl)
       }
       
-      this.loadSounds()
       // Cargar preferencia de usuario desde localStorage
       const savedEnabled = localStorage.getItem('soundEnabled')
       if (savedEnabled !== null) {
@@ -40,10 +54,21 @@ class SoundManager {
       if (savedVolume !== null) {
         this.volume = parseFloat(savedVolume)
       }
+      const savedMusicEnabled = localStorage.getItem('musicEnabled')
+      if (savedMusicEnabled !== null) {
+        this.musicEnabled = savedMusicEnabled === 'true'
+      }
+      const savedMusicVolume = localStorage.getItem('musicVolume')
+      if (savedMusicVolume !== null) {
+        this.musicVolume = parseFloat(savedMusicVolume)
+      }
+      this.loadSounds()
       
       console.log('[SoundManager] Estado inicial:', {
         enabled: this.enabled,
         volume: this.volume,
+        musicEnabled: this.musicEnabled,
+        musicVolume: this.musicVolume,
         soundsLoaded: this.sounds.size
       })
     }
@@ -75,6 +100,11 @@ class SoundManager {
       notification: 'notification.wav',
       victory: 'victory.wav',
       error: 'error.wav',
+      snake_start: 'snake-start.wav',
+      snake_eat: 'snake-eat.wav',
+      snake_level_up: 'snake-level-up.wav',
+      snake_game_over: 'snake-game-over.wav',
+      snake_new_record: 'snake-new-record.wav',
     }
 
     Object.entries(soundFiles).forEach(([type, filename]) => {
@@ -177,6 +207,69 @@ class SoundManager {
 
   getVolume(): number {
     return this.volume
+  }
+
+  playRandomSnakeMusic() {
+    if (!this.musicEnabled || typeof window === 'undefined') {
+      return
+    }
+
+    this.stopMusic()
+
+    const filename = this.musicFiles[Math.floor(Math.random() * this.musicFiles.length)]
+    const url = this.getSoundUrl(filename)
+    if (!url) {
+      return
+    }
+
+    const music = new Audio(url)
+    music.volume = this.musicVolume
+    music.loop = true
+    music.preload = 'auto'
+    this.currentMusic = music
+
+    const playPromise = music.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.error(`[SoundManager] Error reproduciendo musica ${filename}:`, err)
+      })
+    }
+  }
+
+  stopMusic() {
+    if (!this.currentMusic) return
+
+    this.currentMusic.pause()
+    this.currentMusic.currentTime = 0
+    this.currentMusic = null
+  }
+
+  setMusicEnabled(enabled: boolean) {
+    this.musicEnabled = enabled
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('musicEnabled', String(enabled))
+    }
+    if (!enabled) {
+      this.stopMusic()
+    }
+  }
+
+  isMusicEnabled(): boolean {
+    return this.musicEnabled
+  }
+
+  setMusicVolume(volume: number) {
+    this.musicVolume = Math.max(0, Math.min(1, volume))
+    if (this.currentMusic) {
+      this.currentMusic.volume = this.musicVolume
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('musicVolume', String(this.musicVolume))
+    }
+  }
+
+  getMusicVolume(): number {
+    return this.musicVolume
   }
 }
 

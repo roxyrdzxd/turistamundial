@@ -1,0 +1,1489 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import {
+  Activity,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  BarChart3,
+  CalendarDays,
+  Home,
+  Music,
+  Pause,
+  Play,
+  RotateCcw,
+  Sparkles,
+  Trophy,
+  Volume2,
+  VolumeX,
+  Zap,
+} from 'lucide-react'
+import { soundManager } from '@/lib/audio/soundManager'
+
+type Point = {
+  x: number
+  y: number
+}
+
+type FruitType = 'apple' | 'gold' | 'turbo' | 'frost' | 'rainbow'
+
+type Fruit = Point & {
+  type: FruitType
+}
+
+type VisualBurst = {
+  id: number
+  x: number
+  y: number
+  color: string
+  label: string
+  particles: Array<{
+    id: number
+    angle: number
+    distance: number
+  }>
+}
+
+type Direction = 'up' | 'down' | 'left' | 'right'
+type GameState = 'ready' | 'playing' | 'paused' | 'gameOver'
+
+type LeaderboardEntry = {
+  rank: number
+  user_id: string
+  username: string
+  avatar_url: string | null
+  best_score: number
+  games_played: number
+  longest_snake: number
+  best_level: number
+  last_played_at: string | null
+}
+
+type SnakeSeason = {
+  id: string
+  slug: string
+  title: string
+  status: string
+  starts_at: string
+  ends_at: string
+}
+
+type SnakeSeasonHistory = {
+  id: string
+  slug: string
+  title: string
+  status: string
+  starts_at: string
+  ends_at: string
+  champion_user_id: string | null
+  champion_username: string | null
+  champion_avatar_url: string | null
+  champion_score: number | null
+}
+
+export type SnakeStats = {
+  best_score: number
+  games_played: number
+  total_score: number
+  total_food: number
+  longest_snake: number
+  best_level: number
+  average_score: number
+  last_played_at: string | null
+  rank: number | null
+}
+
+type SaveResult = {
+  rank: number
+  personal_best: number
+  is_personal_best: boolean
+}
+
+type SnakeAchievement = {
+  id: string
+  name: string
+  description: string
+  badge_url: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  requirement_type?: string
+  requirement_value?: number
+  coins_reward?: number
+  is_unlocked?: boolean
+  unlocked_at?: string | null
+}
+
+type SnakeGameProps = {
+  userId: string
+  username: string
+  initialStats: SnakeStats
+}
+
+const GRID_SIZE = 24
+const CANVAS_SIZE = 480
+const CELL_SIZE = CANVAS_SIZE / GRID_SIZE
+const COMBO_WINDOW_MS = 6500
+const INITIAL_SNAKE: Point[] = [
+  { x: 8, y: 12 },
+  { x: 7, y: 12 },
+  { x: 6, y: 12 },
+]
+
+const FRUIT_CONFIG: Record<FruitType, {
+  label: string
+  shortLabel: string
+  color: string
+  glow: string
+  points: (level: number) => number
+  durationMs?: number
+}> = {
+  apple: {
+    label: 'Manzana',
+    shortLabel: '+',
+    color: '#fb7185',
+    glow: '#fda4af',
+    points: (level) => level * 10,
+  },
+  gold: {
+    label: 'Fruta dorada',
+    shortLabel: 'x2',
+    color: '#facc15',
+    glow: '#fde68a',
+    points: (level) => level * 20,
+  },
+  turbo: {
+    label: 'Turbo',
+    shortLabel: '2x',
+    color: '#f97316',
+    glow: '#fdba74',
+    points: (level) => level * 12,
+    durationMs: 5500,
+  },
+  frost: {
+    label: 'Hielo',
+    shortLabel: 'S',
+    color: '#93c5fd',
+    glow: '#bfdbfe',
+    points: (level) => level * 8,
+    durationMs: 5200,
+  },
+  rainbow: {
+    label: 'Arcoiris',
+    shortLabel: '★',
+    color: '#c084fc',
+    glow: '#f0abfc',
+    points: (level) => level * 30,
+    durationMs: 6500,
+  },
+}
+
+function getOpposite(direction: Direction): Direction {
+  const opposites: Record<Direction, Direction> = {
+    up: 'down',
+    down: 'up',
+    left: 'right',
+    right: 'left',
+  }
+
+  return opposites[direction]
+}
+
+function chooseFruitType(): FruitType {
+  const roll = Math.random()
+  if (roll < 0.58) return 'apple'
+  if (roll < 0.76) return 'gold'
+  if (roll < 0.87) return 'turbo'
+  if (roll < 0.96) return 'frost'
+  return 'rainbow'
+}
+
+function getComboMultiplier(comboValue: number) {
+  if (comboValue >= 10) return 1.35
+  if (comboValue >= 6) return 1.25
+  if (comboValue >= 3) return 1.15
+  return 1
+}
+
+function createFood(snake: Point[]): Fruit {
+  const occupied = new Set(snake.map((segment) => `${segment.x}-${segment.y}`))
+  const openCells: Point[] = []
+
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      if (!occupied.has(`${x}-${y}`)) {
+        openCells.push({ x, y })
+      }
+    }
+  }
+
+  const point = openCells[Math.floor(Math.random() * openCells.length)] || { x: 12, y: 12 }
+  return {
+    ...point,
+    type: chooseFruitType(),
+  }
+}
+
+function createSeed() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function formatTime(durationMs: number) {
+  return `${Math.floor(durationMs / 60000)}:${Math.floor((durationMs % 60000) / 1000)
+    .toString()
+    .padStart(2, '0')}`
+}
+
+function formatNumber(value: number | null | undefined) {
+  return Number(value || 0).toLocaleString()
+}
+
+export default function SnakeGame({ userId, username, initialStats }: SnakeGameProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const directionRef = useRef<Direction>('right')
+  const nextDirectionRef = useRef<Direction>('right')
+  const startTimeRef = useRef<number | null>(null)
+  const elapsedBeforePauseRef = useRef(0)
+  const submittedRef = useRef(false)
+  const seedRef = useRef(createSeed())
+
+  const [snake, setSnake] = useState<Point[]>(INITIAL_SNAKE)
+  const [food, setFood] = useState<Fruit>(() => createFood(INITIAL_SNAKE))
+  const [gameState, setGameState] = useState<GameState>('ready')
+  const [score, setScore] = useState(0)
+  const [foodCount, setFoodCount] = useState(0)
+  const [fruitCounts, setFruitCounts] = useState<Record<FruitType, number>>({
+    apple: 0,
+    gold: 0,
+    turbo: 0,
+    frost: 0,
+    rainbow: 0,
+  })
+  const [level, setLevel] = useState(1)
+  const [durationMs, setDurationMs] = useState(0)
+  const [combo, setCombo] = useState(0)
+  const [bestCombo, setBestCombo] = useState(0)
+  const [comboExpiresAt, setComboExpiresAt] = useState(0)
+  const [scoreMultiplierUntil, setScoreMultiplierUntil] = useState(0)
+  const [slowMotionUntil, setSlowMotionUntil] = useState(0)
+  const [rainbowUntil, setRainbowUntil] = useState(0)
+  const [visualBursts, setVisualBursts] = useState<VisualBurst[]>([])
+  const [boardFlash, setBoardFlash] = useState<{ id: number; color: string } | null>(null)
+  const [boardShake, setBoardShake] = useState(false)
+  const [stats, setStats] = useState<SnakeStats>(initialStats)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [season, setSeason] = useState<SnakeSeason | null>(null)
+  const [seasonLeaderboard, setSeasonLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [seasonHistory, setSeasonHistory] = useState<SnakeSeasonHistory[]>([])
+  const [achievements, setAchievements] = useState<SnakeAchievement[]>([])
+  const [newAchievements, setNewAchievements] = useState<SnakeAchievement[]>([])
+  const [saveResult, setSaveResult] = useState<SaveResult | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [lastMilestone, setLastMilestone] = useState<string | null>(null)
+  const [soundEnabled, setSoundEnabled] = useState(() => soundManager?.isEnabled() ?? true)
+  const [soundVolume, setSoundVolume] = useState(() => soundManager?.getVolume() ?? 0.5)
+  const [musicEnabled, setMusicEnabled] = useState(() => soundManager?.isMusicEnabled() ?? true)
+  const [musicVolume, setMusicVolume] = useState(() => soundManager?.getMusicVolume() ?? 0.35)
+
+  const now = typeof performance !== 'undefined' ? performance.now() : 0
+  const hasScoreMultiplier = scoreMultiplierUntil > now
+  const hasSlowMotion = slowMotionUntil > now
+  const hasRainbow = rainbowUntil > now
+  const comboActive = combo > 0 && comboExpiresAt > now
+  const comboProgress = comboActive
+    ? Math.max(0, Math.min(100, ((comboExpiresAt - now) / COMBO_WINDOW_MS) * 100))
+    : 0
+  const baseSpeed = Math.max(68, 150 - (level - 1) * 9)
+  const speed = hasSlowMotion ? Math.round(baseSpeed * 1.42) : baseSpeed
+  const nextLevelProgress = (foodCount % 5) / 5
+  const currentRank = saveResult?.rank ?? stats.rank
+  const projectedBest = Math.max(stats.best_score, score)
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false
+  const boardGlowColor = hasRainbow
+    ? '#c084fc'
+    : hasScoreMultiplier
+      ? '#f97316'
+      : hasSlowMotion
+        ? '#93c5fd'
+        : FRUIT_CONFIG[food.type].glow
+
+  const playSound = useCallback((soundType: Parameters<NonNullable<typeof soundManager>['play']>[0]) => {
+    soundManager?.play(soundType)
+  }, [])
+
+  const toggleSound = useCallback(() => {
+    const nextEnabled = !soundEnabled
+    soundManager?.setEnabled(nextEnabled)
+    setSoundEnabled(nextEnabled)
+  }, [soundEnabled])
+
+  const changeVolume = useCallback((value: number) => {
+    soundManager?.setVolume(value)
+    setSoundVolume(value)
+  }, [])
+
+  const toggleMusic = useCallback(() => {
+    const nextEnabled = !musicEnabled
+    soundManager?.setMusicEnabled(nextEnabled)
+    setMusicEnabled(nextEnabled)
+    if (nextEnabled && gameState === 'playing') {
+      soundManager?.playRandomSnakeMusic()
+    }
+  }, [gameState, musicEnabled])
+
+  const changeMusicVolume = useCallback((value: number) => {
+    soundManager?.setMusicVolume(value)
+    setMusicVolume(value)
+  }, [])
+
+  const triggerEatVisuals = useCallback((eatenFruit: Fruit, gainedScore: number, comboValue: number) => {
+    const fruitConfig = FRUIT_CONFIG[eatenFruit.type]
+    const burstId = Date.now() + Math.random()
+    const comboLabel = comboValue >= 3 ? ` x${comboValue}` : ''
+
+    if (!prefersReducedMotion) {
+      setVisualBursts((current) => [
+        ...current,
+        {
+          id: burstId,
+          x: (eatenFruit.x + 0.5) / GRID_SIZE * 100,
+          y: (eatenFruit.y + 0.5) / GRID_SIZE * 100,
+          color: fruitConfig.glow,
+          label: `+${gainedScore}${comboLabel}`,
+          particles: Array.from({ length: eatenFruit.type === 'apple' ? 8 : 14 }, (_, index) => ({
+            id: index,
+            angle: (Math.PI * 2 * index) / (eatenFruit.type === 'apple' ? 8 : 14),
+            distance: eatenFruit.type === 'apple' ? 34 : 52,
+          })),
+        },
+      ])
+      window.setTimeout(() => {
+        setVisualBursts((current) => current.filter((burst) => burst.id !== burstId))
+      }, 780)
+    }
+
+    if (eatenFruit.type !== 'apple' && !prefersReducedMotion) {
+      setBoardFlash({ id: burstId, color: fruitConfig.glow })
+      window.setTimeout(() => setBoardFlash(null), 180)
+
+      setBoardShake(true)
+      window.setTimeout(() => setBoardShake(false), 180)
+    }
+  }, [prefersReducedMotion])
+
+  const getElapsedDuration = useCallback(() => {
+    if (!startTimeRef.current) return elapsedBeforePauseRef.current
+    return elapsedBeforePauseRef.current + Math.round(performance.now() - startTimeRef.current)
+  }, [])
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const response = await fetch('/api/snake/leaderboard?limit=10')
+      const data = await response.json()
+      setLeaderboard(data.leaderboard || [])
+    } catch (error) {
+      console.error('Error cargando ranking Snake:', error)
+    }
+  }, [])
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await fetch('/api/snake/stats')
+      const data = await response.json()
+      if (data.stats) {
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Error cargando estadisticas Snake:', error)
+    }
+  }, [])
+
+  const fetchSeason = useCallback(async () => {
+    try {
+      const response = await fetch('/api/snake/season')
+      const data = await response.json()
+      setSeason(data.season || null)
+      setSeasonLeaderboard(data.leaderboard || [])
+      setSeasonHistory(data.history || [])
+    } catch (error) {
+      console.error('Error cargando temporada Snake:', error)
+    }
+  }, [])
+
+  const fetchAchievements = useCallback(async () => {
+    try {
+      const response = await fetch('/api/snake/achievements')
+      const data = await response.json()
+      setAchievements(data.achievements || [])
+    } catch (error) {
+      console.error('Error cargando logros Snake:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchLeaderboard()
+    fetchSeason()
+    fetchAchievements()
+  }, [fetchAchievements, fetchLeaderboard, fetchSeason])
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current
+    const context = canvas?.getContext('2d')
+
+    if (!canvas || !context) return
+
+    context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+
+    const gradient = context.createLinearGradient(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+    gradient.addColorStop(0, '#061b2d')
+    gradient.addColorStop(0.45, '#0f172a')
+    gradient.addColorStop(1, '#102a28')
+    context.fillStyle = gradient
+    context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+
+    context.strokeStyle = 'rgba(148, 163, 184, 0.13)'
+    context.lineWidth = 1
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      const position = i * CELL_SIZE
+      context.beginPath()
+      context.moveTo(position, 0)
+      context.lineTo(position, CANVAS_SIZE)
+      context.stroke()
+      context.beginPath()
+      context.moveTo(0, position)
+      context.lineTo(CANVAS_SIZE, position)
+      context.stroke()
+    }
+
+    const fruitConfig = FRUIT_CONFIG[food.type]
+    context.fillStyle = fruitConfig.color
+    context.shadowColor = fruitConfig.glow
+    context.shadowBlur = 20
+    context.beginPath()
+    context.arc(
+      food.x * CELL_SIZE + CELL_SIZE / 2,
+      food.y * CELL_SIZE + CELL_SIZE / 2,
+      CELL_SIZE * 0.35,
+      0,
+      Math.PI * 2
+    )
+    context.fill()
+    context.shadowBlur = 0
+
+    if (food.type !== 'apple') {
+      context.strokeStyle = fruitConfig.glow
+      context.lineWidth = 2
+      context.beginPath()
+      context.arc(
+        food.x * CELL_SIZE + CELL_SIZE / 2,
+        food.y * CELL_SIZE + CELL_SIZE / 2,
+        CELL_SIZE * 0.48,
+        0,
+        Math.PI * 2
+      )
+      context.stroke()
+      context.fillStyle = '#0f172a'
+      context.font = 'bold 10px Arial'
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      context.fillText(
+        fruitConfig.shortLabel,
+        food.x * CELL_SIZE + CELL_SIZE / 2,
+        food.y * CELL_SIZE + CELL_SIZE / 2
+      )
+    }
+
+    snake.forEach((segment, index) => {
+      const isHead = index === 0
+      const segmentInset = isHead ? 2 : 3
+      context.fillStyle = isHead
+        ? hasRainbow
+          ? '#f0abfc'
+          : '#22d3ee'
+        : hasRainbow
+          ? index % 2 === 0 ? '#facc15' : '#c084fc'
+          : index % 2 === 0 ? '#34d399' : '#2dd4bf'
+      context.shadowColor = isHead ? (hasRainbow ? '#f0abfc' : '#67e8f9') : '#6ee7b7'
+      context.shadowBlur = isHead ? 16 : 7
+      context.fillRect(
+        segment.x * CELL_SIZE + segmentInset,
+        segment.y * CELL_SIZE + segmentInset,
+        CELL_SIZE - segmentInset * 2,
+        CELL_SIZE - segmentInset * 2
+      )
+
+      if (isHead) {
+        context.shadowBlur = 0
+        context.fillStyle = '#052e2b'
+        context.beginPath()
+        context.arc(segment.x * CELL_SIZE + CELL_SIZE * 0.36, segment.y * CELL_SIZE + CELL_SIZE * 0.38, 2.3, 0, Math.PI * 2)
+        context.arc(segment.x * CELL_SIZE + CELL_SIZE * 0.64, segment.y * CELL_SIZE + CELL_SIZE * 0.38, 2.3, 0, Math.PI * 2)
+        context.fill()
+      }
+    })
+    context.shadowBlur = 0
+  }, [food, hasRainbow, snake])
+
+  useEffect(() => {
+    draw()
+  }, [draw])
+
+  const resetGame = useCallback((nextState: GameState = 'ready') => {
+    const nextFood = createFood(INITIAL_SNAKE)
+    setSnake(INITIAL_SNAKE)
+    setFood(nextFood)
+    setGameState(nextState)
+    setScore(0)
+    setFoodCount(0)
+    setFruitCounts({
+      apple: 0,
+      gold: 0,
+      turbo: 0,
+      frost: 0,
+      rainbow: 0,
+    })
+    setLevel(1)
+    setDurationMs(0)
+    setCombo(0)
+    setBestCombo(0)
+    setComboExpiresAt(0)
+    setScoreMultiplierUntil(0)
+    setSlowMotionUntil(0)
+    setRainbowUntil(0)
+    setSaveResult(null)
+    setSaveError(null)
+    setLastMilestone(null)
+    directionRef.current = 'right'
+    nextDirectionRef.current = 'right'
+    startTimeRef.current = nextState === 'playing' ? performance.now() : null
+    elapsedBeforePauseRef.current = 0
+    submittedRef.current = false
+    seedRef.current = createSeed()
+  }, [])
+
+  const startGame = useCallback(() => {
+    if (gameState === 'gameOver') {
+      resetGame('playing')
+      playSound('snake_start')
+      if (musicEnabled) {
+        soundManager?.playRandomSnakeMusic()
+      }
+      return
+    }
+
+    if (!startTimeRef.current) {
+      startTimeRef.current = performance.now()
+    }
+    setGameState('playing')
+    playSound('snake_start')
+    if (musicEnabled) {
+      soundManager?.playRandomSnakeMusic()
+    }
+  }, [gameState, musicEnabled, playSound, resetGame])
+
+  const pauseGame = useCallback(() => {
+    elapsedBeforePauseRef.current = getElapsedDuration()
+    startTimeRef.current = null
+    setDurationMs(elapsedBeforePauseRef.current)
+    setGameState('paused')
+    soundManager?.stopMusic()
+  }, [getElapsedDuration])
+
+  const changeDirection = useCallback((direction: Direction) => {
+    if (getOpposite(directionRef.current) === direction) return
+    nextDirectionRef.current = direction
+  }, [])
+
+  const finishGame = useCallback(() => {
+    const finalDuration = getElapsedDuration()
+    elapsedBeforePauseRef.current = finalDuration
+    startTimeRef.current = null
+    setDurationMs(finalDuration)
+    setGameState('gameOver')
+    soundManager?.stopMusic()
+    playSound('snake_game_over')
+  }, [getElapsedDuration, playSound])
+
+  useEffect(() => {
+    return () => {
+      soundManager?.stopMusic()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (gameState !== 'playing') return
+
+    const interval = window.setInterval(() => {
+      setSnake((currentSnake) => {
+        directionRef.current = nextDirectionRef.current
+        const head = currentSnake[0]
+        const nextHead: Point = { ...head }
+
+        if (directionRef.current === 'up') nextHead.y -= 1
+        if (directionRef.current === 'down') nextHead.y += 1
+        if (directionRef.current === 'left') nextHead.x -= 1
+        if (directionRef.current === 'right') nextHead.x += 1
+
+        const hitWall =
+          nextHead.x < 0 ||
+          nextHead.x >= GRID_SIZE ||
+          nextHead.y < 0 ||
+          nextHead.y >= GRID_SIZE
+        const hitSelf = currentSnake.some(
+          (segment) => segment.x === nextHead.x && segment.y === nextHead.y
+        )
+
+        if (hitWall || hitSelf) {
+          finishGame()
+          return currentSnake
+        }
+
+        const ateFood = nextHead.x === food.x && nextHead.y === food.y
+        const nextSnake = [nextHead, ...currentSnake]
+
+        if (ateFood) {
+          const nextFoodCount = foodCount + 1
+          const nextLevel = Math.min(10, Math.floor(nextFoodCount / 5) + 1)
+          const fruitConfig = FRUIT_CONFIG[food.type]
+          const eatenAt = performance.now()
+          const nextCombo = comboExpiresAt > eatenAt ? combo + 1 : 1
+          const activeMultiplier = scoreMultiplierUntil > eatenAt ? 2 : 1
+          const comboMultiplier = getComboMultiplier(nextCombo)
+          const gainedScore = Math.min(
+            100,
+            Math.round(fruitConfig.points(nextLevel) * activeMultiplier * comboMultiplier)
+          )
+
+          playSound(nextFoodCount % 5 === 0 ? 'snake_level_up' : 'snake_eat')
+          triggerEatVisuals(food, gainedScore, nextCombo)
+          setFoodCount(nextFoodCount)
+          setFruitCounts((current) => ({
+            ...current,
+            [food.type]: current[food.type] + 1,
+          }))
+          setLevel(nextLevel)
+          setScore((currentScore) => currentScore + gainedScore)
+          setCombo(nextCombo)
+          setBestCombo((currentBest) => Math.max(currentBest, nextCombo))
+          setComboExpiresAt(eatenAt + COMBO_WINDOW_MS)
+          setFood(createFood(nextSnake))
+
+          if (food.type === 'turbo') {
+            setScoreMultiplierUntil(performance.now() + (fruitConfig.durationMs || 5000))
+            setLastMilestone('Turbo 2x')
+            window.setTimeout(() => setLastMilestone(null), 1100)
+          }
+
+          if (food.type === 'frost') {
+            setSlowMotionUntil(performance.now() + (fruitConfig.durationMs || 5000))
+            setLastMilestone('Camara lenta')
+            window.setTimeout(() => setLastMilestone(null), 1100)
+          }
+
+          if (food.type === 'rainbow') {
+            setScoreMultiplierUntil(performance.now() + (fruitConfig.durationMs || 6000))
+            setRainbowUntil(performance.now() + (fruitConfig.durationMs || 6000))
+            setLastMilestone('Arcoiris')
+            window.setTimeout(() => setLastMilestone(null), 1100)
+          }
+
+          if (nextFoodCount % 5 === 0) {
+            setLastMilestone(`Nivel ${nextLevel}`)
+            window.setTimeout(() => setLastMilestone(null), 1100)
+          }
+
+          return nextSnake
+        }
+
+        nextSnake.pop()
+        return nextSnake
+      })
+    }, speed)
+
+    return () => window.clearInterval(interval)
+  }, [combo, comboExpiresAt, finishGame, food, foodCount, gameState, playSound, scoreMultiplierUntil, speed, triggerEatVisuals])
+
+  useEffect(() => {
+    if (gameState !== 'playing') return
+
+    const timer = window.setInterval(() => {
+      setDurationMs(getElapsedDuration())
+    }, 250)
+
+    return () => window.clearInterval(timer)
+  }, [gameState, getElapsedDuration])
+
+  useEffect(() => {
+    if (gameState !== 'playing' || combo === 0) return
+
+    const timer = window.setInterval(() => {
+      if (performance.now() > comboExpiresAt) {
+        setCombo(0)
+      }
+    }, 250)
+
+    return () => window.clearInterval(timer)
+  }, [combo, comboExpiresAt, gameState])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') {
+        event.preventDefault()
+        changeDirection('up')
+      }
+      if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') {
+        event.preventDefault()
+        changeDirection('down')
+      }
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        changeDirection('left')
+      }
+      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
+        event.preventDefault()
+        changeDirection('right')
+      }
+      if (event.key === ' ') {
+        event.preventDefault()
+        if (gameState === 'playing') pauseGame()
+        if (gameState === 'paused' || gameState === 'ready' || gameState === 'gameOver') startGame()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [changeDirection, gameState, pauseGame, startGame])
+
+  useEffect(() => {
+    const saveScore = async () => {
+      if (gameState !== 'gameOver' || submittedRef.current || score <= 0) return
+
+      submittedRef.current = true
+      setSaving(true)
+      setSaveError(null)
+
+      try {
+        const response = await fetch('/api/snake/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            score,
+            durationMs,
+            foodCount,
+            maxLength: snake.length,
+            levelReached: level,
+            clientSeed: seedRef.current,
+            metadata: {
+              gridSize: GRID_SIZE,
+              speed,
+              baseSpeed,
+              fruitCounts,
+              combo: {
+                current: combo,
+                best: bestCombo,
+                windowMs: COMBO_WINDOW_MS,
+              },
+              effects: {
+                scoreMultiplierUsed: fruitCounts.turbo + fruitCounts.rainbow,
+                slowMotionUsed: fruitCounts.frost,
+              },
+              userAgent: navigator.userAgent.slice(0, 160),
+            },
+          }),
+        })
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'No se pudo guardar el puntaje')
+        }
+
+        const result = data.result as SaveResult | null
+        if (result) {
+          setSaveResult(result)
+          if (result.is_personal_best) {
+            playSound('snake_new_record')
+          }
+        }
+        const unlockedAchievements = (data.achievements || []) as SnakeAchievement[]
+        if (unlockedAchievements.length > 0) {
+          setNewAchievements(unlockedAchievements)
+          window.setTimeout(() => setNewAchievements([]), 5200)
+        }
+        await Promise.all([fetchLeaderboard(), fetchStats(), fetchSeason(), fetchAchievements()])
+      } catch (error: any) {
+        setSaveError(error.message || 'No se pudo guardar el puntaje')
+      } finally {
+        setSaving(false)
+      }
+    }
+
+    saveScore()
+  }, [baseSpeed, bestCombo, combo, durationMs, fetchAchievements, fetchLeaderboard, fetchSeason, fetchStats, foodCount, fruitCounts, gameState, level, playSound, score, snake.length, speed])
+
+  const stateLabel = gameState === 'playing'
+    ? 'En partida'
+    : gameState === 'paused'
+      ? 'Pausa'
+      : gameState === 'gameOver'
+        ? 'Partida terminada'
+        : 'Listo para jugar'
+
+  const overlayTitle = gameState === 'gameOver'
+    ? saveResult?.is_personal_best
+      ? 'Nuevo record personal'
+      : 'Partida finalizada'
+    : gameState === 'paused'
+      ? 'Partida en pausa'
+      : 'Snake Mundial'
+
+  const overlayText = gameState === 'gameOver'
+    ? `Cerraste con ${formatNumber(score)} puntos, nivel ${level} y ${foodCount} objetivos.`
+    : gameState === 'paused'
+      ? 'Respira, mira el tablero y vuelve cuando estes listo.'
+      : 'Una partida rapida puede moverte en el ranking global de Turix.'
+
+  const seasonEndsAt = season?.ends_at ? new Date(season.ends_at) : null
+  const seasonMsLeft = seasonEndsAt ? Math.max(0, seasonEndsAt.getTime() - Date.now()) : 0
+  const seasonDaysLeft = Math.floor(seasonMsLeft / 86400000)
+  const seasonHoursLeft = Math.floor((seasonMsLeft % 86400000) / 3600000)
+  const seasonUserEntry = seasonLeaderboard.find((entry) => entry.user_id === userId)
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white">
+      {newAchievements.length > 0 && (
+        <div className="fixed right-4 top-20 z-50 w-[min(360px,calc(100vw-2rem))] space-y-2">
+          {newAchievements.map((achievement) => (
+            <div
+              key={achievement.id}
+              className="rounded-lg border border-emerald-300/40 bg-slate-950/95 p-4 shadow-2xl shadow-emerald-950/50 backdrop-blur"
+            >
+              <div className="flex items-center gap-3">
+                <AchievementImage achievement={achievement} size="sm" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">Insignia desbloqueada</p>
+                  <p className="truncate text-lg font-black">{achievement.name}</p>
+                  <p className="text-sm text-cyan-50/70">{achievement.description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <header className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 hover:text-white">
+            <Home className="h-4 w-4" />
+            Dashboard
+          </Link>
+          <div className="text-right">
+            <p className="text-xs uppercase tracking-wider text-cyan-200/80">Snake Mundial</p>
+            <p className="font-bold text-white">{username}</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
+        <section className="space-y-4">
+          <div className="rounded-lg border border-white/10 bg-gradient-to-r from-cyan-950 via-slate-900 to-emerald-950 p-5 shadow-2xl">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-cyan-100">
+                  <Activity className="h-3.5 w-3.5" />
+                  {stateLabel}
+                </div>
+                <h1 className="text-3xl font-black sm:text-5xl">Snake Mundial</h1>
+                <p className="mt-2 max-w-2xl text-sm text-cyan-50/75 sm:text-base">
+                  Modo arcade competitivo: juega, supera tu marca y escala el ranking global.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-right sm:grid-cols-3">
+                <div className="rounded-lg bg-white/10 px-4 py-3">
+                  <p className="text-xs text-cyan-100/70">Record</p>
+                  <p className="text-2xl font-black">{formatNumber(projectedBest)}</p>
+                </div>
+                <div className="rounded-lg bg-white/10 px-4 py-3">
+                  <p className="text-xs text-cyan-100/70">Ranking</p>
+                  <p className="text-2xl font-black">{currentRank ? `#${currentRank}` : '-'}</p>
+                </div>
+                <div className="rounded-lg bg-white/10 px-4 py-3">
+                  <p className="text-xs text-cyan-100/70">Partidas</p>
+                  <p className="text-2xl font-black">{formatNumber(stats.games_played)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <MetricCard label="Puntaje" value={formatNumber(score)} tone="cyan" />
+            <MetricCard label="Nivel" value={String(level)} tone="emerald" />
+            <MetricCard label="Objetivos" value={String(foodCount)} tone="rose" />
+            <MetricCard label="Combo" value={comboActive ? `x${combo}` : '-'} tone="amber" />
+            <MetricCard label="Tiempo" value={formatTime(durationMs)} tone="violet" />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_1.2fr]">
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-xs uppercase tracking-wider text-cyan-100/60">Fruta en tablero</p>
+              <div className="mt-2 flex items-center gap-3">
+                <FruitDot fruitType={food.type} />
+                <div>
+                  <p className="font-black">{FRUIT_CONFIG[food.type].label}</p>
+                  <p className="text-sm text-cyan-50/60">
+                    {food.type === 'apple' && 'Puntos base.'}
+                    {food.type === 'gold' && 'Mas puntos por objetivo.'}
+                    {food.type === 'turbo' && 'Activa multiplicador 2x.'}
+                    {food.type === 'frost' && 'Reduce la velocidad temporalmente.'}
+                    {food.type === 'rainbow' && 'Bono grande y efecto visual.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+              <p className="text-xs uppercase tracking-wider text-cyan-100/60">Efectos activos</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <EffectPill active={hasScoreMultiplier} label="2x puntos" />
+                <EffectPill active={comboActive && combo >= 3} label={`Combo x${combo}`} />
+                <EffectPill active={hasSlowMotion} label="Camara lenta" />
+                <EffectPill active={hasRainbow} label="Arcoiris" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-amber-300/20 bg-amber-300/10 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-amber-100/70">Racha activa</p>
+                <p className="text-lg font-black text-white">
+                  {comboActive ? `Combo x${combo}` : 'Sin combo'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-amber-100/70">Mejor de esta partida</p>
+                <p className="text-2xl font-black text-amber-200">x{bestCombo}</p>
+              </div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-950/60">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-300 via-rose-300 to-cyan-300 transition-all"
+                style={{ width: `${comboProgress}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-amber-50/70">
+              Encadena frutas antes de que se agote la barra para activar bonos de puntos.
+            </p>
+          </div>
+
+          <div
+            className={`overflow-hidden rounded-lg border border-white/10 bg-slate-950 shadow-2xl transition-shadow duration-300 ${
+              boardShake ? 'snake-board-shake' : ''
+            }`}
+            style={{
+              boxShadow: `0 22px 70px rgba(0, 0, 0, 0.45), 0 0 34px ${boardGlowColor}44`,
+            }}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-cyan-100/60">Velocidad</p>
+                <p className="font-bold">{Math.round(1000 / speed)} pasos/s</p>
+              </div>
+              <div className="w-48 max-w-[50%]">
+                <div className="mb-1 flex justify-between text-xs text-cyan-100/70">
+                  <span>Progreso nivel</span>
+                  <span>{foodCount % 5}/5</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300 transition-all"
+                    style={{ width: `${nextLevelProgress * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="relative mx-auto aspect-square w-full max-w-[640px]">
+              <canvas
+                ref={canvasRef}
+                width={CANVAS_SIZE}
+                height={CANVAS_SIZE}
+                className="h-full w-full"
+              />
+
+              {boardFlash && (
+                <div
+                  className="pointer-events-none absolute inset-0 snake-board-flash"
+                  style={{ backgroundColor: boardFlash.color }}
+                />
+              )}
+
+              {visualBursts.map((burst) => (
+                <div
+                  key={burst.id}
+                  className="pointer-events-none absolute"
+                  style={{ left: `${burst.x}%`, top: `${burst.y}%` }}
+                >
+                  <div
+                    className="snake-floating-score"
+                    style={{ color: burst.color, textShadow: `0 0 12px ${burst.color}` }}
+                  >
+                    {burst.label}
+                  </div>
+                  {burst.particles.map((particle) => (
+                    <span
+                      key={particle.id}
+                      className="snake-particle"
+                      style={{
+                        backgroundColor: burst.color,
+                        ['--particle-x' as string]: `${Math.cos(particle.angle) * particle.distance}px`,
+                        ['--particle-y' as string]: `${Math.sin(particle.angle) * particle.distance}px`,
+                        boxShadow: `0 0 10px ${burst.color}`,
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
+
+              {lastMilestone && (
+                <div className="pointer-events-none absolute inset-x-0 top-6 flex justify-center">
+                  <div className="rounded-full border border-emerald-200/40 bg-emerald-300 px-4 py-2 font-black text-slate-950 shadow-lg">
+                    {lastMilestone}
+                  </div>
+                </div>
+              )}
+
+              {gameState !== 'playing' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/72 p-6 text-center backdrop-blur-sm">
+                  <div className="max-w-lg">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-500/30">
+                      {gameState === 'gameOver' ? <Trophy className="h-7 w-7" /> : <Zap className="h-7 w-7" />}
+                    </div>
+                    <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-cyan-200">
+                      {stateLabel}
+                    </p>
+                    <h2 className="mb-3 text-3xl font-black sm:text-5xl">{overlayTitle}</h2>
+                    <p className="mx-auto mb-5 max-w-md text-sm text-cyan-50/80 sm:text-base">
+                      {overlayText}
+                    </p>
+                    <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={startGame}
+                        className="inline-flex items-center gap-2 rounded-lg bg-cyan-300 px-5 py-3 font-bold text-slate-950 transition hover:bg-cyan-200"
+                      >
+                        <Play className="h-5 w-5" />
+                        {gameState === 'gameOver' ? 'Jugar de nuevo' : 'Jugar'}
+                      </button>
+                      {gameState === 'gameOver' && (
+                        <button
+                          type="button"
+                          onClick={() => resetGame()}
+                          className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-3 font-bold text-white transition hover:bg-white/20"
+                        >
+                          <RotateCcw className="h-5 w-5" />
+                          Preparar tablero
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+            <div className="flex flex-wrap gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-3">
+              <button
+                type="button"
+                onClick={gameState === 'playing' ? pauseGame : startGame}
+                className="inline-flex items-center gap-2 rounded-lg bg-cyan-300 px-4 py-3 font-bold text-slate-950 transition hover:bg-cyan-200"
+              >
+                {gameState === 'playing' ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                {gameState === 'playing' ? 'Pausar' : 'Jugar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => resetGame()}
+                className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-3 font-semibold text-white transition hover:bg-white/20"
+              >
+                <RotateCcw className="h-5 w-5" />
+                Reiniciar
+              </button>
+              <div className="flex items-center px-2 text-sm text-cyan-50/60">
+                Flechas, WASD o controles tactiles
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-3">
+              <span />
+              <ControlButton label="Arriba" onClick={() => changeDirection('up')}>
+                <ArrowUp className="mx-auto h-5 w-5" />
+              </ControlButton>
+              <span />
+              <ControlButton label="Izquierda" onClick={() => changeDirection('left')}>
+                <ArrowLeft className="mx-auto h-5 w-5" />
+              </ControlButton>
+              <ControlButton label="Abajo" onClick={() => changeDirection('down')}>
+                <ArrowDown className="mx-auto h-5 w-5" />
+              </ControlButton>
+              <ControlButton label="Derecha" onClick={() => changeDirection('right')}>
+                <ArrowRight className="mx-auto h-5 w-5" />
+              </ControlButton>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 px-4 py-3 font-semibold text-white transition hover:bg-white/20"
+            >
+              {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+              {soundEnabled ? 'Sonido activo' : 'Sonido apagado'}
+            </button>
+            <label className="flex flex-1 items-center gap-3 text-sm text-cyan-50/70">
+              Volumen
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={soundVolume}
+                onChange={(event) => changeVolume(Number(event.target.value))}
+                className="h-2 flex-1 accent-cyan-300"
+                aria-label="Volumen de sonido"
+              />
+              <span className="w-10 text-right font-bold text-white">{Math.round(soundVolume * 100)}%</span>
+            </label>
+          </div>
+
+          <div className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={toggleMusic}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 px-4 py-3 font-semibold text-white transition hover:bg-white/20"
+            >
+              <Music className="h-5 w-5" />
+              {musicEnabled ? 'Musica activa' : 'Musica apagada'}
+            </button>
+            <label className="flex flex-1 items-center gap-3 text-sm text-cyan-50/70">
+              Musica
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={musicVolume}
+                onChange={(event) => changeMusicVolume(Number(event.target.value))}
+                className="h-2 flex-1 accent-emerald-300"
+                aria-label="Volumen de musica"
+              />
+              <span className="w-10 text-right font-bold text-white">{Math.round(musicVolume * 100)}%</span>
+            </label>
+          </div>
+
+          {(saving || saveResult || saveError) && (
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+              {saving && <p className="text-cyan-100">Guardando puntaje...</p>}
+              {saveResult && (
+                <p className="font-semibold text-emerald-200">
+                  {saveResult.is_personal_best ? 'Nuevo record personal. ' : ''}
+                  Posicion mundial: #{saveResult.rank}
+                </p>
+              )}
+              {saveError && <p className="text-rose-200">{saveError}</p>}
+            </div>
+          )}
+
+          <Panel title="Frutas especiales" icon={<Sparkles className="h-5 w-5 text-emerald-200" />}>
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+              {Object.entries(FRUIT_CONFIG).map(([fruitType, config]) => (
+                <div key={fruitType} className="rounded-lg bg-slate-950/50 p-3 text-center">
+                  <div className="mb-2 flex justify-center">
+                    <FruitDot fruitType={fruitType as FruitType} />
+                  </div>
+                  <p className="text-sm font-bold">{config.label}</p>
+                  <p className="mt-1 text-xs text-cyan-50/55">
+                    {fruitCounts[fruitType as FruitType]} tomada{fruitCounts[fruitType as FruitType] === 1 ? '' : 's'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </section>
+
+        <aside className="space-y-4">
+          <Panel title="Tus estadisticas" icon={<BarChart3 className="h-5 w-5 text-cyan-200" />}>
+            <div className="grid grid-cols-2 gap-2">
+              <MiniStat label="Mejor puntaje" value={formatNumber(stats.best_score)} />
+              <MiniStat label="Promedio" value={formatNumber(Math.round(Number(stats.average_score || 0)))} />
+              <MiniStat label="Mejor nivel" value={String(stats.best_level || 1)} />
+              <MiniStat label="Longitud max." value={String(stats.longest_snake || 3)} />
+              <MiniStat label="Objetivos total" value={formatNumber(stats.total_food)} />
+              <MiniStat label="Partidas" value={formatNumber(stats.games_played)} />
+            </div>
+          </Panel>
+
+          <Panel title="Ranking mundial" icon={<Trophy className="h-5 w-5 text-yellow-300" />}>
+            {leaderboard.length === 0 ? (
+              <p className="text-sm text-cyan-50/70">Aun no hay puntajes. Esta puede ser la primera marca.</p>
+            ) : (
+              <div className="space-y-2">
+                {leaderboard.map((entry) => (
+                  <div
+                    key={entry.user_id}
+                    className={`flex items-center gap-3 rounded-lg p-3 ${
+                      entry.user_id === userId
+                        ? 'border border-cyan-300/40 bg-cyan-300/10'
+                        : 'bg-slate-950/50'
+                    }`}
+                  >
+                    <div className="w-9 text-center text-lg font-black text-cyan-200">#{entry.rank}</div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{entry.username}</p>
+                      <p className="text-xs text-cyan-50/60">
+                        Nivel {entry.best_level} · {entry.games_played} partida{entry.games_played === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    <div className="text-right font-black text-emerald-300">{formatNumber(entry.best_score)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Temporada semanal" icon={<CalendarDays className="h-5 w-5 text-emerald-200" />}>
+            <div className="space-y-3 text-sm text-cyan-50/75">
+              <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-3">
+                <p className="font-bold text-emerald-100">{season?.title || 'Temporada activa'}</p>
+                <p>
+                  Cierra en {seasonDaysLeft}d {seasonHoursLeft}h. Sin premios activos todavia.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <MiniStat label="Tu posicion" value={seasonUserEntry ? `#${seasonUserEntry.rank}` : '-'} />
+                <MiniStat label="Tu marca" value={formatNumber(seasonUserEntry?.best_score || 0)} />
+              </div>
+
+              {seasonLeaderboard.length === 0 ? (
+                <p className="rounded-lg bg-slate-950/50 p-3 text-cyan-50/65">
+                  Aun no hay puntajes esta semana. La primera partida abre la tabla.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {seasonLeaderboard.slice(0, 5).map((entry) => (
+                    <div
+                      key={`season-${entry.user_id}`}
+                      className={`flex items-center gap-3 rounded-lg p-3 ${
+                        entry.user_id === userId
+                          ? 'border border-emerald-300/40 bg-emerald-300/10'
+                          : 'bg-slate-950/50'
+                      }`}
+                    >
+                      <div className="w-8 text-center font-black text-emerald-200">#{entry.rank}</div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-white">{entry.username}</p>
+                        <p className="text-xs text-cyan-50/55">Nivel {entry.best_level}</p>
+                      </div>
+                      <div className="font-black text-emerald-300">{formatNumber(entry.best_score)}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Panel>
+
+          <Panel title="Campeones" icon={<Trophy className="h-5 w-5 text-amber-200" />}>
+            {seasonHistory.length === 0 ? (
+              <p className="text-sm text-cyan-50/70">El historial aparecera cuando existan temporadas.</p>
+            ) : (
+              <div className="space-y-2">
+                {seasonHistory.map((item) => (
+                  <div key={item.id} className="rounded-lg bg-slate-950/50 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate font-semibold">{item.title}</p>
+                      <span className={`rounded-full px-2 py-1 text-xs font-bold ${
+                        item.status === 'active'
+                          ? 'bg-emerald-300 text-slate-950'
+                          : 'bg-white/10 text-cyan-100'
+                      }`}>
+                        {item.status === 'active' ? 'Activa' : 'Cerrada'}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-cyan-50/60">
+                      {item.champion_score
+                        ? `${item.champion_username || 'Campeon'} · ${formatNumber(item.champion_score)} pts`
+                        : 'Sin campeon todavia'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Insignias Snake" icon={<Sparkles className="h-5 w-5 text-violet-200" />}>
+            {achievements.length === 0 ? (
+              <p className="text-sm text-cyan-50/70">Las insignias apareceran al aplicar la migracion de logros.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {achievements.map((achievement) => (
+                  <div
+                    key={achievement.id}
+                    className={`rounded-lg border p-3 ${
+                      achievement.is_unlocked
+                        ? 'border-violet-300/40 bg-violet-300/10'
+                        : 'border-white/10 bg-slate-950/50 opacity-70'
+                    }`}
+                  >
+                    <div className="mb-2 flex justify-center">
+                      <AchievementImage achievement={achievement} size="md" />
+                    </div>
+                    <p className="text-center text-sm font-bold leading-tight">{achievement.name}</p>
+                    <p className="mt-1 text-center text-xs text-cyan-50/60">
+                      {achievement.is_unlocked ? 'Desbloqueada' : 'Pendiente'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Objetivos de practica" icon={<Sparkles className="h-5 w-5 text-violet-200" />}>
+            <div className="space-y-2">
+              <PracticeGoal label="Llega a 100 puntos" complete={stats.best_score >= 100 || score >= 100} />
+              <PracticeGoal label="Alcanza nivel 3" complete={stats.best_level >= 3 || level >= 3} />
+              <PracticeGoal label="Logra combo x5" complete={bestCombo >= 5} />
+              <PracticeGoal label="Juega 5 partidas" complete={stats.games_played >= 5} />
+            </div>
+          </Panel>
+        </aside>
+      </main>
+    </div>
+  )
+}
+
+function MetricCard({ label, value, tone }: { label: string; value: string; tone: 'cyan' | 'emerald' | 'rose' | 'violet' | 'amber' }) {
+  const tones = {
+    cyan: 'border-cyan-300/20 text-cyan-100',
+    emerald: 'border-emerald-300/20 text-emerald-100',
+    rose: 'border-rose-300/20 text-rose-100',
+    violet: 'border-violet-300/20 text-violet-100',
+    amber: 'border-amber-300/20 text-amber-100',
+  }
+
+  return (
+    <div className={`rounded-lg border bg-white/[0.06] p-4 ${tones[tone]}`}>
+      <p className="text-xs uppercase tracking-wider opacity-70">{label}</p>
+      <p className="mt-1 text-3xl font-black text-white">{value}</p>
+    </div>
+  )
+}
+
+function ControlButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      aria-label={label}
+      type="button"
+      onClick={onClick}
+      className="rounded-lg bg-white/10 p-3 text-white transition hover:bg-white/20 active:scale-95"
+    >
+      {children}
+    </button>
+  )
+}
+
+function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/[0.06] p-5 shadow-xl">
+      <div className="mb-4 flex items-center gap-2">
+        {icon}
+        <h2 className="text-xl font-bold">{title}</h2>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-slate-950/50 p-3">
+      <p className="text-xs text-cyan-50/55">{label}</p>
+      <p className="mt-1 font-black text-white">{value}</p>
+    </div>
+  )
+}
+
+function PracticeGoal({ label, complete }: { label: string; complete: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-950/50 p-3">
+      <span className="text-sm text-cyan-50/80">{label}</span>
+      <span className={`rounded-full px-2 py-1 text-xs font-bold ${complete ? 'bg-emerald-300 text-slate-950' : 'bg-white/10 text-cyan-100'}`}>
+        {complete ? 'Listo' : 'Activo'}
+      </span>
+    </div>
+  )
+}
+
+function FruitDot({ fruitType }: { fruitType: FruitType }) {
+  const config = FRUIT_CONFIG[fruitType]
+
+  return (
+    <div
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 text-xs font-black text-slate-950 shadow-lg"
+      style={{
+        backgroundColor: config.color,
+        boxShadow: `0 0 18px ${config.glow}`,
+      }}
+      title={config.label}
+    >
+      {fruitType === 'apple' ? '' : config.shortLabel}
+    </div>
+  )
+}
+
+function EffectPill({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-bold ${
+        active
+          ? 'bg-emerald-300 text-slate-950'
+          : 'bg-white/10 text-cyan-50/55'
+      }`}
+    >
+      {label}
+    </span>
+  )
+}
+
+function AchievementImage({ achievement, size }: { achievement: SnakeAchievement; size: 'sm' | 'md' }) {
+  const dimensions = size === 'sm' ? 'h-14 w-14' : 'h-16 w-16'
+  const rarityBorder = {
+    common: 'border-slate-300/40',
+    rare: 'border-cyan-300/50',
+    epic: 'border-violet-300/60',
+    legendary: 'border-amber-300/70',
+  }[achievement.rarity] || 'border-slate-300/40'
+
+  return (
+    <div className={`${dimensions} overflow-hidden rounded-full border ${rarityBorder} bg-white/10 p-1`}>
+      <Image
+        src={achievement.badge_url}
+        alt={achievement.name}
+        width={96}
+        height={96}
+        className="h-full w-full rounded-full object-cover"
+        unoptimized
+      />
+    </div>
+  )
+}

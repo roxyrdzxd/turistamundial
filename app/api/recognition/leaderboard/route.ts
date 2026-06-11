@@ -263,6 +263,22 @@ export async function GET(request: Request) {
         }
         break
 
+      case 'snake':
+        const { data: snakeData, error: snakeError } = await supabase
+          .rpc('get_snake_leaderboard', { limit_count: 5 })
+
+        if (!snakeError && snakeData) {
+          leaderboard = snakeData.map((item: any) => ({
+            rank: item.rank,
+            userId: item.user_id,
+            username: item.username,
+            avatarUrl: item.avatar_url,
+            value: item.best_score,
+            type: 'snake'
+          }))
+        }
+        break
+
       default:
         return NextResponse.json({ error: 'Tipo de ranking inválido' }, { status: 400 })
     }

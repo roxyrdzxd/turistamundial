@@ -22,6 +22,7 @@ interface Leaderboard {
   monopolies: LeaderboardEntry[]
   friends: LeaderboardEntry[]
   winRate: LeaderboardEntry[]
+  snake: LeaderboardEntry[]
 }
 
 export default function RecognitionPage() {
@@ -31,7 +32,8 @@ export default function RecognitionPage() {
     wins: [],
     monopolies: [],
     friends: [],
-    winRate: []
+    winRate: [],
+    snake: []
   })
   const [loading, setLoading] = useState(true)
   const toast = useToast()
@@ -44,7 +46,7 @@ export default function RecognitionPage() {
   const fetchAllLeaderboards = async () => {
     try {
       setLoading(true)
-      const types = ['coins', 'games', 'wins', 'monopolies', 'friends', 'win_rate']
+      const types = ['coins', 'games', 'wins', 'monopolies', 'friends', 'win_rate', 'snake']
       
       const results = await Promise.all(
         types.map(type => 
@@ -64,7 +66,8 @@ export default function RecognitionPage() {
         wins: [],
         monopolies: [],
         friends: [],
-        winRate: []
+        winRate: [],
+        snake: []
       }
 
       results.forEach(({ type, data }) => {
@@ -87,6 +90,9 @@ export default function RecognitionPage() {
               break
             case 'win_rate':
               newLeaderboards.winRate = data.leaderboard
+              break
+            case 'snake':
+              newLeaderboards.snake = data.leaderboard
               break
           }
         }
@@ -115,6 +121,8 @@ export default function RecognitionPage() {
         return `${value} amigo${value !== 1 ? 's' : ''}`
       case 'win_rate':
         return `${(value * 100).toFixed(1)}%`
+      case 'snake':
+        return `${value.toLocaleString()} puntos`
       default:
         return value.toString()
     }
@@ -278,6 +286,13 @@ export default function RecognitionPage() {
             type="win_rate"
             icon="📊"
           />
+
+          <LeaderboardCard
+            title="Top Snake"
+            entries={leaderboards.snake}
+            type="snake"
+            icon="🐍"
+          />
         </div>
 
         {/* Info Section */}
@@ -307,6 +322,10 @@ export default function RecognitionPage() {
             <div>
               <p className="font-semibold text-gray-900 mb-1">📊 Mejor Ratio</p>
               <p>Jugadores con el mejor porcentaje de victorias (mín. 5 partidas).</p>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 mb-1">🐍 Top Snake</p>
+              <p>Jugadores con la mejor puntuacion en el modo arcade Snake Mundial.</p>
             </div>
           </div>
         </div>
