@@ -73,21 +73,18 @@ export async function POST(request: Request) {
     const result = data?.[0] || null
     let achievements: any[] = []
     let completedChallenges: any[] = []
+    let dailyReward: any = null
 
     if (result?.score_id) {
-      const { data: unlockedAchievements, error: achievementsError } = await supabase.rpc(
-        'evaluate_snake_achievements',
-        {
-          p_user_id: user.id,
-          p_score_id: result.score_id,
-          p_is_personal_best: Boolean(result.is_personal_best),
-        }
+      const { data: streakData, error: streakError } = await supabase.rpc(
+        'update_snake_daily_streak',
+        { p_user_id: user.id }
       )
 
-      if (achievementsError) {
-        console.error('Error evaluando logros Snake:', achievementsError)
+      if (streakError) {
+        console.error('Error actualizando racha diaria Snake:', streakError)
       } else {
-        achievements = unlockedAchievements || []
+        dailyReward = streakData?.[0] || null
       }
 
       const metadata = body.metadata || {}
@@ -120,6 +117,21 @@ export async function POST(request: Request) {
       } else {
         completedChallenges = unlockedChallenges || []
       }
+
+      const { data: unlockedAchievements, error: achievementsError } = await supabase.rpc(
+        'evaluate_snake_achievements',
+        {
+          p_user_id: user.id,
+          p_score_id: result.score_id,
+          p_is_personal_best: Boolean(result.is_personal_best),
+        }
+      )
+
+      if (achievementsError) {
+        console.error('Error evaluando insignias Snake:', achievementsError)
+      } else {
+        achievements = unlockedAchievements || []
+      }
     }
 
     return NextResponse.json({
@@ -127,6 +139,7 @@ export async function POST(request: Request) {
       result,
       achievements,
       completedChallenges,
+      dailyReward,
     })
   } catch (error: any) {
     console.error('Error en snake score:', error)

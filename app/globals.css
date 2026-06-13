@@ -221,6 +221,39 @@ body {
   }
 }
 
+@keyframes snakeRewardPop {
+  0% {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.94);
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(0) scale(1.02);
+  }
+  82% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@keyframes snakeRewardSpark {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6) rotate(0deg);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-32px) scale(1.1) rotate(120deg);
+  }
+}
+
 .snake-particle {
   position: absolute;
   left: 0;
@@ -250,11 +283,26 @@ body {
   animation: snakeBoardShake 180ms ease-out;
 }
 
+.snake-reward-pop {
+  animation: snakeRewardPop 3.6s ease-out forwards;
+}
+
+.snake-reward-spark {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  box-shadow: 0 0 12px currentColor;
+  animation: snakeRewardSpark 900ms ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .snake-particle,
   .snake-floating-score,
   .snake-board-flash,
-  .snake-board-shake {
+  .snake-board-shake,
+  .snake-reward-pop,
+  .snake-reward-spark {
     animation: none !important;
   }
 }

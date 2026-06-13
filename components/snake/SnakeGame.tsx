@@ -11,11 +11,14 @@ import {
   ArrowUp,
   BarChart3,
   CalendarDays,
+  Copy,
   Home,
   Music,
   Pause,
   Play,
   RotateCcw,
+  Send,
+  Share2,
   Sparkles,
   Trophy,
   Volume2,
@@ -48,10 +51,19 @@ type VisualBurst = {
   }>
 }
 
+type RewardCelebration = {
+  id: number
+  title: string
+  detail: string
+  amount: number
+  tone: 'emerald' | 'amber'
+}
+
 type Direction = 'up' | 'down' | 'left' | 'right'
 type GameState = 'ready' | 'playing' | 'paused' | 'gameOver'
 type GameMode = 'classic' | 'arcade' | 'training'
 type RankedGameMode = 'classic' | 'arcade'
+type SnakeTheme = 'neon' | 'jungle' | 'frost' | 'gold' | 'classic'
 
 type LeaderboardEntry = {
   rank: number
@@ -116,6 +128,9 @@ type SnakeAchievement = {
   coins_reward?: number
   is_unlocked?: boolean
   unlocked_at?: string | null
+  progress_value?: number
+  target_value?: number
+  progress_label?: string
 }
 
 type SnakeDailyChallenge = {
@@ -132,6 +147,19 @@ type SnakeDailyChallenge = {
   claimed_at?: string | null
   challenge_date?: string
   completed_now?: boolean
+}
+
+type SnakeDailyRewards = {
+  current_streak: number
+  best_streak: number
+  last_played_date: string | null
+  chest_id: string
+  chest_date: string
+  completed_challenges: number
+  required_completed_challenges: number
+  reward_coins: number
+  opened_at: string | null
+  can_open: boolean
 }
 
 type SnakeGameProps = {
@@ -188,6 +216,104 @@ const GAME_MODE_CONFIG: Record<GameMode, {
   },
 }
 
+const SNAKE_THEME_CONFIG: Record<SnakeTheme, {
+  label: string
+  description: string
+  boardStart: string
+  boardMiddle: string
+  boardEnd: string
+  aura: string
+  grid: string
+  headStart: string
+  headEnd: string
+  bodyStart: string
+  bodyEnd: string
+  bodyAlt: string
+  eye: string
+  accent: string
+}> = {
+  neon: {
+    label: 'Neon Arcade',
+    description: 'Cian electrico con brillo competitivo.',
+    boardStart: '#061b2d',
+    boardMiddle: '#0f172a',
+    boardEnd: '#102a28',
+    aura: '#22d3ee',
+    grid: 'rgba(148, 163, 184, 0.11)',
+    headStart: '#67e8f9',
+    headEnd: '#22d3ee',
+    bodyStart: '#34d399',
+    bodyEnd: '#2dd4bf',
+    bodyAlt: '#16a34a',
+    eye: '#052e2b',
+    accent: '#22d3ee',
+  },
+  jungle: {
+    label: 'Selva Digital',
+    description: 'Verdes profundos y energia de expedicion.',
+    boardStart: '#052e16',
+    boardMiddle: '#0f1f18',
+    boardEnd: '#123524',
+    aura: '#4ade80',
+    grid: 'rgba(134, 239, 172, 0.12)',
+    headStart: '#bbf7d0',
+    headEnd: '#22c55e',
+    bodyStart: '#84cc16',
+    bodyEnd: '#16a34a',
+    bodyAlt: '#15803d',
+    eye: '#052e16',
+    accent: '#4ade80',
+  },
+  frost: {
+    label: 'Hielo Cosmico',
+    description: 'Azules frios con brillo cristalino.',
+    boardStart: '#081826',
+    boardMiddle: '#111827',
+    boardEnd: '#172554',
+    aura: '#93c5fd',
+    grid: 'rgba(191, 219, 254, 0.13)',
+    headStart: '#e0f2fe',
+    headEnd: '#60a5fa',
+    bodyStart: '#7dd3fc',
+    bodyEnd: '#38bdf8',
+    bodyAlt: '#2563eb',
+    eye: '#082f49',
+    accent: '#93c5fd',
+  },
+  gold: {
+    label: 'Oro Turbo',
+    description: 'Dorado intenso para carreras explosivas.',
+    boardStart: '#221408',
+    boardMiddle: '#171717',
+    boardEnd: '#312e0f',
+    aura: '#facc15',
+    grid: 'rgba(253, 230, 138, 0.12)',
+    headStart: '#fef3c7',
+    headEnd: '#facc15',
+    bodyStart: '#fb923c',
+    bodyEnd: '#f59e0b',
+    bodyAlt: '#b45309',
+    eye: '#451a03',
+    accent: '#facc15',
+  },
+  classic: {
+    label: 'Clasico Pro',
+    description: 'Contraste limpio para partidas serias.',
+    boardStart: '#020617',
+    boardMiddle: '#0f172a',
+    boardEnd: '#111827',
+    aura: '#94a3b8',
+    grid: 'rgba(226, 232, 240, 0.1)',
+    headStart: '#e2e8f0',
+    headEnd: '#94a3b8',
+    bodyStart: '#cbd5e1',
+    bodyEnd: '#64748b',
+    bodyAlt: '#475569',
+    eye: '#020617',
+    accent: '#cbd5e1',
+  },
+}
+
 const SNAKE_BADGE_BASE_URL = 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/snake-badges'
 
 const SNAKE_BADGE_PUBLIC_URLS: Record<string, string> = {
@@ -196,6 +322,16 @@ const SNAKE_BADGE_PUBLIC_URLS: Record<string, string> = {
   'snake-record-breaker.png': `${SNAKE_BADGE_BASE_URL}/snake-record-breaker.png`,
   'snake-rookie.png': `${SNAKE_BADGE_BASE_URL}/snake-rookie.png`,
   'snake-weekly-top-10.png': `${SNAKE_BADGE_BASE_URL}/snake-weekly-top-10.png`,
+  'snake-combo-10.png': `${SNAKE_BADGE_BASE_URL}/snake-combo-10.png`,
+  'snake-10-games.png': `${SNAKE_BADGE_BASE_URL}/snake-10-games.png`,
+  'snake-100-fruits.png': `${SNAKE_BADGE_BASE_URL}/snake-100-fruits.png`,
+  'snake-first-chest.png': `${SNAKE_BADGE_BASE_URL}/snake-first-chest.png`,
+  'snake-streak-3.png': `${SNAKE_BADGE_BASE_URL}/snake-streak-3.png`,
+  'snake-streak-7.png': `${SNAKE_BADGE_BASE_URL}/snake-streak-7.png`,
+  'snake-score-1000.png': `${SNAKE_BADGE_BASE_URL}/snake-score-1000.png`,
+  'snake-score-5000.png': `${SNAKE_BADGE_BASE_URL}/snake-score-5000.png`,
+  'snake-rainbow-3.png': `${SNAKE_BADGE_BASE_URL}/snake-rainbow-3.png`,
+  'snake-10-daily-challenges.png': `${SNAKE_BADGE_BASE_URL}/snake-10-daily-challenges.png`,
 }
 
 const FRUIT_CONFIG: Record<FruitType, {
@@ -275,6 +411,10 @@ function getComboMultiplier(comboValue: number) {
   return 1
 }
 
+function isSnakeTheme(value: string | null): value is SnakeTheme {
+  return Boolean(value && value in SNAKE_THEME_CONFIG)
+}
+
 function createFood(snake: Point[], gameMode: GameMode): Fruit {
   const occupied = new Set(snake.map((segment) => `${segment.x}-${segment.y}`))
   const openCells: Point[] = []
@@ -312,6 +452,25 @@ function formatNumber(value: number | null | undefined) {
   return Number(value || 0).toLocaleString()
 }
 
+function fillRoundedCell(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  radius: number
+) {
+  context.beginPath()
+  context.roundRect(x, y, size, size, radius)
+  context.fill()
+}
+
+function getDirectionVector(direction: Direction) {
+  if (direction === 'up') return { x: 0, y: -1 }
+  if (direction === 'down') return { x: 0, y: 1 }
+  if (direction === 'left') return { x: -1, y: 0 }
+  return { x: 1, y: 0 }
+}
+
 function getSnakeBadgeUrl(badgeUrl: string) {
   if (badgeUrl.startsWith('https://')) return badgeUrl
 
@@ -329,6 +488,11 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const seedRef = useRef(createSeed())
 
   const [gameMode, setGameMode] = useState<GameMode>('arcade')
+  const [snakeTheme, setSnakeTheme] = useState<SnakeTheme>(() => {
+    if (typeof window === 'undefined') return 'neon'
+    const storedTheme = window.localStorage.getItem('snake-theme')
+    return isSnakeTheme(storedTheme) ? storedTheme : 'neon'
+  })
   const [snake, setSnake] = useState<Point[]>(INITIAL_SNAKE)
   const [food, setFood] = useState<Fruit>(() => createFood(INITIAL_SNAKE, 'arcade'))
   const [gameState, setGameState] = useState<GameState>('ready')
@@ -352,6 +516,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const [visualBursts, setVisualBursts] = useState<VisualBurst[]>([])
   const [boardFlash, setBoardFlash] = useState<{ id: number; color: string } | null>(null)
   const [boardShake, setBoardShake] = useState(false)
+  const [rewardCelebration, setRewardCelebration] = useState<RewardCelebration | null>(null)
   const [stats, setStats] = useState<SnakeStats>(initialStats)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [season, setSeason] = useState<SnakeSeason | null>(null)
@@ -364,9 +529,13 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const [completedChallenges, setCompletedChallenges] = useState<SnakeDailyChallenge[]>([])
   const [claimingChallengeId, setClaimingChallengeId] = useState<string | null>(null)
   const [challengeLoadError, setChallengeLoadError] = useState<string | null>(null)
+  const [dailyRewards, setDailyRewards] = useState<SnakeDailyRewards | null>(null)
+  const [rewardsLoadError, setRewardsLoadError] = useState<string | null>(null)
+  const [claimingChest, setClaimingChest] = useState(false)
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [shareStatus, setShareStatus] = useState<string | null>(null)
   const [lastMilestone, setLastMilestone] = useState<string | null>(null)
   const [soundEnabled, setSoundEnabled] = useState(() => soundManager?.isEnabled() ?? true)
   const [soundVolume, setSoundVolume] = useState(() => soundManager?.getVolume() ?? 0.5)
@@ -378,6 +547,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const hasSlowMotion = slowMotionUntil > now
   const hasRainbow = rainbowUntil > now
   const modeConfig = GAME_MODE_CONFIG[gameMode]
+  const themeConfig = SNAKE_THEME_CONFIG[snakeTheme]
   const rankedMode = modeConfig.ranked
   const leaderboardMode: RankedGameMode = gameMode === 'classic' ? 'classic' : 'arcade'
   const leaderboardModeConfig = GAME_MODE_CONFIG[leaderboardMode]
@@ -402,11 +572,15 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
       ? '#f97316'
       : hasSlowMotion
         ? '#93c5fd'
-        : FRUIT_CONFIG[food.type].glow
+        : themeConfig.accent
 
   const playSound = useCallback((soundType: Parameters<NonNullable<typeof soundManager>['play']>[0]) => {
     soundManager?.play(soundType)
   }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem('snake-theme', snakeTheme)
+  }, [snakeTheme])
 
   const toggleSound = useCallback(() => {
     const nextEnabled = !soundEnabled
@@ -466,6 +640,15 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
       setBoardShake(true)
       window.setTimeout(() => setBoardShake(false), 180)
     }
+  }, [prefersReducedMotion])
+
+  const triggerRewardCelebration = useCallback((celebration: Omit<RewardCelebration, 'id'>) => {
+    const id = Date.now() + Math.random()
+    setRewardCelebration({ id, ...celebration })
+
+    window.setTimeout(() => {
+      setRewardCelebration((current) => current?.id === id ? null : current)
+    }, prefersReducedMotion ? 2400 : 3600)
   }, [prefersReducedMotion])
 
   const getElapsedDuration = useCallback(() => {
@@ -534,6 +717,23 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     }
   }, [])
 
+  const fetchDailyRewards = useCallback(async () => {
+    try {
+      const response = await fetch('/api/snake/rewards')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se pudieron cargar las recompensas')
+      }
+
+      setDailyRewards(data.rewards || null)
+      setRewardsLoadError(null)
+    } catch (error) {
+      console.error('Error cargando recompensas Snake:', error)
+      setRewardsLoadError(error instanceof Error ? error.message : 'No se pudieron cargar las recompensas')
+    }
+  }, [])
+
   const claimDailyChallenge = useCallback(async (challengeId: string) => {
     setClaimingChallengeId(challengeId)
     setSaveError(null)
@@ -550,21 +750,99 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
         throw new Error(data.error || 'No se pudo reclamar el reto')
       }
 
-      setLastMilestone(`+${formatNumber(data.result?.reward_coins || 0)} Turix Coins`)
-      await fetchDailyChallenges()
+      const rewardCoins = Number(data.result?.reward_coins || 0)
+      setLastMilestone(`+${formatNumber(rewardCoins)} Turix Coins`)
+      triggerRewardCelebration({
+        title: 'Premio reclamado',
+        detail: 'Reto diario completado',
+        amount: rewardCoins,
+        tone: 'emerald',
+      })
+      await Promise.all([fetchDailyChallenges(), fetchDailyRewards()])
     } catch (error: any) {
       setSaveError(error.message || 'No se pudo reclamar el reto')
     } finally {
       setClaimingChallengeId(null)
     }
-  }, [fetchDailyChallenges])
+  }, [fetchDailyChallenges, fetchDailyRewards, triggerRewardCelebration])
+
+  const claimDailyChest = useCallback(async () => {
+    if (!dailyRewards?.chest_id) return
+
+    setClaimingChest(true)
+    setSaveError(null)
+
+    try {
+      const response = await fetch('/api/snake/rewards/chest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chestId: dailyRewards.chest_id }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se pudo abrir el cofre')
+      }
+
+      const rewardCoins = Number(data.result?.reward_coins || 0)
+      const unlockedAchievements = (data.achievements || []) as SnakeAchievement[]
+      setLastMilestone(`Cofre +${formatNumber(rewardCoins)} TC`)
+      triggerRewardCelebration({
+        title: 'Cofre abierto',
+        detail: 'Recompensa diaria Snake',
+        amount: rewardCoins,
+        tone: 'amber',
+      })
+      if (unlockedAchievements.length > 0) {
+        setLastUnlockedAchievements(unlockedAchievements)
+        setNewAchievements(unlockedAchievements)
+        window.setTimeout(() => setNewAchievements([]), 5200)
+      }
+      await Promise.all([fetchDailyRewards(), fetchAchievements()])
+    } catch (error: any) {
+      setSaveError(error.message || 'No se pudo abrir el cofre')
+    } finally {
+      setClaimingChest(false)
+    }
+  }, [dailyRewards?.chest_id, fetchAchievements, fetchDailyRewards, triggerRewardCelebration])
+
+  const copyShareText = useCallback(async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setShareStatus('Copiado')
+      window.setTimeout(() => setShareStatus(null), 1800)
+    } catch {
+      setShareStatus('No se pudo copiar')
+      window.setTimeout(() => setShareStatus(null), 1800)
+    }
+  }, [])
+
+  const openShareUrl = useCallback((url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }, [])
+
+  const shareResult = useCallback(async (title: string, text: string, url: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url })
+        setShareStatus('Compartido')
+        window.setTimeout(() => setShareStatus(null), 1800)
+        return
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') return
+      }
+    }
+
+    await copyShareText(`${text} ${url}`)
+  }, [copyShareText])
 
   useEffect(() => {
     fetchLeaderboard()
     fetchSeason()
     fetchAchievements()
     fetchDailyChallenges()
-  }, [fetchAchievements, fetchDailyChallenges, fetchLeaderboard, fetchSeason])
+    fetchDailyRewards()
+  }, [fetchAchievements, fetchDailyChallenges, fetchDailyRewards, fetchLeaderboard, fetchSeason])
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current
@@ -574,14 +852,37 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
 
     context.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
+    const pulse = prefersReducedMotion ? 0 : Math.sin(Date.now() / 210)
+    const effectColor = hasRainbow
+      ? '#c084fc'
+      : hasScoreMultiplier
+        ? '#f97316'
+        : hasSlowMotion
+          ? '#93c5fd'
+          : themeConfig.aura
+
     const gradient = context.createLinearGradient(0, 0, CANVAS_SIZE, CANVAS_SIZE)
-    gradient.addColorStop(0, '#061b2d')
-    gradient.addColorStop(0.45, '#0f172a')
-    gradient.addColorStop(1, '#102a28')
+    gradient.addColorStop(0, themeConfig.boardStart)
+    gradient.addColorStop(0.45, themeConfig.boardMiddle)
+    gradient.addColorStop(1, themeConfig.boardEnd)
     context.fillStyle = gradient
     context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
-    context.strokeStyle = 'rgba(148, 163, 184, 0.13)'
+    const boardAura = context.createRadialGradient(
+      CANVAS_SIZE * 0.5,
+      CANVAS_SIZE * 0.45,
+      20,
+      CANVAS_SIZE * 0.5,
+      CANVAS_SIZE * 0.5,
+      CANVAS_SIZE * 0.68
+    )
+    boardAura.addColorStop(0, `${effectColor}22`)
+    boardAura.addColorStop(0.55, 'rgba(15, 23, 42, 0)')
+    boardAura.addColorStop(1, 'rgba(15, 23, 42, 0)')
+    context.fillStyle = boardAura
+    context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+
+    context.strokeStyle = themeConfig.grid
     context.lineWidth = 1
     for (let i = 0; i <= GRID_SIZE; i++) {
       const position = i * CELL_SIZE
@@ -596,73 +897,111 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     }
 
     const fruitConfig = FRUIT_CONFIG[food.type]
+    const fruitX = food.x * CELL_SIZE + CELL_SIZE / 2
+    const fruitY = food.y * CELL_SIZE + CELL_SIZE / 2
+    const fruitRadius = CELL_SIZE * (0.35 + (prefersReducedMotion ? 0 : pulse * 0.035))
+
+    context.save()
+    const fruitAura = context.createRadialGradient(fruitX, fruitY, 1, fruitX, fruitY, CELL_SIZE * 1.45)
+    fruitAura.addColorStop(0, `${fruitConfig.glow}aa`)
+    fruitAura.addColorStop(0.45, `${fruitConfig.glow}34`)
+    fruitAura.addColorStop(1, 'rgba(15, 23, 42, 0)')
+    context.fillStyle = fruitAura
+    context.fillRect(
+      fruitX - CELL_SIZE * 1.5,
+      fruitY - CELL_SIZE * 1.5,
+      CELL_SIZE * 3,
+      CELL_SIZE * 3
+    )
+
     context.fillStyle = fruitConfig.color
     context.shadowColor = fruitConfig.glow
-    context.shadowBlur = 20
+    context.shadowBlur = 18 + Math.max(0, pulse) * 6
     context.beginPath()
-    context.arc(
-      food.x * CELL_SIZE + CELL_SIZE / 2,
-      food.y * CELL_SIZE + CELL_SIZE / 2,
-      CELL_SIZE * 0.35,
-      0,
-      Math.PI * 2
-    )
+    context.arc(fruitX, fruitY, fruitRadius, 0, Math.PI * 2)
     context.fill()
     context.shadowBlur = 0
+
+    context.fillStyle = 'rgba(255, 255, 255, 0.58)'
+    context.beginPath()
+    context.arc(fruitX - CELL_SIZE * 0.12, fruitY - CELL_SIZE * 0.13, CELL_SIZE * 0.09, 0, Math.PI * 2)
+    context.fill()
 
     if (food.type !== 'apple') {
       context.strokeStyle = fruitConfig.glow
       context.lineWidth = 2
       context.beginPath()
-      context.arc(
-        food.x * CELL_SIZE + CELL_SIZE / 2,
-        food.y * CELL_SIZE + CELL_SIZE / 2,
-        CELL_SIZE * 0.48,
-        0,
-        Math.PI * 2
-      )
+      context.arc(fruitX, fruitY, CELL_SIZE * (0.5 + Math.max(0, pulse) * 0.06), 0, Math.PI * 2)
       context.stroke()
       context.fillStyle = '#0f172a'
       context.font = 'bold 10px Arial'
       context.textAlign = 'center'
       context.textBaseline = 'middle'
-      context.fillText(
-        fruitConfig.shortLabel,
-        food.x * CELL_SIZE + CELL_SIZE / 2,
-        food.y * CELL_SIZE + CELL_SIZE / 2
-      )
+      context.fillText(fruitConfig.shortLabel, fruitX, fruitY)
     }
+    context.restore()
 
     snake.forEach((segment, index) => {
       const isHead = index === 0
-      const segmentInset = isHead ? 2 : 3
-      context.fillStyle = isHead
-        ? hasRainbow
-          ? '#f0abfc'
-          : '#22d3ee'
-        : hasRainbow
-          ? index % 2 === 0 ? '#facc15' : '#c084fc'
-          : index % 2 === 0 ? '#34d399' : '#2dd4bf'
-      context.shadowColor = isHead ? (hasRainbow ? '#f0abfc' : '#67e8f9') : '#6ee7b7'
-      context.shadowBlur = isHead ? 16 : 7
-      context.fillRect(
-        segment.x * CELL_SIZE + segmentInset,
-        segment.y * CELL_SIZE + segmentInset,
-        CELL_SIZE - segmentInset * 2,
-        CELL_SIZE - segmentInset * 2
-      )
+      const tailFade = snake.length <= 1 ? 1 : 1 - index / snake.length
+      const segmentInset = isHead ? 1.8 : 3 + Math.min(2, index * 0.08)
+      const segmentSize = CELL_SIZE - segmentInset * 2
+      const segmentX = segment.x * CELL_SIZE + segmentInset
+      const segmentY = segment.y * CELL_SIZE + segmentInset
+      const segmentGradient = context.createLinearGradient(segmentX, segmentY, segmentX + segmentSize, segmentY + segmentSize)
 
       if (isHead) {
+        segmentGradient.addColorStop(0, hasRainbow ? '#f0abfc' : themeConfig.headStart)
+        segmentGradient.addColorStop(1, hasRainbow ? '#facc15' : themeConfig.headEnd)
+      } else if (hasRainbow) {
+        segmentGradient.addColorStop(0, index % 2 === 0 ? '#facc15' : '#c084fc')
+        segmentGradient.addColorStop(1, index % 2 === 0 ? '#34d399' : '#f0abfc')
+      } else {
+        segmentGradient.addColorStop(0, themeConfig.bodyStart)
+        segmentGradient.addColorStop(1, index % 2 === 0 ? themeConfig.bodyEnd : themeConfig.bodyAlt)
+      }
+
+      context.globalAlpha = isHead ? 1 : 0.72 + tailFade * 0.28
+      context.fillStyle = segmentGradient
+      context.shadowColor = isHead ? (hasRainbow ? '#f0abfc' : themeConfig.headStart) : themeConfig.bodyStart
+      context.shadowBlur = isHead ? 18 : 5 + tailFade * 5
+      fillRoundedCell(context, segmentX, segmentY, segmentSize, isHead ? 7 : 5)
+
+      if (isHead) {
+        const directionVector = getDirectionVector(directionRef.current)
+        const centerX = segment.x * CELL_SIZE + CELL_SIZE / 2
+        const centerY = segment.y * CELL_SIZE + CELL_SIZE / 2
+        const eyeOffsetX = directionVector.x * CELL_SIZE * 0.15
+        const eyeOffsetY = directionVector.y * CELL_SIZE * 0.15
+        const sideOffsetX = directionVector.y * CELL_SIZE * 0.18
+        const sideOffsetY = -directionVector.x * CELL_SIZE * 0.18
+
         context.shadowBlur = 0
-        context.fillStyle = '#052e2b'
+        context.globalAlpha = 1
+        context.fillStyle = themeConfig.eye
         context.beginPath()
-        context.arc(segment.x * CELL_SIZE + CELL_SIZE * 0.36, segment.y * CELL_SIZE + CELL_SIZE * 0.38, 2.3, 0, Math.PI * 2)
-        context.arc(segment.x * CELL_SIZE + CELL_SIZE * 0.64, segment.y * CELL_SIZE + CELL_SIZE * 0.38, 2.3, 0, Math.PI * 2)
+        context.arc(centerX + eyeOffsetX + sideOffsetX, centerY + eyeOffsetY + sideOffsetY, 2.4, 0, Math.PI * 2)
+        context.arc(centerX + eyeOffsetX - sideOffsetX, centerY + eyeOffsetY - sideOffsetY, 2.4, 0, Math.PI * 2)
         context.fill()
+
+        if (comboActive && combo >= 3) {
+          context.strokeStyle = 'rgba(255, 255, 255, 0.55)'
+          context.lineWidth = 1.4
+          context.beginPath()
+          context.arc(
+            centerX + directionVector.x * CELL_SIZE * 0.25,
+            centerY + directionVector.y * CELL_SIZE * 0.25,
+            CELL_SIZE * 0.13,
+            0,
+            Math.PI
+          )
+          context.stroke()
+        }
       }
     })
+    context.globalAlpha = 1
     context.shadowBlur = 0
-  }, [food, hasRainbow, snake])
+  }, [combo, comboActive, food, hasRainbow, hasScoreMultiplier, hasSlowMotion, prefersReducedMotion, snake, themeConfig])
 
   useEffect(() => {
     draw()
@@ -692,6 +1031,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     setRainbowUntil(0)
     setSaveResult(null)
     setSaveError(null)
+    setShareStatus(null)
     setLastUnlockedAchievements([])
     setCompletedChallenges([])
     setLastMilestone(null)
@@ -730,6 +1070,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     setRainbowUntil(0)
     setSaveResult(null)
     setSaveError(null)
+    setShareStatus(null)
     setLastUnlockedAchievements([])
     setCompletedChallenges([])
     setLastMilestone(null)
@@ -1008,7 +1349,10 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
           setCompletedChallenges(unlockedChallenges)
           setLastMilestone(`${unlockedChallenges.length} reto${unlockedChallenges.length === 1 ? '' : 's'} diario${unlockedChallenges.length === 1 ? '' : 's'} listo${unlockedChallenges.length === 1 ? '' : 's'}`)
         }
-        await Promise.all([fetchLeaderboard(), fetchStats(), fetchSeason(), fetchAchievements(), fetchDailyChallenges()])
+        if (data.dailyReward?.reward_claimed) {
+          setLastMilestone(`Racha dia ${data.dailyReward.current_streak}: +${formatNumber(data.dailyReward.reward_coins)} TC`)
+        }
+        await Promise.all([fetchLeaderboard(), fetchStats(), fetchSeason(), fetchAchievements(), fetchDailyChallenges(), fetchDailyRewards()])
       } catch (error: any) {
         setSaveError(error.message || 'No se pudo guardar el puntaje')
       } finally {
@@ -1017,7 +1361,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     }
 
     saveScore()
-  }, [baseSpeed, bestCombo, combo, comboEnabled, durationMs, fetchAchievements, fetchDailyChallenges, fetchLeaderboard, fetchSeason, fetchStats, foodCount, fruitCounts, gameMode, gameState, level, modeConfig.specialFruits, playSound, rankedMode, score, snake.length, speed])
+  }, [baseSpeed, bestCombo, combo, comboEnabled, durationMs, fetchAchievements, fetchDailyChallenges, fetchDailyRewards, fetchLeaderboard, fetchSeason, fetchStats, foodCount, fruitCounts, gameMode, gameState, level, modeConfig.specialFruits, playSound, rankedMode, score, snake.length, speed])
 
   const stateLabel = gameState === 'playing'
     ? 'En partida'
@@ -1075,9 +1419,70 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
         : pointsToTopTen <= 0
           ? `Entraste al top 10 ${leaderboardModeConfig.label}.`
           : `Te faltaron ${formatNumber(pointsToTopTen)} puntos para entrar al top 10.`
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/snake` : 'https://turix.club/snake'
+  const shareTitle = 'Snake Mundial en Turix'
+  const shareText = saveResult?.rank
+    ? `Hice ${formatNumber(score)} puntos y quede #${saveResult.rank} en Snake Mundial (${leaderboardModeConfig.label}) de Turix.`
+    : `Hice ${formatNumber(score)} puntos en Snake Mundial de Turix.`
+  const encodedShareText = encodeURIComponent(shareText)
+  const encodedShareUrl = encodeURIComponent(shareUrl)
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {rewardCelebration && (
+        <div className="pointer-events-none fixed inset-x-0 top-20 z-[60] flex justify-center px-4">
+          <div className={`snake-reward-pop relative w-[min(420px,calc(100vw-2rem))] overflow-hidden rounded-lg border p-4 shadow-2xl backdrop-blur ${
+            rewardCelebration.tone === 'amber'
+              ? 'border-amber-300/50 bg-amber-300/15 shadow-amber-950/50'
+              : 'border-emerald-300/50 bg-emerald-300/15 shadow-emerald-950/50'
+          }`}>
+            <div className="absolute inset-0 opacity-30" style={{
+              background: rewardCelebration.tone === 'amber'
+                ? 'radial-gradient(circle at 20% 20%, rgba(250, 204, 21, 0.75), transparent 34%), radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.45), transparent 28%)'
+                : 'radial-gradient(circle at 20% 20%, rgba(52, 211, 153, 0.7), transparent 34%), radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.45), transparent 28%)',
+            }} />
+            <div className="relative flex items-center gap-3">
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
+                rewardCelebration.tone === 'amber'
+                  ? 'bg-amber-300 text-slate-950'
+                  : 'bg-emerald-300 text-slate-950'
+              }`}>
+                <Trophy className="h-6 w-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black uppercase tracking-wider text-cyan-50/65">
+                  {rewardCelebration.detail}
+                </p>
+                <p className="truncate text-lg font-black text-white">{rewardCelebration.title}</p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-xs font-bold text-cyan-50/65">Turix Coins</p>
+                <p className={`text-2xl font-black ${
+                  rewardCelebration.tone === 'amber' ? 'text-amber-200' : 'text-emerald-200'
+                }`}>
+                  +{formatNumber(rewardCelebration.amount)}
+                </p>
+              </div>
+            </div>
+            {!prefersReducedMotion && (
+              <div className="pointer-events-none absolute inset-0">
+                {Array.from({ length: 10 }, (_, index) => (
+                  <span
+                    key={index}
+                    className={`snake-reward-spark ${rewardCelebration.tone === 'amber' ? 'bg-amber-200' : 'bg-emerald-200'}`}
+                    style={{
+                      left: `${10 + index * 9}%`,
+                      top: `${index % 2 === 0 ? 18 : 72}%`,
+                      animationDelay: `${index * 55}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {newAchievements.length > 0 && (
         <div className="fixed right-4 top-20 z-50 w-[min(360px,calc(100vw-2rem))] space-y-2">
           {newAchievements.map((achievement) => (
@@ -1090,7 +1495,10 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">Insignia desbloqueada</p>
                   <p className="truncate text-lg font-black">{achievement.name}</p>
-                  <p className="text-sm text-cyan-50/70">{achievement.description}</p>
+                  <p className="text-sm text-cyan-50/70">
+                    {achievement.coins_reward ? `+${formatNumber(achievement.coins_reward)} TC · ` : ''}
+                    {achievement.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1181,6 +1589,49 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                   </p>
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-cyan-100/60">Estilo visual</p>
+                <p className="font-bold text-white">{themeConfig.label}</p>
+              </div>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-cyan-100">
+                Gratis
+              </span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+              {(Object.keys(SNAKE_THEME_CONFIG) as SnakeTheme[]).map((theme) => {
+                const themeOption = SNAKE_THEME_CONFIG[theme]
+                const selected = snakeTheme === theme
+
+                return (
+                  <button
+                    key={theme}
+                    type="button"
+                    onClick={() => setSnakeTheme(theme)}
+                    className={`rounded-lg border p-3 text-left transition ${
+                      selected
+                        ? 'border-cyan-300/60 bg-cyan-300/15 text-white shadow-lg shadow-cyan-950/30'
+                        : 'border-white/10 bg-slate-950/50 text-cyan-50/75 hover:border-white/25 hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className="mb-3 flex gap-1">
+                      {[themeOption.headEnd, themeOption.bodyStart, themeOption.bodyEnd].map((color) => (
+                        <span
+                          key={color}
+                          className="h-5 flex-1 rounded-full border border-white/20"
+                          style={{ backgroundColor: color, boxShadow: `0 0 12px ${color}66` }}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm font-black leading-tight">{themeOption.label}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-cyan-50/60">{themeOption.description}</p>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -1405,7 +1856,10 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                                 <AchievementImage achievement={achievement} size="sm" />
                                 <div>
                                   <p className="text-sm font-black text-white">{achievement.name}</p>
-                                  <p className="text-xs text-cyan-50/60">{achievement.description}</p>
+                                  <p className="text-xs text-cyan-50/60">
+                                    {achievement.coins_reward ? `+${formatNumber(achievement.coins_reward)} TC · ` : ''}
+                                    {achievement.description}
+                                  </p>
                                 </div>
                               </div>
                             ))}
@@ -1437,6 +1891,67 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                           </div>
                         </div>
                       )}
+
+                      <div className="mt-4 rounded-lg border border-cyan-300/25 bg-cyan-300/10 p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-cyan-100/70">
+                              Compartir resultado
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-white">
+                              {shareText}
+                            </p>
+                          </div>
+                          {shareStatus && (
+                            <span className="shrink-0 rounded-full bg-emerald-300 px-3 py-1 text-xs font-black text-slate-950">
+                              {shareStatus}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                          <button
+                            type="button"
+                            onClick={() => shareResult(shareTitle, shareText, shareUrl)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-300 px-3 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200"
+                          >
+                            <Share2 className="h-4 w-4" />
+                            Compartir
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => copyShareText(`${shareText} ${shareUrl}`)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copiar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openShareUrl(`https://twitter.com/intent/tweet?text=${encodedShareText}&url=${encodedShareUrl}`)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+                          >
+                            <Send className="h-4 w-4" />
+                            X
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openShareUrl(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+                          >
+                            <Send className="h-4 w-4" />
+                            WhatsApp
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}&quote=${encodedShareText}`)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+                          >
+                            <Share2 className="h-4 w-4" />
+                            Facebook
+                          </button>
+                        </div>
+                      </div>
 
                       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                         <button
@@ -1722,6 +2237,23 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
             )}
           </Panel>
 
+          <Panel title="Racha y cofre" icon={<Zap className="h-5 w-5 text-amber-200" />}>
+            {rewardsLoadError ? (
+              <div className="rounded-lg border border-rose-300/25 bg-rose-300/10 p-3">
+                <p className="text-sm font-bold text-rose-100">No se pudieron cargar las recompensas.</p>
+                <p className="mt-1 text-xs text-rose-50/70">{rewardsLoadError}</p>
+              </div>
+            ) : dailyRewards ? (
+              <DailyRewardsCard
+                rewards={dailyRewards}
+                isClaiming={claimingChest}
+                onClaim={claimDailyChest}
+              />
+            ) : (
+              <p className="text-sm text-cyan-50/70">Juega una partida rankeada para iniciar tu racha.</p>
+            )}
+          </Panel>
+
           <Panel title="Retos diarios" icon={<Zap className="h-5 w-5 text-cyan-200" />}>
             {challengeLoadError ? (
               <div className="rounded-lg border border-rose-300/25 bg-rose-300/10 p-3">
@@ -1765,6 +2297,20 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                     <p className="mt-1 text-center text-xs text-cyan-50/60">
                       {achievement.is_unlocked ? 'Desbloqueada' : 'Pendiente'}
                     </p>
+                    <div className="mt-3">
+                      <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-bold text-cyan-50/55">
+                        <span>{achievement.progress_label || (achievement.is_unlocked ? 'Lista' : '0/1')}</span>
+                        <span>+{formatNumber(achievement.coins_reward || 0)} TC</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className={`h-full rounded-full ${achievement.is_unlocked ? 'bg-violet-300' : 'bg-cyan-300'}`}
+                          style={{
+                            width: `${Math.max(0, Math.min(100, ((achievement.progress_value || 0) / Math.max(achievement.target_value || achievement.requirement_value || 1, 1)) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1900,6 +2446,74 @@ function DailyChallengeCard({
           {isClaiming ? 'Cobrando...' : 'Reclamar premio'}
         </button>
       )}
+    </div>
+  )
+}
+
+function DailyRewardsCard({
+  rewards,
+  isClaiming,
+  onClaim,
+}: {
+  rewards: SnakeDailyRewards
+  isClaiming: boolean
+  onClaim: () => void
+}) {
+  const completed = Math.min(rewards.completed_challenges, rewards.required_completed_challenges)
+  const progress = Math.max(0, Math.min(100, (completed / rewards.required_completed_challenges) * 100))
+  const opened = Boolean(rewards.opened_at)
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        <MiniStat label="Racha actual" value={`${formatNumber(rewards.current_streak)}d`} />
+        <MiniStat label="Mejor racha" value={`${formatNumber(rewards.best_streak)}d`} />
+      </div>
+
+      <div className={`rounded-lg border p-4 ${
+        opened
+          ? 'border-white/10 bg-slate-950/45 opacity-80'
+          : rewards.can_open
+            ? 'border-amber-300/40 bg-amber-300/10'
+            : 'border-cyan-300/20 bg-cyan-300/10'
+      }`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-black text-white">Cofre diario</p>
+            <p className="mt-1 text-xs leading-relaxed text-cyan-50/65">
+              Completa 3 retos diarios para abrirlo.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-amber-300 px-2 py-1 text-xs font-black text-slate-950">
+            +{formatNumber(rewards.reward_coins)}
+          </span>
+        </div>
+
+        <div className="mt-3">
+          <div className="mb-1 flex items-center justify-between text-xs font-bold text-cyan-50/65">
+            <span>{completed}/{rewards.required_completed_challenges} retos</span>
+            <span>{opened ? 'Abierto' : rewards.can_open ? 'Listo' : 'Bloqueado'}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={`h-full rounded-full ${rewards.can_open || opened ? 'bg-amber-300' : 'bg-cyan-300'}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {rewards.can_open && !opened && (
+          <button
+            type="button"
+            onClick={onClaim}
+            disabled={isClaiming}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-300 px-3 py-2 text-sm font-black text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Trophy className="h-4 w-4" />
+            {isClaiming ? 'Abriendo...' : 'Abrir cofre'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
