@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Activity,
   ArrowDown,
@@ -1429,66 +1430,89 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {rewardCelebration && (
-        <div className="pointer-events-none fixed inset-x-0 top-20 z-[60] flex justify-center px-4">
-          <div className={`snake-reward-pop relative w-[min(420px,calc(100vw-2rem))] overflow-hidden rounded-lg border p-4 shadow-2xl backdrop-blur ${
-            rewardCelebration.tone === 'amber'
-              ? 'border-amber-300/50 bg-amber-300/15 shadow-amber-950/50'
-              : 'border-emerald-300/50 bg-emerald-300/15 shadow-emerald-950/50'
-          }`}>
-            <div className="absolute inset-0 opacity-30" style={{
-              background: rewardCelebration.tone === 'amber'
-                ? 'radial-gradient(circle at 20% 20%, rgba(250, 204, 21, 0.75), transparent 34%), radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.45), transparent 28%)'
-                : 'radial-gradient(circle at 20% 20%, rgba(52, 211, 153, 0.7), transparent 34%), radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.45), transparent 28%)',
-            }} />
-            <div className="relative flex items-center gap-3">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
-                rewardCelebration.tone === 'amber'
-                  ? 'bg-amber-300 text-slate-950'
-                  : 'bg-emerald-300 text-slate-950'
-              }`}>
-                <Trophy className="h-6 w-6" />
+      <AnimatePresence>
+        {rewardCelebration && (
+          <motion.div
+            key={rewardCelebration.id}
+            className="pointer-events-none fixed inset-x-0 top-20 z-[60] flex justify-center px-4"
+            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -18, scale: 0.94 }}
+            animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: prefersReducedMotion ? 0.12 : 0.28, ease: 'easeOut' }}
+          >
+            <div className={`relative w-[min(420px,calc(100vw-2rem))] overflow-hidden rounded-lg border p-4 shadow-2xl backdrop-blur ${
+              rewardCelebration.tone === 'amber'
+                ? 'border-amber-300/50 bg-amber-300/15 shadow-amber-950/50'
+                : 'border-emerald-300/50 bg-emerald-300/15 shadow-emerald-950/50'
+            }`}>
+              <div className="absolute inset-0 opacity-30" style={{
+                background: rewardCelebration.tone === 'amber'
+                  ? 'radial-gradient(circle at 20% 20%, rgba(250, 204, 21, 0.75), transparent 34%), radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.45), transparent 28%)'
+                  : 'radial-gradient(circle at 20% 20%, rgba(52, 211, 153, 0.7), transparent 34%), radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.45), transparent 28%)',
+              }} />
+              <div className="relative flex items-center gap-3">
+                <motion.div
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
+                    rewardCelebration.tone === 'amber'
+                      ? 'bg-amber-300 text-slate-950'
+                      : 'bg-emerald-300 text-slate-950'
+                  }`}
+                  animate={prefersReducedMotion ? undefined : { rotate: [0, -8, 8, 0], scale: [1, 1.08, 1] }}
+                  transition={{ duration: 0.7, ease: 'easeOut' }}
+                >
+                  <Trophy className="h-6 w-6" />
+                </motion.div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black uppercase tracking-wider text-cyan-50/65">
+                    {rewardCelebration.detail}
+                  </p>
+                  <p className="truncate text-lg font-black text-white">{rewardCelebration.title}</p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-xs font-bold text-cyan-50/65">Turix Coins</p>
+                  <p className={`text-2xl font-black ${
+                    rewardCelebration.tone === 'amber' ? 'text-amber-200' : 'text-emerald-200'
+                  }`}>
+                    +{formatNumber(rewardCelebration.amount)}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-black uppercase tracking-wider text-cyan-50/65">
-                  {rewardCelebration.detail}
-                </p>
-                <p className="truncate text-lg font-black text-white">{rewardCelebration.title}</p>
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="text-xs font-bold text-cyan-50/65">Turix Coins</p>
-                <p className={`text-2xl font-black ${
-                  rewardCelebration.tone === 'amber' ? 'text-amber-200' : 'text-emerald-200'
-                }`}>
-                  +{formatNumber(rewardCelebration.amount)}
-                </p>
-              </div>
+              {!prefersReducedMotion && (
+                <div className="pointer-events-none absolute inset-0">
+                  {Array.from({ length: 10 }, (_, index) => (
+                    <span
+                      key={index}
+                      className={`snake-reward-spark ${rewardCelebration.tone === 'amber' ? 'bg-amber-200' : 'bg-emerald-200'}`}
+                      style={{
+                        left: `${10 + index * 9}%`,
+                        top: `${index % 2 === 0 ? 18 : 72}%`,
+                        animationDelay: `${index * 55}ms`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            {!prefersReducedMotion && (
-              <div className="pointer-events-none absolute inset-0">
-                {Array.from({ length: 10 }, (_, index) => (
-                  <span
-                    key={index}
-                    className={`snake-reward-spark ${rewardCelebration.tone === 'amber' ? 'bg-amber-200' : 'bg-emerald-200'}`}
-                    style={{
-                      left: `${10 + index * 9}%`,
-                      top: `${index % 2 === 0 ? 18 : 72}%`,
-                      animationDelay: `${index * 55}ms`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {newAchievements.length > 0 && (
-        <div className="fixed right-4 top-20 z-50 w-[min(360px,calc(100vw-2rem))] space-y-2">
+      <AnimatePresence>
+        {newAchievements.length > 0 && (
+          <motion.div
+            className="fixed right-4 top-20 z-50 w-[min(360px,calc(100vw-2rem))] space-y-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
           {newAchievements.map((achievement) => (
-            <div
+            <motion.div
               key={achievement.id}
               className="rounded-lg border border-emerald-300/40 bg-slate-950/95 p-4 shadow-2xl shadow-emerald-950/50 backdrop-blur"
+              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 22, scale: 0.96 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, x: 0, scale: 1 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 22, scale: 0.96 }}
+              transition={{ duration: prefersReducedMotion ? 0.12 : 0.24, ease: 'easeOut' }}
             >
               <div className="flex items-center gap-3">
                 <AchievementImage achievement={achievement} size="sm" />
@@ -1501,10 +1525,11 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <header className="border-b border-white/10 bg-slate-950/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -1567,11 +1592,13 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
             </div>
             <div className="grid gap-2 md:grid-cols-3">
               {(Object.keys(GAME_MODE_CONFIG) as GameMode[]).map((mode) => (
-                <button
+                <motion.button
                   key={mode}
                   type="button"
                   disabled={gameState === 'playing' || gameState === 'paused'}
                   onClick={() => selectGameMode(mode)}
+                  whileHover={gameState === 'playing' || gameState === 'paused' || prefersReducedMotion ? undefined : { y: -2 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   className={`rounded-lg border p-3 text-left transition ${
                     gameMode === mode
                       ? 'border-cyan-300/60 bg-cyan-300/15 text-white shadow-lg shadow-cyan-950/30'
@@ -1587,7 +1614,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                   <p className="mt-2 text-xs leading-relaxed text-cyan-50/65">
                     {GAME_MODE_CONFIG[mode].description}
                   </p>
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -1608,10 +1635,12 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 const selected = snakeTheme === theme
 
                 return (
-                  <button
+                  <motion.button
                     key={theme}
                     type="button"
                     onClick={() => setSnakeTheme(theme)}
+                    whileHover={prefersReducedMotion ? undefined : { y: -2 }}
+                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                     className={`rounded-lg border p-3 text-left transition ${
                       selected
                         ? 'border-cyan-300/60 bg-cyan-300/15 text-white shadow-lg shadow-cyan-950/30'
@@ -1629,7 +1658,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                     </div>
                     <p className="text-sm font-black leading-tight">{themeOption.label}</p>
                     <p className="mt-1 text-xs leading-relaxed text-cyan-50/60">{themeOption.description}</p>
-                  </button>
+                  </motion.button>
                 )
               })}
             </div>
@@ -1786,7 +1815,12 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
               {gameState !== 'playing' && (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-950/72 p-4 text-center backdrop-blur-sm sm:p-6">
                   {gameState === 'gameOver' ? (
-                    <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg border border-white/10 bg-slate-950/90 p-5 text-left shadow-2xl">
+                    <motion.div
+                      className="max-h-full w-full max-w-2xl overflow-y-auto rounded-lg border border-white/10 bg-slate-950/90 p-5 text-left shadow-2xl"
+                      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.97 }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: prefersReducedMotion ? 0.12 : 0.28, ease: 'easeOut' }}
+                    >
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-cyan-100">
@@ -1812,7 +1846,15 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                         </div>
                       </div>
 
-                      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      <motion.div
+                        className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4"
+                        initial="hidden"
+                        animate="show"
+                        variants={{
+                          hidden: {},
+                          show: { transition: { staggerChildren: prefersReducedMotion ? 0 : 0.035 } },
+                        }}
+                      >
                         <ResultStat label="Puntos" value={formatNumber(score)} />
                         <ResultStat label="Nivel" value={String(level)} />
                         <ResultStat label="Frutas" value={String(foodCount)} />
@@ -1821,7 +1863,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                         <ResultStat label="Longitud" value={String(snake.length)} />
                         <ResultStat label="Fruta top" value={FRUIT_CONFIG[favoriteFruit].label} />
                         <ResultStat label="Record modo" value={formatNumber(projectedBest)} />
-                      </div>
+                      </motion.div>
 
                       <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] p-4">
                         <p className="text-xs font-bold uppercase tracking-wider text-cyan-100/60">
@@ -1971,7 +2013,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                           Cambiar modo
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                   ) : (
                     <div className="max-w-lg">
                       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-500/30">
@@ -2384,10 +2426,16 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function ResultStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+    <motion.div
+      className="rounded-lg border border-white/10 bg-white/[0.06] p-3"
+      variants={{
+        hidden: { opacity: 0, y: 8 },
+        show: { opacity: 1, y: 0 },
+      }}
+    >
       <p className="text-xs uppercase tracking-wider text-cyan-50/55">{label}</p>
       <p className="mt-1 text-lg font-black text-white">{value}</p>
-    </div>
+    </motion.div>
   )
 }
 
