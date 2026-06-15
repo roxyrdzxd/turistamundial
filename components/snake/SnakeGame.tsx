@@ -33,6 +33,11 @@ type Point = {
   y: number
 }
 
+type RenderCache = {
+  key: string
+  canvas: HTMLCanvasElement
+}
+
 type FruitType = 'apple' | 'gold' | 'turbo' | 'frost' | 'rainbow'
 
 type Fruit = Point & {
@@ -62,8 +67,8 @@ type RewardCelebration = {
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 type GameState = 'ready' | 'playing' | 'paused' | 'gameOver'
-type GameMode = 'classic' | 'arcade' | 'training'
-type RankedGameMode = 'classic' | 'arcade'
+type GameMode = 'classic' | 'arcade' | 'timeAttack' | 'training'
+type RankedGameMode = 'classic' | 'arcade' | 'timeAttack'
 type SnakeTheme = 'neon' | 'jungle' | 'frost' | 'gold' | 'classic'
 
 type LeaderboardEntry = {
@@ -173,6 +178,19 @@ const GRID_SIZE = 24
 const CANVAS_SIZE = 480
 const CELL_SIZE = CANVAS_SIZE / GRID_SIZE
 const COMBO_WINDOW_MS = 6500
+const TIME_ATTACK_LIMIT_MS = 60000
+const TIME_ATTACK_COLLISION_PENALTY_MS = 5000
+const TIME_ATTACK_COMBO_BONUS_MS = 3000
+const TIME_ATTACK_COMBO_BIG_BONUS_MS = 6000
+const TIME_ATTACK_COMBO_BONUS_THRESHOLD = 5
+const TIME_ATTACK_COMBO_BIG_THRESHOLD = 10
+const TIME_ATTACK_LEVEL_BONUS_MS = 4000
+const TIME_ATTACK_GOLD_BONUS_MS = 3000
+const TIME_ATTACK_FROST_BONUS_MS = 2000
+const TIME_ATTACK_RAINBOW_BONUS_MS = 5000
+const TIME_ATTACK_PRECISION_BONUS_MS = 3000
+const TIME_ATTACK_PRECISION_WINDOW_MS = 15000
+const TIME_ATTACK_MAX_TIME_MS = 90000
 const INITIAL_SNAKE: Point[] = [
   { x: 8, y: 12 },
   { x: 7, y: 12 },
@@ -205,6 +223,15 @@ const GAME_MODE_CONFIG: Record<GameMode, {
     specialFruits: true,
     combos: true,
     speedOffset: 0,
+  },
+  timeAttack: {
+    label: 'Contra Reloj',
+    shortLabel: '60s',
+    description: 'Un minuto de caos: frutas raras, niveles y precision recuperan segundos.',
+    ranked: true,
+    specialFruits: true,
+    combos: true,
+    speedOffset: -6,
   },
   training: {
     label: 'Entrenamiento',
@@ -472,6 +499,177 @@ function getDirectionVector(direction: Direction) {
   return { x: 1, y: 0 }
 }
 
+function drawBoardLayer(context: CanvasRenderingContext2D, themeConfig: typeof SNAKE_THEME_CONFIG[SnakeTheme]) {
+  const gradient = context.createLinearGradient(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+  gradient.addColorStop(0, themeConfig.boardStart)
+  gradient.addColorStop(0.45, themeConfig.boardMiddle)
+  gradient.addColorStop(1, themeConfig.boardEnd)
+  context.fillStyle = gradient
+  context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+
+  context.save()
+  context.globalAlpha = 0.08
+  context.fillStyle = themeConfig.accent
+  for (let y = 0; y < GRID_SIZE; y += 2) {
+    for (let x = (y / 2) % 2; x < GRID_SIZE; x += 2) {
+      context.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+    }
+  }
+  context.restore()
+
+  context.strokeStyle = themeConfig.grid
+  context.lineWidth = 1
+  for (let i = 0; i <= GRID_SIZE; i++) {
+    const position = i * CELL_SIZE
+    context.beginPath()
+    context.moveTo(position, 0)
+    context.lineTo(position, CANVAS_SIZE)
+    context.stroke()
+    context.beginPath()
+    context.moveTo(0, position)
+    context.lineTo(CANVAS_SIZE, position)
+    context.stroke()
+  }
+}
+
+function drawFruitShape(
+  context: CanvasRenderingContext2D,
+  fruit: Fruit,
+  fruitConfig: typeof FRUIT_CONFIG[FruitType],
+  pulse: number
+) {
+  const fruitX = fruit.x * CELL_SIZE + CELL_SIZE / 2
+  const fruitY = fruit.y * CELL_SIZE + CELL_SIZE / 2
+  const fruitRadius = CELL_SIZE * (0.34 + pulse * 0.035)
+
+  context.save()
+  const fruitAura = context.createRadialGradient(fruitX, fruitY, 1, fruitX, fruitY, CELL_SIZE * 1.45)
+  fruitAura.addColorStop(0, `${fruitConfig.glow}aa`)
+  fruitAura.addColorStop(0.45, `${fruitConfig.glow}34`)
+  fruitAura.addColorStop(1, 'rgba(15, 23, 42, 0)')
+  context.fillStyle = fruitAura
+  context.fillRect(
+    fruitX - CELL_SIZE * 1.5,
+    fruitY - CELL_SIZE * 1.5,
+    CELL_SIZE * 3,
+    CELL_SIZE * 3
+  )
+
+  context.shadowColor = fruitConfig.glow
+  context.shadowBlur = 18 + Math.max(0, pulse) * 6
+
+  if (fruit.type === 'apple') {
+    const appleGradient = context.createRadialGradient(
+      fruitX - CELL_SIZE * 0.12,
+      fruitY - CELL_SIZE * 0.16,
+      CELL_SIZE * 0.05,
+      fruitX,
+      fruitY,
+      fruitRadius
+    )
+    appleGradient.addColorStop(0, '#fecdd3')
+    appleGradient.addColorStop(0.45, fruitConfig.color)
+    appleGradient.addColorStop(1, '#be123c')
+    context.fillStyle = appleGradient
+    context.beginPath()
+    context.arc(fruitX - CELL_SIZE * 0.11, fruitY, fruitRadius * 0.82, 0, Math.PI * 2)
+    context.arc(fruitX + CELL_SIZE * 0.11, fruitY, fruitRadius * 0.82, 0, Math.PI * 2)
+    context.fill()
+    context.shadowBlur = 0
+    context.strokeStyle = '#15803d'
+    context.lineWidth = 2
+    context.beginPath()
+    context.moveTo(fruitX, fruitY - fruitRadius * 0.72)
+    context.quadraticCurveTo(fruitX + CELL_SIZE * 0.04, fruitY - fruitRadius * 1.08, fruitX + CELL_SIZE * 0.22, fruitY - fruitRadius * 1.05)
+    context.stroke()
+    context.fillStyle = 'rgba(255, 255, 255, 0.58)'
+    context.beginPath()
+    context.arc(fruitX - CELL_SIZE * 0.13, fruitY - CELL_SIZE * 0.12, CELL_SIZE * 0.07, 0, Math.PI * 2)
+    context.fill()
+  } else if (fruit.type === 'gold') {
+    const goldGradient = context.createLinearGradient(
+      fruitX - fruitRadius,
+      fruitY - fruitRadius,
+      fruitX + fruitRadius,
+      fruitY + fruitRadius
+    )
+    goldGradient.addColorStop(0, '#fef3c7')
+    goldGradient.addColorStop(0.5, fruitConfig.color)
+    goldGradient.addColorStop(1, '#b45309')
+    context.fillStyle = goldGradient
+    context.beginPath()
+    context.moveTo(fruitX, fruitY - fruitRadius)
+    context.lineTo(fruitX + fruitRadius * 0.9, fruitY - fruitRadius * 0.12)
+    context.lineTo(fruitX + fruitRadius * 0.54, fruitY + fruitRadius * 0.92)
+    context.lineTo(fruitX - fruitRadius * 0.54, fruitY + fruitRadius * 0.92)
+    context.lineTo(fruitX - fruitRadius * 0.9, fruitY - fruitRadius * 0.12)
+    context.closePath()
+    context.fill()
+    context.shadowBlur = 0
+    context.strokeStyle = 'rgba(255, 255, 255, 0.7)'
+    context.lineWidth = 1.5
+    context.stroke()
+  } else if (fruit.type === 'turbo') {
+    context.fillStyle = fruitConfig.color
+    context.beginPath()
+    context.arc(fruitX, fruitY, fruitRadius, 0, Math.PI * 2)
+    context.fill()
+    context.shadowBlur = 0
+    context.fillStyle = '#fff7ed'
+    context.beginPath()
+    context.moveTo(fruitX - fruitRadius * 0.15, fruitY - fruitRadius * 0.72)
+    context.lineTo(fruitX + fruitRadius * 0.42, fruitY - fruitRadius * 0.12)
+    context.lineTo(fruitX + fruitRadius * 0.06, fruitY - fruitRadius * 0.12)
+    context.lineTo(fruitX + fruitRadius * 0.2, fruitY + fruitRadius * 0.7)
+    context.lineTo(fruitX - fruitRadius * 0.42, fruitY + fruitRadius * 0.02)
+    context.lineTo(fruitX - fruitRadius * 0.06, fruitY + fruitRadius * 0.02)
+    context.closePath()
+    context.fill()
+  } else if (fruit.type === 'frost') {
+    context.fillStyle = fruitConfig.color
+    context.beginPath()
+    context.arc(fruitX, fruitY, fruitRadius, 0, Math.PI * 2)
+    context.fill()
+    context.shadowBlur = 0
+    context.strokeStyle = '#eff6ff'
+    context.lineWidth = 1.7
+    for (let i = 0; i < 3; i++) {
+      const angle = (Math.PI * i) / 3
+      context.beginPath()
+      context.moveTo(fruitX + Math.cos(angle) * fruitRadius * 0.72, fruitY + Math.sin(angle) * fruitRadius * 0.72)
+      context.lineTo(fruitX - Math.cos(angle) * fruitRadius * 0.72, fruitY - Math.sin(angle) * fruitRadius * 0.72)
+      context.stroke()
+    }
+  } else {
+    const rainbowGradient = context.createConicGradient(0, fruitX, fruitY)
+    rainbowGradient.addColorStop(0, '#f87171')
+    rainbowGradient.addColorStop(0.2, '#facc15')
+    rainbowGradient.addColorStop(0.4, '#4ade80')
+    rainbowGradient.addColorStop(0.65, '#38bdf8')
+    rainbowGradient.addColorStop(0.85, '#c084fc')
+    rainbowGradient.addColorStop(1, '#f87171')
+    context.fillStyle = rainbowGradient
+    context.beginPath()
+    context.arc(fruitX, fruitY, fruitRadius, 0, Math.PI * 2)
+    context.fill()
+    context.shadowBlur = 0
+    context.fillStyle = 'rgba(255, 255, 255, 0.72)'
+    context.beginPath()
+    context.arc(fruitX - CELL_SIZE * 0.1, fruitY - CELL_SIZE * 0.1, CELL_SIZE * 0.07, 0, Math.PI * 2)
+    context.fill()
+  }
+
+  if (fruit.type !== 'apple') {
+    context.strokeStyle = fruitConfig.glow
+    context.lineWidth = 2
+    context.beginPath()
+    context.arc(fruitX, fruitY, CELL_SIZE * (0.5 + Math.max(0, pulse) * 0.06), 0, Math.PI * 2)
+    context.stroke()
+  }
+
+  context.restore()
+}
+
 function getSnakeBadgeUrl(badgeUrl: string) {
   if (badgeUrl.startsWith('https://')) return badgeUrl
 
@@ -483,10 +681,13 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const directionRef = useRef<Direction>('right')
   const nextDirectionRef = useRef<Direction>('right')
+  const boardCacheRef = useRef<RenderCache | null>(null)
   const startTimeRef = useRef<number | null>(null)
   const elapsedBeforePauseRef = useRef(0)
   const submittedRef = useRef(false)
   const seedRef = useRef(createSeed())
+  const timeAttackLastCollisionAtRef = useRef(0)
+  const timeAttackLastPrecisionBonusAtRef = useRef(0)
 
   const [gameMode, setGameMode] = useState<GameMode>('arcade')
   const [snakeTheme, setSnakeTheme] = useState<SnakeTheme>(() => {
@@ -508,6 +709,8 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   })
   const [level, setLevel] = useState(1)
   const [durationMs, setDurationMs] = useState(0)
+  const [timeAttackRemainingMs, setTimeAttackRemainingMs] = useState(TIME_ATTACK_LIMIT_MS)
+  const [timeAttackCollisions, setTimeAttackCollisions] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
   const [comboExpiresAt, setComboExpiresAt] = useState(0)
@@ -550,14 +753,17 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const modeConfig = GAME_MODE_CONFIG[gameMode]
   const themeConfig = SNAKE_THEME_CONFIG[snakeTheme]
   const rankedMode = modeConfig.ranked
-  const leaderboardMode: RankedGameMode = gameMode === 'classic' ? 'classic' : 'arcade'
+  const leaderboardMode: RankedGameMode = gameMode === 'training' ? 'arcade' : gameMode
   const leaderboardModeConfig = GAME_MODE_CONFIG[leaderboardMode]
   const modeLeaderboardEntry = leaderboard.find((entry) => entry.user_id === userId)
   const comboEnabled = modeConfig.combos
+  const isTimeAttack = gameMode === 'timeAttack'
+  const timeAttackUrgent = isTimeAttack && timeAttackRemainingMs <= 10000
   const comboActive = comboEnabled && combo > 0 && comboExpiresAt > now
   const comboProgress = comboActive
     ? Math.max(0, Math.min(100, ((comboExpiresAt - now) / COMBO_WINDOW_MS) * 100))
     : 0
+  const cinematicBoard = gameState === 'playing' && (hasRainbow || hasScoreMultiplier || hasSlowMotion || timeAttackUrgent || (comboActive && combo >= 6))
   const baseSpeed = Math.max(68, 150 + modeConfig.speedOffset - (level - 1) * 9)
   const speed = hasSlowMotion ? Math.round(baseSpeed * 1.42) : baseSpeed
   const nextLevelProgress = (foodCount % 5) / 5
@@ -569,11 +775,13 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     : false
   const boardGlowColor = hasRainbow
     ? '#c084fc'
-    : hasScoreMultiplier
-      ? '#f97316'
-      : hasSlowMotion
-        ? '#93c5fd'
-        : themeConfig.accent
+    : timeAttackUrgent
+      ? '#fb7185'
+      : hasScoreMultiplier
+        ? '#f97316'
+        : hasSlowMotion
+          ? '#93c5fd'
+          : themeConfig.accent
 
   const playSound = useCallback((soundType: Parameters<NonNullable<typeof soundManager>['play']>[0]) => {
     soundManager?.play(soundType)
@@ -655,6 +863,12 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const getElapsedDuration = useCallback(() => {
     if (!startTimeRef.current) return elapsedBeforePauseRef.current
     return elapsedBeforePauseRef.current + Math.round(performance.now() - startTimeRef.current)
+  }, [])
+
+  const addTimeAttackBonus = useCallback((bonusMs: number, label: string) => {
+    setTimeAttackRemainingMs((current) => Math.min(TIME_ATTACK_MAX_TIME_MS, current + bonusMs))
+    setLastMilestone(label)
+    window.setTimeout(() => setLastMilestone(null), 900)
   }, [])
 
   const fetchLeaderboard = useCallback(async () => {
@@ -862,12 +1076,19 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
           ? '#93c5fd'
           : themeConfig.aura
 
-    const gradient = context.createLinearGradient(0, 0, CANVAS_SIZE, CANVAS_SIZE)
-    gradient.addColorStop(0, themeConfig.boardStart)
-    gradient.addColorStop(0.45, themeConfig.boardMiddle)
-    gradient.addColorStop(1, themeConfig.boardEnd)
-    context.fillStyle = gradient
-    context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
+    const boardKey = `${snakeTheme}:${themeConfig.boardStart}:${themeConfig.boardMiddle}:${themeConfig.boardEnd}:${themeConfig.grid}`
+    if (!boardCacheRef.current || boardCacheRef.current.key !== boardKey) {
+      const boardCanvas = document.createElement('canvas')
+      boardCanvas.width = CANVAS_SIZE
+      boardCanvas.height = CANVAS_SIZE
+      const boardContext = boardCanvas.getContext('2d')
+      if (boardContext) {
+        drawBoardLayer(boardContext, themeConfig)
+      }
+      boardCacheRef.current = { key: boardKey, canvas: boardCanvas }
+    }
+
+    context.drawImage(boardCacheRef.current.canvas, 0, 0)
 
     const boardAura = context.createRadialGradient(
       CANVAS_SIZE * 0.5,
@@ -883,64 +1104,31 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     context.fillStyle = boardAura
     context.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE)
 
-    context.strokeStyle = themeConfig.grid
-    context.lineWidth = 1
-    for (let i = 0; i <= GRID_SIZE; i++) {
-      const position = i * CELL_SIZE
-      context.beginPath()
-      context.moveTo(position, 0)
-      context.lineTo(position, CANVAS_SIZE)
-      context.stroke()
-      context.beginPath()
-      context.moveTo(0, position)
-      context.lineTo(CANVAS_SIZE, position)
-      context.stroke()
-    }
-
     const fruitConfig = FRUIT_CONFIG[food.type]
-    const fruitX = food.x * CELL_SIZE + CELL_SIZE / 2
-    const fruitY = food.y * CELL_SIZE + CELL_SIZE / 2
-    const fruitRadius = CELL_SIZE * (0.35 + (prefersReducedMotion ? 0 : pulse * 0.035))
+    drawFruitShape(context, food, fruitConfig, pulse)
 
-    context.save()
-    const fruitAura = context.createRadialGradient(fruitX, fruitY, 1, fruitX, fruitY, CELL_SIZE * 1.45)
-    fruitAura.addColorStop(0, `${fruitConfig.glow}aa`)
-    fruitAura.addColorStop(0.45, `${fruitConfig.glow}34`)
-    fruitAura.addColorStop(1, 'rgba(15, 23, 42, 0)')
-    context.fillStyle = fruitAura
-    context.fillRect(
-      fruitX - CELL_SIZE * 1.5,
-      fruitY - CELL_SIZE * 1.5,
-      CELL_SIZE * 3,
-      CELL_SIZE * 3
-    )
-
-    context.fillStyle = fruitConfig.color
-    context.shadowColor = fruitConfig.glow
-    context.shadowBlur = 18 + Math.max(0, pulse) * 6
-    context.beginPath()
-    context.arc(fruitX, fruitY, fruitRadius, 0, Math.PI * 2)
-    context.fill()
-    context.shadowBlur = 0
-
-    context.fillStyle = 'rgba(255, 255, 255, 0.58)'
-    context.beginPath()
-    context.arc(fruitX - CELL_SIZE * 0.12, fruitY - CELL_SIZE * 0.13, CELL_SIZE * 0.09, 0, Math.PI * 2)
-    context.fill()
-
-    if (food.type !== 'apple') {
-      context.strokeStyle = fruitConfig.glow
-      context.lineWidth = 2
+    if (snake.length > 1) {
+      context.save()
+      context.globalAlpha = hasRainbow ? 0.6 : 0.52
+      context.strokeStyle = hasRainbow ? '#f0abfc' : themeConfig.bodyEnd
+      context.lineWidth = CELL_SIZE * 0.58
+      context.lineCap = 'round'
+      context.lineJoin = 'round'
+      context.shadowColor = hasRainbow ? '#f0abfc' : themeConfig.bodyStart
+      context.shadowBlur = 9
       context.beginPath()
-      context.arc(fruitX, fruitY, CELL_SIZE * (0.5 + Math.max(0, pulse) * 0.06), 0, Math.PI * 2)
+      snake.forEach((segment, index) => {
+        const centerX = segment.x * CELL_SIZE + CELL_SIZE / 2
+        const centerY = segment.y * CELL_SIZE + CELL_SIZE / 2
+        if (index === 0) {
+          context.moveTo(centerX, centerY)
+        } else {
+          context.lineTo(centerX, centerY)
+        }
+      })
       context.stroke()
-      context.fillStyle = '#0f172a'
-      context.font = 'bold 10px Arial'
-      context.textAlign = 'center'
-      context.textBaseline = 'middle'
-      context.fillText(fruitConfig.shortLabel, fruitX, fruitY)
+      context.restore()
     }
-    context.restore()
 
     snake.forEach((segment, index) => {
       const isHead = index === 0
@@ -950,6 +1138,8 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
       const segmentX = segment.x * CELL_SIZE + segmentInset
       const segmentY = segment.y * CELL_SIZE + segmentInset
       const segmentGradient = context.createLinearGradient(segmentX, segmentY, segmentX + segmentSize, segmentY + segmentSize)
+      const previousSegment = snake[index - 1]
+      const nextSegment = snake[index + 1]
 
       if (isHead) {
         segmentGradient.addColorStop(0, hasRainbow ? '#f0abfc' : themeConfig.headStart)
@@ -966,7 +1156,16 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
       context.fillStyle = segmentGradient
       context.shadowColor = isHead ? (hasRainbow ? '#f0abfc' : themeConfig.headStart) : themeConfig.bodyStart
       context.shadowBlur = isHead ? 18 : 5 + tailFade * 5
-      fillRoundedCell(context, segmentX, segmentY, segmentSize, isHead ? 7 : 5)
+
+      if (!isHead && (previousSegment || nextSegment)) {
+        const centerX = segment.x * CELL_SIZE + CELL_SIZE / 2
+        const centerY = segment.y * CELL_SIZE + CELL_SIZE / 2
+        context.beginPath()
+        context.arc(centerX, centerY, segmentSize * 0.48, 0, Math.PI * 2)
+        context.fill()
+      } else {
+        fillRoundedCell(context, segmentX, segmentY, segmentSize, isHead ? 7 : 5)
+      }
 
       if (isHead) {
         const directionVector = getDirectionVector(directionRef.current)
@@ -979,6 +1178,17 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
 
         context.shadowBlur = 0
         context.globalAlpha = 1
+        context.fillStyle = hasRainbow ? '#fde68a' : themeConfig.headEnd
+        context.beginPath()
+        context.arc(
+          centerX + directionVector.x * CELL_SIZE * 0.36,
+          centerY + directionVector.y * CELL_SIZE * 0.36,
+          CELL_SIZE * 0.18,
+          0,
+          Math.PI * 2
+        )
+        context.fill()
+
         context.fillStyle = themeConfig.eye
         context.beginPath()
         context.arc(centerX + eyeOffsetX + sideOffsetX, centerY + eyeOffsetY + sideOffsetY, 2.4, 0, Math.PI * 2)
@@ -1024,6 +1234,8 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     })
     setLevel(1)
     setDurationMs(0)
+    setTimeAttackRemainingMs(TIME_ATTACK_LIMIT_MS)
+    setTimeAttackCollisions(0)
     setCombo(0)
     setBestCombo(0)
     setComboExpiresAt(0)
@@ -1039,6 +1251,8 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     directionRef.current = 'right'
     nextDirectionRef.current = 'right'
     startTimeRef.current = nextState === 'playing' ? performance.now() : null
+    timeAttackLastCollisionAtRef.current = 0
+    timeAttackLastPrecisionBonusAtRef.current = nextState === 'playing' ? performance.now() : 0
     elapsedBeforePauseRef.current = 0
     submittedRef.current = false
     seedRef.current = createSeed()
@@ -1063,6 +1277,8 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     })
     setLevel(1)
     setDurationMs(0)
+    setTimeAttackRemainingMs(TIME_ATTACK_LIMIT_MS)
+    setTimeAttackCollisions(0)
     setCombo(0)
     setBestCombo(0)
     setComboExpiresAt(0)
@@ -1078,6 +1294,8 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     directionRef.current = 'right'
     nextDirectionRef.current = 'right'
     startTimeRef.current = null
+    timeAttackLastCollisionAtRef.current = 0
+    timeAttackLastPrecisionBonusAtRef.current = 0
     elapsedBeforePauseRef.current = 0
     submittedRef.current = false
     seedRef.current = createSeed()
@@ -1094,14 +1312,18 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     }
 
     if (!startTimeRef.current) {
-      startTimeRef.current = performance.now()
+      const startedAt = performance.now()
+      startTimeRef.current = startedAt
+      if (isTimeAttack) {
+        timeAttackLastPrecisionBonusAtRef.current = startedAt
+      }
     }
     setGameState('playing')
     playSound('snake_start')
     if (musicEnabled) {
       soundManager?.playRandomSnakeMusic()
     }
-  }, [gameState, musicEnabled, playSound, resetGame])
+  }, [gameState, isTimeAttack, musicEnabled, playSound, resetGame])
 
   const pauseGame = useCallback(() => {
     elapsedBeforePauseRef.current = getElapsedDuration()
@@ -1156,6 +1378,29 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
         )
 
         if (hitWall || hitSelf) {
+          if (isTimeAttack) {
+            const collisionAt = performance.now()
+            timeAttackLastCollisionAtRef.current = collisionAt
+            timeAttackLastPrecisionBonusAtRef.current = collisionAt
+            setTimeAttackCollisions((current) => current + 1)
+            setTimeAttackRemainingMs((current) => {
+              const nextRemaining = Math.max(0, current - TIME_ATTACK_COLLISION_PENALTY_MS)
+              if (current > 0 && nextRemaining <= 0) {
+                window.setTimeout(() => finishGame(), 0)
+              }
+              return nextRemaining
+            })
+            setScore((currentScore) => Math.max(0, currentScore - 50))
+            setLastMilestone('-5s')
+            window.setTimeout(() => setLastMilestone(null), 900)
+            setBoardShake(true)
+            window.setTimeout(() => setBoardShake(false), 200)
+            directionRef.current = 'right'
+            nextDirectionRef.current = 'right'
+            setFood(createFood(INITIAL_SNAKE, gameMode))
+            return INITIAL_SNAKE
+          }
+
           finishGame()
           return currentSnake
         }
@@ -1189,8 +1434,19 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
             setCombo(nextCombo)
             setBestCombo((currentBest) => Math.max(currentBest, nextCombo))
             setComboExpiresAt(eatenAt + COMBO_WINDOW_MS)
+
+            if (isTimeAttack && nextCombo % TIME_ATTACK_COMBO_BONUS_THRESHOLD === 0) {
+              const comboBonusMs = nextCombo % TIME_ATTACK_COMBO_BIG_THRESHOLD === 0
+                ? TIME_ATTACK_COMBO_BIG_BONUS_MS
+                : TIME_ATTACK_COMBO_BONUS_MS
+              addTimeAttackBonus(comboBonusMs, `+${comboBonusMs / 1000}s combo`)
+            }
           }
           setFood(createFood(nextSnake, gameMode))
+
+          if (isTimeAttack && food.type === 'gold') {
+            addTimeAttackBonus(TIME_ATTACK_GOLD_BONUS_MS, '+3s dorada')
+          }
 
           if (food.type === 'turbo') {
             setScoreMultiplierUntil(performance.now() + (fruitConfig.durationMs || 5000))
@@ -1200,20 +1456,32 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
 
           if (food.type === 'frost') {
             setSlowMotionUntil(performance.now() + (fruitConfig.durationMs || 5000))
-            setLastMilestone('Camara lenta')
-            window.setTimeout(() => setLastMilestone(null), 1100)
+            if (isTimeAttack) {
+              addTimeAttackBonus(TIME_ATTACK_FROST_BONUS_MS, '+2s hielo')
+            } else {
+              setLastMilestone('Camara lenta')
+              window.setTimeout(() => setLastMilestone(null), 1100)
+            }
           }
 
           if (food.type === 'rainbow') {
             setScoreMultiplierUntil(performance.now() + (fruitConfig.durationMs || 6000))
             setRainbowUntil(performance.now() + (fruitConfig.durationMs || 6000))
-            setLastMilestone('Arcoiris')
-            window.setTimeout(() => setLastMilestone(null), 1100)
+            if (isTimeAttack) {
+              addTimeAttackBonus(TIME_ATTACK_RAINBOW_BONUS_MS, '+5s arcoiris')
+            } else {
+              setLastMilestone('Arcoiris')
+              window.setTimeout(() => setLastMilestone(null), 1100)
+            }
           }
 
           if (nextFoodCount % 5 === 0) {
-            setLastMilestone(`Nivel ${nextLevel}`)
-            window.setTimeout(() => setLastMilestone(null), 1100)
+            if (isTimeAttack) {
+              addTimeAttackBonus(TIME_ATTACK_LEVEL_BONUS_MS, '+4s nivel')
+            } else {
+              setLastMilestone(`Nivel ${nextLevel}`)
+              window.setTimeout(() => setLastMilestone(null), 1100)
+            }
           }
 
           return nextSnake
@@ -1225,7 +1493,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     }, speed)
 
     return () => window.clearInterval(interval)
-  }, [combo, comboEnabled, comboExpiresAt, finishGame, food, foodCount, gameMode, gameState, playSound, scoreMultiplierUntil, speed, triggerEatVisuals])
+  }, [addTimeAttackBonus, combo, comboEnabled, comboExpiresAt, finishGame, food, foodCount, gameMode, gameState, isTimeAttack, playSound, scoreMultiplierUntil, speed, triggerEatVisuals])
 
   useEffect(() => {
     if (gameState !== 'playing') return
@@ -1236,6 +1504,32 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
 
     return () => window.clearInterval(timer)
   }, [gameState, getElapsedDuration])
+
+  useEffect(() => {
+    if (gameState !== 'playing' || !isTimeAttack) return
+
+    const timer = window.setInterval(() => {
+      const tickAt = performance.now()
+
+      setTimeAttackRemainingMs((current) => {
+        const nextRemaining = Math.max(0, current - 250)
+        if (current > 0 && nextRemaining <= 0) {
+          window.setTimeout(() => finishGame(), 0)
+        }
+        return nextRemaining
+      })
+
+      if (
+        tickAt - timeAttackLastCollisionAtRef.current >= TIME_ATTACK_PRECISION_WINDOW_MS &&
+        tickAt - timeAttackLastPrecisionBonusAtRef.current >= TIME_ATTACK_PRECISION_WINDOW_MS
+      ) {
+        timeAttackLastPrecisionBonusAtRef.current = tickAt
+        addTimeAttackBonus(TIME_ATTACK_PRECISION_BONUS_MS, '+3s precision')
+      }
+    }, 250)
+
+    return () => window.clearInterval(timer)
+  }, [addTimeAttackBonus, finishGame, gameState, isTimeAttack])
 
   useEffect(() => {
     if (gameState !== 'playing' || !comboEnabled || combo === 0) return
@@ -1322,6 +1616,24 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 slowMotionUsed: fruitCounts.frost,
                 specialFruitsEnabled: modeConfig.specialFruits,
               },
+              timeAttack: {
+                enabled: isTimeAttack,
+                limitMs: TIME_ATTACK_LIMIT_MS,
+                remainingMs: isTimeAttack ? timeAttackRemainingMs : null,
+                collisionPenaltyMs: TIME_ATTACK_COLLISION_PENALTY_MS,
+                collisions: timeAttackCollisions,
+                maxTimeMs: TIME_ATTACK_MAX_TIME_MS,
+                bonuses: {
+                  comboMs: TIME_ATTACK_COMBO_BONUS_MS,
+                  comboBigMs: TIME_ATTACK_COMBO_BIG_BONUS_MS,
+                  levelMs: TIME_ATTACK_LEVEL_BONUS_MS,
+                  goldMs: TIME_ATTACK_GOLD_BONUS_MS,
+                  frostMs: TIME_ATTACK_FROST_BONUS_MS,
+                  rainbowMs: TIME_ATTACK_RAINBOW_BONUS_MS,
+                  precisionMs: TIME_ATTACK_PRECISION_BONUS_MS,
+                  precisionWindowMs: TIME_ATTACK_PRECISION_WINDOW_MS,
+                },
+              },
               userAgent: navigator.userAgent.slice(0, 160),
             },
           }),
@@ -1362,7 +1674,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     }
 
     saveScore()
-  }, [baseSpeed, bestCombo, combo, comboEnabled, durationMs, fetchAchievements, fetchDailyChallenges, fetchDailyRewards, fetchLeaderboard, fetchSeason, fetchStats, foodCount, fruitCounts, gameMode, gameState, level, modeConfig.specialFruits, playSound, rankedMode, score, snake.length, speed])
+  }, [baseSpeed, bestCombo, combo, comboEnabled, durationMs, fetchAchievements, fetchDailyChallenges, fetchDailyRewards, fetchLeaderboard, fetchSeason, fetchStats, foodCount, fruitCounts, gameMode, gameState, isTimeAttack, level, modeConfig.specialFruits, playSound, rankedMode, score, snake.length, speed, timeAttackCollisions, timeAttackRemainingMs])
 
   const stateLabel = gameState === 'playing'
     ? 'En partida'
@@ -1386,9 +1698,11 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
     ? !rankedMode
       ? `Entrenaste con ${formatNumber(score)} puntos, nivel ${level} y ${foodCount} objetivos.`
       : `Cerraste con ${formatNumber(score)} puntos, nivel ${level} y ${foodCount} objetivos.`
-    : gameState === 'paused'
-      ? 'Respira, mira el tablero y vuelve cuando estes listo.'
-      : rankedMode
+      : gameState === 'paused'
+        ? 'Respira, mira el tablero y vuelve cuando estes listo.'
+      : isTimeAttack
+        ? 'Tienes 60 segundos: frutas raras, niveles, combos y precision pueden rescatar la partida.'
+        : rankedMode
         ? 'Una partida rapida puede moverte en el ranking global de Turix.'
         : 'Practica sin presion antes de competir por el ranking.'
 
@@ -1669,7 +1983,11 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
             <MetricCard label="Nivel" value={String(level)} tone="emerald" />
             <MetricCard label="Objetivos" value={String(foodCount)} tone="rose" />
             <MetricCard label="Combo" value={comboActive ? `x${combo}` : '-'} tone="amber" />
-            <MetricCard label="Tiempo" value={formatTime(durationMs)} tone="violet" />
+            <MetricCard
+              label={isTimeAttack ? 'Restante' : 'Tiempo'}
+              value={formatTime(isTimeAttack ? timeAttackRemainingMs : durationMs)}
+              tone={timeAttackUrgent ? 'rose' : 'violet'}
+            />
           </div>
 
           <div className="grid gap-3 md:grid-cols-[1fr_1.2fr]">
@@ -1697,9 +2015,34 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 <EffectPill active={comboActive && combo >= 3} label={`Combo x${combo}`} />
                 <EffectPill active={hasSlowMotion} label="Camara lenta" />
                 <EffectPill active={hasRainbow} label="Arcoiris" />
+                <EffectPill active={isTimeAttack} label="Contra reloj" />
               </div>
             </div>
           </div>
+
+          {isTimeAttack && (
+            <div className={`rounded-lg border p-4 ${
+              timeAttackUrgent
+                ? 'border-rose-300/35 bg-rose-300/12'
+                : 'border-cyan-300/20 bg-cyan-300/10'
+            }`}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-cyan-100/70">Modo Contra Reloj</p>
+                  <p className="mt-1 font-bold text-white">
+                    Dorada +3s, hielo +2s, arcoiris +5s, nivel +4s. Combo x5 +3s y x10 +6s.
+                  </p>
+                  <p className="mt-1 text-xs text-cyan-50/65">
+                    Cada 15s sin chocar suma +3s. Chocar resta 5s.
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-xs text-cyan-100/70">Choques</p>
+                  <p className="text-2xl font-black text-rose-100">{timeAttackCollisions}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {comboEnabled ? (
             <div className="rounded-lg border border-amber-300/20 bg-amber-300/10 p-4">
@@ -1748,6 +2091,14 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 <p className="text-xs uppercase tracking-wider text-cyan-100/60">Velocidad</p>
                 <p className="font-bold">{Math.round(1000 / speed)} pasos/s</p>
               </div>
+              {isTimeAttack && (
+                <div className="text-center">
+                  <p className="text-xs uppercase tracking-wider text-cyan-100/60">Contra reloj</p>
+                  <p className={`font-black ${timeAttackUrgent ? 'text-rose-200' : 'text-cyan-100'}`}>
+                    {formatTime(timeAttackRemainingMs)}
+                  </p>
+                </div>
+              )}
               <div className="w-48 max-w-[50%]">
                 <div className="mb-1 flex justify-between text-xs text-cyan-100/70">
                   <span>Progreso nivel</span>
@@ -1769,6 +2120,19 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 height={CANVAS_SIZE}
                 className="h-full w-full"
               />
+
+              {cinematicBoard && !prefersReducedMotion && (
+                <>
+                  <div
+                    className="pointer-events-none absolute inset-0 snake-cinematic-vignette"
+                    style={{ ['--snake-cinema-color' as string]: boardGlowColor }}
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0 snake-cinematic-sweep"
+                    style={{ ['--snake-cinema-color' as string]: boardGlowColor }}
+                  />
+                </>
+              )}
 
               {boardFlash && (
                 <div
@@ -1859,8 +2223,10 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                         <ResultStat label="Nivel" value={String(level)} />
                         <ResultStat label="Frutas" value={String(foodCount)} />
                         <ResultStat label="Tiempo" value={formatTime(durationMs)} />
+                        {isTimeAttack && <ResultStat label="Restante" value={formatTime(timeAttackRemainingMs)} />}
                         <ResultStat label="Mejor combo" value={comboEnabled ? `x${bestCombo}` : '-'} />
                         <ResultStat label="Longitud" value={String(snake.length)} />
+                        {isTimeAttack && <ResultStat label="Choques" value={String(timeAttackCollisions)} />}
                         <ResultStat label="Fruta top" value={FRUIT_CONFIG[favoriteFruit].label} />
                         <ResultStat label="Record modo" value={formatNumber(projectedBest)} />
                       </motion.div>

@@ -254,6 +254,23 @@ body {
   }
 }
 
+@keyframes snakeCinematicSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-115%) skewX(-12deg);
+  }
+  18% {
+    opacity: 0.22;
+  }
+  58% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(115%) skewX(-12deg);
+  }
+}
+
 .snake-particle {
   position: absolute;
   left: 0;
@@ -296,13 +313,29 @@ body {
   animation: snakeRewardSpark 900ms ease-out infinite;
 }
 
+.snake-cinematic-vignette {
+  background:
+    radial-gradient(circle at 50% 45%, transparent 38%, rgba(2, 6, 23, 0.34) 100%),
+    linear-gradient(90deg, color-mix(in srgb, var(--snake-cinema-color) 16%, transparent), transparent 18%, transparent 82%, color-mix(in srgb, var(--snake-cinema-color) 16%, transparent));
+  box-shadow: inset 0 0 42px color-mix(in srgb, var(--snake-cinema-color) 34%, transparent);
+  mix-blend-mode: screen;
+}
+
+.snake-cinematic-sweep {
+  width: 52%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--snake-cinema-color) 28%, transparent), transparent);
+  animation: snakeCinematicSweep 1400ms ease-out infinite;
+  mix-blend-mode: screen;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .snake-particle,
   .snake-floating-score,
   .snake-board-flash,
   .snake-board-shake,
   .snake-reward-pop,
-  .snake-reward-spark {
+  .snake-reward-spark,
+  .snake-cinematic-sweep {
     animation: none !important;
   }
 }

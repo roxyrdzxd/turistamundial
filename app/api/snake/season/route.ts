@@ -8,7 +8,9 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const requestedMode = searchParams.get('mode') || 'arcade'
-    const mode = requestedMode === 'classic' ? 'classic' : 'arcade'
+    const mode = ['classic', 'arcade', 'timeAttack'].includes(requestedMode)
+      ? requestedMode
+      : 'arcade'
     const [
       { data: season, error: seasonError },
       { data: leaderboard, error: leaderboardError },

@@ -9,7 +9,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const limit = Number(searchParams.get('limit') || 10)
     const requestedMode = searchParams.get('mode') || 'arcade'
-    const mode = requestedMode === 'classic' ? 'classic' : 'arcade'
+    const mode = ['classic', 'arcade', 'timeAttack'].includes(requestedMode)
+      ? requestedMode
+      : 'arcade'
 
     const { data, error } = await supabase.rpc('get_snake_leaderboard_by_mode', {
       mode_filter: mode,
