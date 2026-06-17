@@ -191,6 +191,7 @@ const TIME_ATTACK_RAINBOW_BONUS_MS = 5000
 const TIME_ATTACK_PRECISION_BONUS_MS = 3000
 const TIME_ATTACK_PRECISION_WINDOW_MS = 15000
 const TIME_ATTACK_MAX_TIME_MS = 90000
+const BOARD_SWIPE_THRESHOLD_PX = 24
 const INITIAL_SNAKE: Point[] = [
   { x: 8, y: 12 },
   { x: 7, y: 12 },
@@ -688,6 +689,7 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   const seedRef = useRef(createSeed())
   const timeAttackLastCollisionAtRef = useRef(0)
   const timeAttackLastPrecisionBonusAtRef = useRef(0)
+  const boardPointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null)
 
   const [gameMode, setGameMode] = useState<GameMode>('arcade')
   const [snakeTheme, setSnakeTheme] = useState<SnakeTheme>(() => {
@@ -1334,8 +1336,76 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
   }, [getElapsedDuration])
 
   const changeDirection = useCallback((direction: Direction) => {
-    if (getOpposite(directionRef.current) === direction) return
+    if (getOpposite(directionRef.current) === direction) return false
+    if (nextDirectionRef.current === direction) return false
     nextDirectionRef.current = direction
+    return true
+  }, [])
+
+  const changeDirectionWithFeedback = useCallback((direction: Direction) => {
+    const changed = changeDirection(direction)
+    if (changed && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(12)
+    }
+    return changed
+  }, [changeDirection])
+
+  const getBoardDirectionFromPoint = useCallback((clientX: number, clientY: number, boardElement: HTMLElement): Direction => {
+    const rect = boardElement.getBoundingClientRect()
+    const head = snake[0] || INITIAL_SNAKE[0]
+    const headX = rect.left + ((head.x + 0.5) / GRID_SIZE) * rect.width
+    const headY = rect.top + ((head.y + 0.5) / GRID_SIZE) * rect.height
+    const deltaX = clientX - headX
+    const deltaY = clientY - headY
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      return deltaX > 0 ? 'right' : 'left'
+    }
+
+    return deltaY > 0 ? 'down' : 'up'
+  }, [snake])
+
+  const handleBoardPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (gameState !== 'playing' || !event.isPrimary) return
+    event.preventDefault()
+    boardPointerStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      pointerId: event.pointerId,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }, [gameState])
+
+  const handleBoardPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const pointerStart = boardPointerStartRef.current
+    if (gameState !== 'playing' || !pointerStart || pointerStart.pointerId !== event.pointerId) return
+
+    event.preventDefault()
+    boardPointerStartRef.current = null
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const deltaX = event.clientX - pointerStart.x
+    const deltaY = event.clientY - pointerStart.y
+    const isSwipe = Math.max(Math.abs(deltaX), Math.abs(deltaY)) >= BOARD_SWIPE_THRESHOLD_PX
+
+    if (isSwipe) {
+      changeDirectionWithFeedback(
+        Math.abs(deltaX) > Math.abs(deltaY)
+          ? deltaX > 0 ? 'right' : 'left'
+          : deltaY > 0 ? 'down' : 'up'
+      )
+      return
+    }
+
+    changeDirectionWithFeedback(getBoardDirectionFromPoint(event.clientX, event.clientY, event.currentTarget))
+  }, [changeDirectionWithFeedback, gameState, getBoardDirectionFromPoint])
+
+  const handleBoardPointerCancel = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (boardPointerStartRef.current?.pointerId === event.pointerId) {
+      boardPointerStartRef.current = null
+    }
   }, [])
 
   const finishGame = useCallback(() => {
@@ -2113,7 +2183,13 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
               </div>
             </div>
 
-            <div className="relative mx-auto aspect-square w-full max-w-[640px]">
+            <div
+              className="relative mx-auto aspect-square w-full max-w-[640px] touch-none select-none"
+              onPointerDown={handleBoardPointerDown}
+              onPointerUp={handleBoardPointerUp}
+              onPointerCancel={handleBoardPointerCancel}
+              onPointerLeave={handleBoardPointerCancel}
+            >
               <canvas
                 ref={canvasRef}
                 width={CANVAS_SIZE}
@@ -2428,23 +2504,23 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                 Reiniciar
               </button>
               <div className="flex items-center px-2 text-sm text-cyan-50/60">
-                Flechas, WASD o controles tactiles
+                Flechas, WASD, swipe o toque en el tablero
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 rounded-lg border border-white/10 bg-white/[0.04] p-3">
               <span />
-              <ControlButton label="Arriba" onClick={() => changeDirection('up')}>
+              <ControlButton label="Arriba" onClick={() => changeDirectionWithFeedback('up')}>
                 <ArrowUp className="mx-auto h-5 w-5" />
               </ControlButton>
               <span />
-              <ControlButton label="Izquierda" onClick={() => changeDirection('left')}>
+              <ControlButton label="Izquierda" onClick={() => changeDirectionWithFeedback('left')}>
                 <ArrowLeft className="mx-auto h-5 w-5" />
               </ControlButton>
-              <ControlButton label="Abajo" onClick={() => changeDirection('down')}>
+              <ControlButton label="Abajo" onClick={() => changeDirectionWithFeedback('down')}>
                 <ArrowDown className="mx-auto h-5 w-5" />
               </ControlButton>
-              <ControlButton label="Derecha" onClick={() => changeDirection('right')}>
+              <ControlButton label="Derecha" onClick={() => changeDirectionWithFeedback('right')}>
                 <ArrowRight className="mx-auto h-5 w-5" />
               </ControlButton>
             </div>
