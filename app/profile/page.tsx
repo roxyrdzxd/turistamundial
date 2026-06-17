@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useToast } from '@/contexts/ToastContext'
 import AvatarDisplay from '@/components/avatar/AvatarDisplay'
 import ShareBadgeModal from '@/components/badge/ShareBadgeModal'
+import { WORLD_CUP_2026_COUNTRIES, getWorldCup2026Country } from '@/lib/worldCup2026Countries'
 
 interface PurchasedAvatar {
   id: string
@@ -49,6 +50,7 @@ export default function ProfilePage() {
   const [purchasedColors, setPurchasedColors] = useState<PurchasedColor[]>([])
   const [equipping, setEquipping] = useState<string | null>(null)
   const [preferredColor, setPreferredColor] = useState<string | null>(null)
+  const [worldCupCountryCode, setWorldCupCountryCode] = useState('')
   const [collectedBadges, setCollectedBadges] = useState<any[]>([])
   const [loadingBadges, setLoadingBadges] = useState(false)
   const [referralCode, setReferralCode] = useState<string | null>(null)
@@ -103,7 +105,7 @@ export default function ProfilePage() {
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('username, avatar_url, preferred_color')
+        .select('username, avatar_url, preferred_color, world_cup_country_code')
         .eq('id', currentUser.id)
         .maybeSingle()
 
@@ -143,7 +145,7 @@ export default function ProfilePage() {
         // Intentar obtener el perfil nuevamente después de crearlo
         const { data: newProfile, error: fetchError } = await supabase
           .from('profiles')
-          .select('username, avatar_url')
+          .select('username, avatar_url, preferred_color, world_cup_country_code')
           .eq('id', currentUser.id)
           .single()
 
@@ -151,6 +153,7 @@ export default function ProfilePage() {
           setUsername(newProfile.username || '')
           setAvatarUrl(newProfile.avatar_url)
           setPreferredColor(newProfile.preferred_color)
+          setWorldCupCountryCode(newProfile.world_cup_country_code || '')
         } else if (fetchError) {
           console.error('Error fetching newly created profile:', fetchError)
           toast.showToast('Error al cargar el perfil', 'error')
@@ -159,6 +162,7 @@ export default function ProfilePage() {
         setUsername(profile.username || '')
         setAvatarUrl(profile.avatar_url)
         setPreferredColor(profile.preferred_color)
+        setWorldCupCountryCode(profile.world_cup_country_code || '')
       }
     } catch (error: any) {
       console.error('Error:', error)
@@ -321,7 +325,10 @@ export default function ProfilePage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({
+          username,
+          world_cup_country_code: worldCupCountryCode || null,
+        }),
       })
 
       const data = await response.json()
@@ -330,7 +337,7 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Error al actualizar el nombre de usuario')
       }
 
-      toast.showToast('Nombre de usuario actualizado correctamente', 'success')
+      toast.showToast('Perfil actualizado correctamente', 'success')
     } catch (error: any) {
       console.error('Error updating username:', error)
       toast.showToast(error.message || 'Error al actualizar el nombre de usuario', 'error')
@@ -417,6 +424,8 @@ export default function ProfilePage() {
       </div>
     )
   }
+
+  const selectedWorldCupCountry = getWorldCup2026Country(worldCupCountryCode)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 overflow-hidden relative">
@@ -526,6 +535,44 @@ export default function ProfilePage() {
                     />
                     <p className="mt-1 text-xs text-white/60">
                       {username.length}/20 caracteres
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="world_cup_country" className="block text-sm font-semibold text-white mb-2">
+                      País para rankings Snake
+                    </label>
+                    <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                      <select
+                        id="world_cup_country"
+                        value={worldCupCountryCode}
+                        onChange={(event) => setWorldCupCountryCode(event.target.value)}
+                        className="w-full px-4 py-3 border-2 border-white/20 rounded-xl focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition-all duration-300 bg-slate-900/90 text-white"
+                      >
+                        <option value="">Sin país seleccionado</option>
+                        {WORLD_CUP_2026_COUNTRIES.map((country) => (
+                          <option key={country.code} value={country.code}>
+                            Grupo {country.group} · {country.flag} {country.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="flex min-h-[52px] items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3">
+                        <span className="text-2xl" aria-hidden="true">
+                          {selectedWorldCupCountry?.flag || '🏆'}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-white">
+                            {selectedWorldCupCountry?.name || 'Sin bandera'}
+                          </p>
+                          <p className="text-xs text-white/60">
+                            {selectedWorldCupCountry ? `Grupo ${selectedWorldCupCountry.group}` : 'Puedes cambiarlo cuando quieras'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-white/60">
+                      Esta bandera aparecerá junto a tu nombre en los rankings de Snake Mundial.
                     </p>
                   </div>
 

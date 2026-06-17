@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { soundManager } from '@/lib/audio/soundManager'
+import { getWorldCup2026Country } from '@/lib/worldCup2026Countries'
 
 type Point = {
   x: number
@@ -76,6 +77,7 @@ type LeaderboardEntry = {
   user_id: string
   username: string
   avatar_url: string | null
+  world_cup_country_code?: string | null
   best_score: number
   games_played: number
   longest_snake: number
@@ -2640,7 +2642,10 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                   >
                     <div className="w-9 text-center text-lg font-black text-cyan-200">#{entry.rank}</div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold">{entry.username}</p>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <CountryFlagBadge countryCode={entry.world_cup_country_code} />
+                        <p className="truncate font-semibold">{entry.username}</p>
+                      </div>
                       <p className="text-xs text-cyan-50/60">
                         Nivel {entry.best_level} · {entry.games_played} partida{entry.games_played === 1 ? '' : 's'}
                       </p>
@@ -2682,7 +2687,10 @@ export default function SnakeGame({ userId, username, initialStats }: SnakeGameP
                     >
                       <div className="w-8 text-center font-black text-emerald-200">#{entry.rank}</div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-white">{entry.username}</p>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <CountryFlagBadge countryCode={entry.world_cup_country_code} />
+                          <p className="truncate font-semibold text-white">{entry.username}</p>
+                        </div>
                         <p className="text-xs text-cyan-50/55">Nivel {entry.best_level}</p>
                       </div>
                       <div className="font-black text-emerald-300">{formatNumber(entry.best_score)}</div>
@@ -2863,6 +2871,22 @@ function MiniStat({ label, value }: { label: string; value: string }) {
       <p className="text-xs text-cyan-50/55">{label}</p>
       <p className="mt-1 font-black text-white">{value}</p>
     </div>
+  )
+}
+
+function CountryFlagBadge({ countryCode }: { countryCode?: string | null }) {
+  const country = getWorldCup2026Country(countryCode)
+
+  if (!country) return null
+
+  return (
+    <span
+      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/10 text-base"
+      title={`${country.name} · Grupo ${country.group}`}
+      aria-label={`${country.name}, grupo ${country.group}`}
+    >
+      {country.flag}
+    </span>
   )
 }
 

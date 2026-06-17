@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { validateUsername } from '@/lib/utils/contentFilter'
+import { WORLD_CUP_2026_COUNTRY_CODES } from '@/lib/worldCup2026Countries'
 
 export async function POST(request: Request) {
   try {
@@ -18,12 +19,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { username, avatar_url } = body
+    const { username, avatar_url, world_cup_country_code } = body
 
     // Validar que al menos un campo esté presente
-    if (!username && !avatar_url) {
+    if (username === undefined && avatar_url === undefined && world_cup_country_code === undefined) {
       return NextResponse.json(
-        { error: 'Debes proporcionar username o avatar_url' },
+        { error: 'Debes proporcionar algun dato para actualizar' },
         { status: 400 }
       )
     }
@@ -53,6 +54,18 @@ export async function POST(request: Request) {
           { status: 400 }
         )
       }
+    }
+
+    if (
+      world_cup_country_code !== undefined &&
+      world_cup_country_code !== null &&
+      world_cup_country_code !== '' &&
+      !WORLD_CUP_2026_COUNTRY_CODES.includes(world_cup_country_code)
+    ) {
+      return NextResponse.json(
+        { error: 'Selecciona un pais valido del Mundial 2026' },
+        { status: 400 }
+      )
     }
 
     // Verificar si el perfil existe, si no, crearlo primero
@@ -99,7 +112,12 @@ export async function POST(request: Request) {
     }
 
     // Actualizar perfil
-    const updateData: { username?: string; avatar_url?: string; updated_at?: string } = {}
+    const updateData: {
+      username?: string
+      avatar_url?: string
+      world_cup_country_code?: string | null
+      updated_at?: string
+    } = {}
     
     if (username !== undefined) {
       updateData.username = username
@@ -107,6 +125,10 @@ export async function POST(request: Request) {
     
     if (avatar_url !== undefined) {
       updateData.avatar_url = avatar_url
+    }
+
+    if (world_cup_country_code !== undefined) {
+      updateData.world_cup_country_code = world_cup_country_code || null
     }
     
     updateData.updated_at = new Date().toISOString()
