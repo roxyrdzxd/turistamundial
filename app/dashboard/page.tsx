@@ -136,6 +136,14 @@ export default async function DashboardPage() {
                 <span className="sm:hidden">🐍</span>
               </Link>
               <Link
+                href="/taco-rain"
+                className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
+                title="Lluvia de Tacos"
+              >
+                <span className="hidden sm:inline">🌮 Tacos</span>
+                <span className="sm:hidden">🌮</span>
+              </Link>
+              <Link
                 href="/referrals"
                 className="p-2 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 font-semibold text-sm sm:text-base shadow-sm hover:shadow-md group border border-white/20"
                 title="Sistema de Referidos"
@@ -317,6 +325,24 @@ export default async function DashboardPage() {
             </div>
             <p className="text-white/80">
               Juega partidas rapidas, rompe tu record y compite por el top mundial
+            </p>
+          </Link>
+
+          <Link
+            href="/taco-rain"
+            className="group bg-white/10 backdrop-blur-md rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-2 border-white/20 hover:border-yellow-300"
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-yellow-500/20 rounded-xl flex items-center justify-center group-hover:bg-yellow-500 transition-colors border border-yellow-300/30">
+                <span className="text-3xl group-hover:scale-110 transition-transform">🌮</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Lluvia de Tacos</h3>
+                <p className="text-sm text-white/70">Arcade por niveles</p>
+              </div>
+            </div>
+            <p className="text-white/80">
+              Atrapa tacos, activa power-ups y compite en el ranking taquero
             </p>
           </Link>
 
