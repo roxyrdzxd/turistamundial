@@ -1327,7 +1327,7 @@ export default function TacoRainGame() {
           : 'Tus mejores partidas tambien compiten online.'
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#050816] px-3 py-5 text-white sm:px-6">
+    <div className="relative min-h-screen overflow-hidden bg-[#050816] px-3 py-5 text-white sm:px-6 lg:h-screen lg:px-4 lg:py-3">
       {newAchievements.length > 0 && (
         <div className="pointer-events-none fixed right-4 top-4 z-50 w-[min(22rem,calc(100vw-2rem))] space-y-2">
           {newAchievements.map((achievement) => (
@@ -1344,8 +1344,8 @@ export default function TacoRainGame() {
           ))}
         </div>
       )}
-      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-6xl flex-col items-center justify-center gap-4 lg:flex-row">
-        <section className="relative w-full max-w-[430px] overflow-hidden rounded-lg border border-cyan-300/30 bg-slate-950 shadow-2xl shadow-cyan-950/60">
+      <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-7xl flex-col items-center justify-center gap-4 lg:h-[calc(100vh-1.5rem)] lg:min-h-0 lg:flex-row lg:items-stretch">
+        <section className="relative w-full max-w-[430px] overflow-hidden rounded-lg border border-cyan-300/30 bg-slate-950 shadow-2xl shadow-cyan-950/60 lg:max-w-[390px] xl:max-w-[410px]">
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
             <div className="flex items-start justify-between px-4 py-3 font-black uppercase tracking-wider">
               <div>
@@ -1368,7 +1368,7 @@ export default function TacoRainGame() {
             </div>
           </div>
 
-          <div ref={containerRef} className="relative h-[min(680px,calc(100vh-7.5rem))] min-h-[540px] w-full touch-none" />
+          <div ref={containerRef} className="relative h-[min(680px,calc(100vh-7.5rem))] min-h-[540px] w-full touch-none lg:h-[calc(100vh-7.25rem)] lg:min-h-0" />
 
           <div className="relative z-10 border-t border-cyan-300/25 bg-slate-950/96 px-3 py-3 backdrop-blur">
             <div className="grid grid-cols-4 gap-2 text-center text-[11px] font-black uppercase text-cyan-50 sm:text-xs">
@@ -1380,7 +1380,7 @@ export default function TacoRainGame() {
           </div>
 
           {status !== 'playing' && (
-            <div className="absolute inset-x-0 top-0 z-20 flex h-[min(680px,calc(100vh-7.5rem))] min-h-[540px] items-center justify-center bg-slate-950/72 p-5 text-center backdrop-blur-sm">
+            <div className="absolute inset-x-0 top-0 z-20 flex h-[min(680px,calc(100vh-7.5rem))] min-h-[540px] items-center justify-center bg-slate-950/72 p-5 text-center backdrop-blur-sm lg:h-[calc(100vh-7.25rem)] lg:min-h-0">
               <div className="max-w-sm">
                 <p className="text-sm font-black uppercase tracking-[0.35em] text-cyan-200">Turix Arcade</p>
                 <h1 className="mt-3 text-5xl font-black uppercase leading-none text-yellow-300 drop-shadow-[0_0_18px_rgba(34,211,238,0.8)] sm:text-6xl">
@@ -1411,8 +1411,8 @@ export default function TacoRainGame() {
           )}
         </section>
 
-        <aside className="w-full max-w-[430px] space-y-4 rounded-lg border border-white/10 bg-white/[0.06] p-5 shadow-xl lg:max-w-sm">
-          <div>
+        <aside className="w-full max-w-[430px] space-y-4 rounded-lg border border-white/10 bg-white/[0.06] p-5 shadow-xl lg:grid lg:max-w-[820px] lg:grid-cols-2 lg:content-start lg:gap-3 lg:space-y-0 lg:overflow-hidden lg:p-3 xl:max-w-[900px]">
+          <div className="lg:rounded-lg lg:bg-slate-950/35 lg:p-3">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Frase arcade</p>
             <p className="mt-2 text-2xl font-black text-white">{snapshot.phrase}</p>
             <p className="mt-1 text-sm font-bold text-cyan-50/65">
@@ -1420,7 +1420,7 @@ export default function TacoRainGame() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:gap-2">
             <MiniPanel label="Nivel" value={`${snapshot.level}/5`} />
             <MiniPanel label="Fase" value={`${snapshot.levelTimeLeft}s`} />
             <MiniPanel label="Combo" value={snapshot.combo > 0 ? `x${snapshot.combo}` : '-'} />
@@ -1434,7 +1434,7 @@ export default function TacoRainGame() {
             <MiniPanel label="Escudo" value={snapshot.shieldActive ? 'Activo' : '-'} />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 lg:col-span-2">
             {status === 'playing' ? (
               <button
                 type="button"
@@ -1474,18 +1474,18 @@ export default function TacoRainGame() {
             </button>
           </div>
 
-          <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm text-cyan-50/75">
+          <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm text-cyan-50/75 lg:p-3">
             <p className="font-bold text-white">Controles</p>
             <p className="mt-1">Celular: arrastra el dedo para mover la canasta.</p>
             <p>Desktop: flechas o A/D.</p>
           </div>
 
-          <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4 text-sm text-emerald-50/75">
+          <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4 text-sm text-emerald-50/75 lg:p-3">
             <p className="font-bold text-white">Ranking online</p>
             <p className="mt-1">{onlineStatusText}</p>
           </div>
 
-          <div className="rounded-lg border border-violet-300/20 bg-violet-300/10 p-4">
+          <div className="rounded-lg border border-violet-300/20 bg-violet-300/10 p-4 lg:p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-violet-100">
                 <Sparkles className="h-4 w-4" />
@@ -1498,7 +1498,7 @@ export default function TacoRainGame() {
             <AchievementList achievements={achievements} />
           </div>
 
-          <div className="rounded-lg border border-fuchsia-300/20 bg-fuchsia-300/10 p-4">
+          <div className="rounded-lg border border-fuchsia-300/20 bg-fuchsia-300/10 p-4 lg:p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-fuchsia-100">
                 <Trophy className="h-4 w-4" />
@@ -1512,7 +1512,7 @@ export default function TacoRainGame() {
             />
           </div>
 
-          <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4">
+          <div className="rounded-lg border border-emerald-300/20 bg-emerald-300/10 p-4 lg:p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-emerald-100">
                 <CalendarDays className="h-4 w-4" />
@@ -1530,7 +1530,7 @@ export default function TacoRainGame() {
             />
           </div>
 
-          <div className="rounded-lg border border-yellow-300/20 bg-yellow-300/10 p-4">
+          <div className="rounded-lg border border-yellow-300/20 bg-yellow-300/10 p-4 lg:p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-sm font-black uppercase tracking-[0.22em] text-yellow-100">Top local</p>
               <span className="rounded-full bg-yellow-300 px-2 py-1 text-xs font-black text-slate-950">Top 5</span>
@@ -1540,7 +1540,7 @@ export default function TacoRainGame() {
             ) : (
               <div className="space-y-2">
                 {localRanking.map((entry, index) => (
-                  <div key={`${entry.date}-${index}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 rounded-lg bg-slate-950/55 p-2">
+                  <div key={`${entry.date}-${index}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 rounded-lg bg-slate-950/55 p-2 lg:p-1.5">
                     <div className="text-center text-sm font-black text-yellow-200">#{index + 1}</div>
                     <div className="min-w-0">
                       <div className="flex min-w-0 items-center gap-2">
@@ -1564,9 +1564,9 @@ export default function TacoRainGame() {
 
 function MiniPanel({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-950/60 p-3">
+    <div className="rounded-lg bg-slate-950/60 p-3 lg:p-2">
       <p className="text-xs text-cyan-50/55">{label}</p>
-      <p className="mt-1 text-xl font-black text-white">{value}</p>
+      <p className="mt-1 text-xl font-black text-white lg:text-lg">{value}</p>
     </div>
   )
 }
@@ -1585,7 +1585,7 @@ function OnlineRankingList({
   return (
     <div className="space-y-2">
       {entries.map((entry) => (
-        <div key={`${entry.user_id}-${entry.rank}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 rounded-lg bg-slate-950/55 p-2">
+        <div key={`${entry.user_id}-${entry.rank}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 rounded-lg bg-slate-950/55 p-2 lg:p-1.5">
           <div className="text-center text-sm font-black text-white">#{entry.rank}</div>
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-2">
@@ -1609,11 +1609,11 @@ function AchievementList({ achievements }: { achievements: TacoRainAchievement[]
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-2 lg:gap-1.5">
       {achievements.map((achievement) => (
         <div
           key={achievement.id}
-          className={`rounded-lg border p-2 ${
+          className={`rounded-lg border p-2 lg:p-1.5 ${
             achievement.is_unlocked
               ? 'border-violet-200/40 bg-slate-950/65 text-white'
               : 'border-white/10 bg-slate-950/35 text-white/45'
@@ -1643,7 +1643,7 @@ function AchievementIcon({ achievement }: { achievement: TacoRainAchievement }) 
         : 'border-white/15 bg-white/10'
 
   return (
-    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg ${rarityClass}`}>
+    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-lg lg:h-8 lg:w-8 lg:text-base ${rarityClass}`}>
       {icon}
     </span>
   )
