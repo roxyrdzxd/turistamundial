@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CalendarDays, Pause, Play, RotateCcw, Sparkles, Trophy, Volume2, VolumeX } from 'lucide-react'
 import { getWorldCup2026Country } from '@/lib/worldCup2026Countries'
-import { createClient } from '@/lib/supabase/client'
 
 type GameStatus = 'ready' | 'playing' | 'paused' | 'gameOver'
 
@@ -25,8 +24,6 @@ type TacoRainSnapshot = {
 }
 
 type TacoRainLocalScore = {
-  username?: string
-  world_cup_country_code?: string | null
   score: number
   tacos: number
   combo: number
@@ -50,14 +47,6 @@ type TacoRainLeaderboardEntry = {
   last_played_at?: string | null
 }
 
-type TacoRainSeason = {
-  id: string
-  title: string
-  status: string
-  starts_at: string
-  ends_at: string
-}
-
 type TacoRainAchievement = {
   id: string
   name: string
@@ -70,6 +59,14 @@ type TacoRainAchievement = {
   unlocked_at?: string | null
 }
 
+type TacoRainSeason = {
+  id: string
+  title: string
+  status: string
+  starts_at: string
+  ends_at: string
+}
+
 type TacoRainSaveResult = {
   rank: number
   personal_best: number
@@ -77,11 +74,6 @@ type TacoRainSaveResult = {
 }
 
 type OnlineStatus = 'idle' | 'saving' | 'saved' | 'auth' | 'error'
-
-type TacoRainPlayerProfile = {
-  username: string
-  world_cup_country_code?: string | null
-}
 
 type TacoRainControls = {
   start: () => void
@@ -97,7 +89,6 @@ const PLAYER_Y = GAME_HEIGHT - 52
 const INITIAL_LIVES = 4
 const LEVEL_DURATION_MS = 90000
 const HI_SCORE_KEY = 'taco-rain-hi-score'
-const LOCAL_RANKING_KEY = 'taco-rain-local-ranking'
 const TACO_RAIN_THEME_URL = 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/sounds/la%20lluvia%20del%20taco.mp3'
 const TACO_RAIN_MUSIC_BASE_URL = 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/sounds'
 const TACO_ASSET_BASE_URL = 'https://cgoisveithzvituzyoga.supabase.co/storage/v1/object/public/tacos'
@@ -198,27 +189,6 @@ const initialSnapshot: TacoRainSnapshot = {
   shieldActive: false,
 }
 
-function getStoredLocalRanking(): TacoRainLocalScore[] {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const storedValue = window.localStorage.getItem(LOCAL_RANKING_KEY)
-    const parsedValue = storedValue ? JSON.parse(storedValue) : []
-    return Array.isArray(parsedValue) ? parsedValue.slice(0, 5) : []
-  } catch {
-    return []
-  }
-}
-
-function saveLocalScore(scoreEntry: TacoRainLocalScore) {
-  const nextRanking = [...getStoredLocalRanking(), scoreEntry]
-    .sort((a, b) => b.score - a.score || b.combo - a.combo || b.tacos - a.tacos)
-    .slice(0, 5)
-
-  window.localStorage.setItem(LOCAL_RANKING_KEY, JSON.stringify(nextRanking))
-  return nextRanking
-}
-
 export default function TacoRainGame() {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const controlsRef = useRef<TacoRainControls | null>(null)
@@ -226,11 +196,9 @@ export default function TacoRainGame() {
   const musicRef = useRef<HTMLAudioElement | null>(null)
   const musicUrlRef = useRef(TACO_RAIN_THEME_URL)
   const mutedRef = useRef(false)
-  const playerProfileRef = useRef<TacoRainPlayerProfile>({ username: 'Jugador local', world_cup_country_code: null })
   const submitOnlineScoreRef = useRef<(scoreEntry: TacoRainLocalScore) => void>(() => {})
   const [status, setStatus] = useState<GameStatus>('ready')
   const [snapshot, setSnapshot] = useState<TacoRainSnapshot>(initialSnapshot)
-  const [localRanking, setLocalRanking] = useState<TacoRainLocalScore[]>([])
   const [onlineRanking, setOnlineRanking] = useState<TacoRainLeaderboardEntry[]>([])
   const [seasonRanking, setSeasonRanking] = useState<TacoRainLeaderboardEntry[]>([])
   const [season, setSeason] = useState<TacoRainSeason | null>(null)
@@ -253,6 +221,18 @@ export default function TacoRainGame() {
     }
   }, [])
 
+  const fetchAchievements = useCallback(async () => {
+    try {
+      const response = await fetch('/api/taco-rain/achievements')
+      const data = await response.json()
+      if (response.ok) {
+        setAchievements(data.achievements || [])
+      }
+    } catch (error) {
+      console.warn('[TacoRain] No se pudieron cargar los logros:', error)
+    }
+  }, [])
+
   const fetchSeason = useCallback(async () => {
     try {
       const response = await fetch('/api/taco-rain/season')
@@ -263,18 +243,6 @@ export default function TacoRainGame() {
       }
     } catch (error) {
       console.warn('[TacoRain] No se pudo cargar la temporada:', error)
-    }
-  }, [])
-
-  const fetchAchievements = useCallback(async () => {
-    try {
-      const response = await fetch('/api/taco-rain/achievements')
-      const data = await response.json()
-      if (response.ok) {
-        setAchievements(data.achievements || [])
-      }
-    } catch (error) {
-      console.warn('[TacoRain] No se pudieron cargar los logros:', error)
     }
   }, [])
 
@@ -330,55 +298,7 @@ export default function TacoRainGame() {
 
   useEffect(() => {
     const storedHiScore = Number(window.localStorage.getItem(HI_SCORE_KEY) || 0)
-    const storedRanking = getStoredLocalRanking()
     setSnapshot((current) => ({ ...current, hiScore: storedHiScore }))
-    setLocalRanking(storedRanking)
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadPlayerProfile() {
-      try {
-        const supabase = createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user || cancelled) return
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, world_cup_country_code')
-          .eq('id', user.id)
-          .single()
-
-        if (cancelled) return
-
-        playerProfileRef.current = {
-          username: profile?.username || user.user_metadata?.username || 'Jugador local',
-          world_cup_country_code: profile?.world_cup_country_code || null,
-        }
-
-        setLocalRanking((currentRanking) => {
-          const updatedRanking = currentRanking.map((entry) => ({
-            ...entry,
-            username: entry.username || playerProfileRef.current.username,
-            world_cup_country_code: entry.world_cup_country_code || playerProfileRef.current.world_cup_country_code,
-          }))
-          window.localStorage.setItem(LOCAL_RANKING_KEY, JSON.stringify(updatedRanking))
-          return updatedRanking
-        })
-      } catch (error) {
-        console.warn('[TacoRain] No se pudo cargar el perfil local:', error)
-      }
-    }
-
-    loadPlayerProfile()
-
-    return () => {
-      cancelled = true
-    }
   }, [])
 
   useEffect(() => {
@@ -1204,10 +1124,7 @@ export default function TacoRainGame() {
             window.localStorage.setItem(HI_SCORE_KEY, String(this.hiScore))
           }
           if (this.score > 0) {
-            const playerProfile = playerProfileRef.current
             const scoreEntry = {
-              username: playerProfile.username,
-              world_cup_country_code: playerProfile.world_cup_country_code,
               score: this.score,
               tacos: this.catchCount,
               combo: this.bestCombo,
@@ -1217,8 +1134,6 @@ export default function TacoRainGame() {
               level: this.currentLevelIndex + 1,
               date: new Date().toISOString(),
             }
-            const nextRanking = saveLocalScore(scoreEntry)
-            setLocalRanking(nextRanking)
             submitOnlineScoreRef.current(scoreEntry)
           }
           this.flashPhrase(this.score >= this.hiScore ? '¡Nuevo hi-score!' : 'Taquiza terminada')
@@ -1311,9 +1226,6 @@ export default function TacoRainGame() {
   }, [])
 
   const hearts = Array.from({ length: INITIAL_LIVES }, (_, index) => index < snapshot.lives)
-  const seasonEndsAt = season?.ends_at
-    ? new Date(season.ends_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
-    : null
   const onlineStatusText = onlineStatus === 'saving'
     ? 'Guardando puntaje online...'
     : onlineStatus === 'saved' && saveResult
@@ -1325,6 +1237,9 @@ export default function TacoRainGame() {
         : onlineStatus === 'error'
           ? onlineError || 'No se pudo guardar online.'
           : 'Tus mejores partidas tambien compiten online.'
+  const seasonEndsAt = season?.ends_at
+    ? new Date(season.ends_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+    : null
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050816] px-3 py-5 text-white sm:px-6 lg:h-screen lg:px-4 lg:py-3">
@@ -1411,8 +1326,8 @@ export default function TacoRainGame() {
           )}
         </section>
 
-        <aside className="w-full max-w-[430px] space-y-4 rounded-lg border border-white/10 bg-white/[0.06] p-5 shadow-xl lg:grid lg:max-w-[820px] lg:grid-cols-2 lg:content-start lg:gap-3 lg:space-y-0 lg:overflow-hidden lg:p-3 xl:max-w-[900px]">
-          <div className="lg:rounded-lg lg:bg-slate-950/35 lg:p-3">
+        <aside className="w-full max-w-[430px] space-y-4 rounded-lg border border-white/10 bg-white/[0.06] p-5 shadow-xl lg:grid lg:max-w-[900px] lg:grid-cols-2 lg:content-start lg:gap-3 lg:space-y-0 lg:p-3 xl:max-w-[980px]">
+          <div className="lg:col-span-2 lg:rounded-lg lg:bg-slate-950/35 lg:p-3">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">Frase arcade</p>
             <p className="mt-2 text-2xl font-black text-white">{snapshot.phrase}</p>
             <p className="mt-1 text-sm font-bold text-cyan-50/65">
@@ -1420,7 +1335,7 @@ export default function TacoRainGame() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:gap-2">
+          <div className="grid grid-cols-2 gap-3 lg:col-span-2 lg:grid-cols-4 lg:gap-2">
             <MiniPanel label="Nivel" value={`${snapshot.level}/5`} />
             <MiniPanel label="Fase" value={`${snapshot.levelTimeLeft}s`} />
             <MiniPanel label="Combo" value={snapshot.combo > 0 ? `x${snapshot.combo}` : '-'} />
@@ -1520,42 +1435,16 @@ export default function TacoRainGame() {
               </p>
               {seasonEndsAt && (
                 <span className="rounded-full bg-emerald-300 px-2 py-1 text-xs font-black text-slate-950">
-                  Cierra {seasonEndsAt}
+                  {seasonEndsAt}
                 </span>
               )}
             </div>
             <OnlineRankingList
-              entries={seasonRanking.slice(0, 5)}
+              entries={seasonRanking.slice(0, 3)}
               emptyText="La primera taquiza de la semana abre la temporada."
             />
           </div>
 
-          <div className="rounded-lg border border-yellow-300/20 bg-yellow-300/10 p-4 lg:p-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-sm font-black uppercase tracking-[0.22em] text-yellow-100">Top local</p>
-              <span className="rounded-full bg-yellow-300 px-2 py-1 text-xs font-black text-slate-950">Top 5</span>
-            </div>
-            {localRanking.length === 0 ? (
-              <p className="text-sm text-yellow-50/70">Tu primera taquiza abrirá el ranking local.</p>
-            ) : (
-              <div className="space-y-2">
-                {localRanking.map((entry, index) => (
-                  <div key={`${entry.date}-${index}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 rounded-lg bg-slate-950/55 p-2 lg:p-1.5">
-                    <div className="text-center text-sm font-black text-yellow-200">#{index + 1}</div>
-                    <div className="min-w-0">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <CountryFlagBadge countryCode={entry.world_cup_country_code} />
-                        <p className="truncate text-xs font-bold text-yellow-50/75">{entry.username || 'Jugador local'}</p>
-                      </div>
-                      <p className="truncate text-sm font-black text-white">{entry.score.toLocaleString()} pts</p>
-                      <p className="text-xs text-yellow-50/55">{entry.tacos} tacos · combo x{entry.combo} · {entry.time}s</p>
-                    </div>
-                    <span className="text-lg">🌮</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </aside>
       </div>
     </div>
